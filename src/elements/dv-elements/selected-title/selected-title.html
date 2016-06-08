@@ -1,0 +1,177 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../../bower_components/paper-tooltip/paper-tooltip.html">
+
+<link rel="import" href="../utils/ajax-ls/file-metadata.html">
+<link rel="import" href="../pagination-button/pagination-button.html">
+
+<dom-module id="selected-title">
+	<style>
+		:host {
+			display: block;
+			color: #333;
+			padding-left: 7px;
+		}
+		.row {
+			@apply(--layout-horizontal);
+			@apply(--layout-center);
+		}
+		.flex {
+			@apply(--layout-flex);
+		}
+		.flex2 {
+			@apply(--layout-flex-2);
+		}
+		.flex3 {
+			@apply(--layout-flex-3);
+		}
+		.standardTools {
+			padding-right: 20px;
+			@apply(--layout-horizontal);
+			@apply(--layout-end-justified);
+		}
+		.standardTools > paper-toggle-button {
+			display:inline-flex;
+			height:40px;
+			--paper-toggle-button-checked-bar-color: red;
+			--paper-toggle-button-checked-button-color:  red;
+			--paper-toggle-button-checked-ink-color: red;
+		}
+		.standardTools > div {
+			display:inline-flex;
+			margin-left: 10px;
+		}
+		.pagination > div {
+			display:inline-flex;
+		}
+		#pagination {
+            display: inline-block;
+            padding: 0;
+            margin: 0;
+            @apply(--layout-horizontal);
+		}
+		#pagination pagination-button {
+            display: inline;
+        }
+		paper-tooltip {
+            --paper-tooltip-background: #5cb5ec;
+        }
+		.info {
+            border: solid 1px #dedede;
+            border-radius: 20px;
+            background: #f7f7f7;
+		}
+		.home {
+            border-top-right-radius:20%;
+            border-bottom-right-radius:20%;
+            border-top-left-radius:70%;
+            border-bottom-left-radius:70%;
+            color: #616161;
+		}
+	</style>
+	<template>
+		<template is="dom-if" if="{{isHome}}">
+			<div class="row">
+				<div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
+				<div class="flex3 pagination">
+					<div id="pagination"></div>
+				</div>
+				<div class="standardTools flex">
+					<div>
+						<paper-icon-button class="info" icon="info" on-tap="_metadataInfo"></paper-icon-button>
+						<paper-tooltip>metadata information</paper-tooltip>
+					</div>
+				</div>
+			</div>
+		</template>
+
+	</template>
+	<script>
+		Polymer
+		({
+			is: 'selected-title',
+
+			properties: {
+				selected: {
+					type: String,
+					notify: true
+				},
+
+				isHome: {
+                    type: Boolean,
+                    value: true,
+                    computed: '_isHome(selected)'
+		        }
+			},
+
+			//	Computed Functions
+			//==============================
+			_isHome: function (selected)
+			{
+				return !!(selected == "home" || selected == "pathfinder");
+			},
+
+			//	EventHandler (Functions)
+			//==============================
+
+			/*------------------------------------------------------------
+				Open a Drawer and display metadata of a file/directory
+			-------------------------------------------------------------*/
+			_metadataInfo: function(e)
+			{
+				e.stopPropagation();
+
+				var name;
+				var path = decodeURIComponent(app.params);
+				var el1;
+				var x = this.selected;
+				var y = app.$.homeDir.querySelector("#abc").selectedItem;
+
+				app.$.metadataDrawer.innerHTML = "";
+
+				if ( x == "home" ){
+					if ( y == null ){
+						el1 = new FileMetadata("Root", "/", "DIR");
+					} else {
+						name = y.fileName;
+						path = "/" + name;
+						fileType = y.fileType;
+						el1 = new FileMetadata(name, path, fileType);
+					}
+					app.$.metadataDrawer.appendChild(el1);
+
+				} else if ( x == "pathfinder" ) {
+					var z = app.$.pathFinder.querySelector("#abc");
+					if ( z == null || z.selectedItem == null ) {
+						path = path.replace(/=/g, "/");
+						var n = path.lastIndexOf("/");
+						name = path.slice(n+1);
+						el1 = new FileMetadata(name, path, "DIR");
+					} else if (z.selectedItem != null ) {
+						name = z.selectedItem.fileName;
+						path = path.replace(/=/g, "/");
+						path = path + "/" + name;
+						fileType = z.selectedItem.fileType;
+						el1 = new FileMetadata(name, path, fileType);
+					}
+					app.$.metadataDrawer.appendChild(el1);
+				}
+
+				Polymer.dom.flush();
+
+				app.$.metadata.togglePanel();
+				e.stopPropagation();
+			},
+
+			_home: function()
+			{
+				app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
+				page(app.baseUrl);
+			}
+		});
+	</script>
+</dom-module>

@@ -1,0 +1,105 @@
+<!--
+FIXME:Consider making it be a behaviour that will be share across all necessary elements
+-->
+<link rel="import" href="../dialog-box/user-login-up-dialog-box.html">
+
+<dom-module id="user-login-up">
+	<style>
+		:host {
+		}
+		.capitalize {
+			text-transform: initial !important;
+			font-size: 0.7em;
+			padding-left: 5px;
+		}
+		paper-button {
+		}
+	</style>
+	<template>
+		<paper-button on-tap="_loginout">
+			<iron-icon icon="{{icon}}"></iron-icon>
+			<label class="capitalize">{{msg}}</label>
+		</paper-button>
+	</template>
+	<script>
+		Polymer({
+			is: 'user-login-up',
+			properties: {
+				isSomebody: {
+					type: Boolean,
+					notify: true
+				},
+
+				msg: {
+					type: String,
+					notify: true
+				},
+
+				icon: {
+					type: String,
+					notify: true
+				}
+			},
+
+			attached: function()
+			{
+				if( typeof(Storage) !== "undefined" ) {
+					// Code for sessionStorage.
+					// TODO: Add functionality to support storing auth for longer period
+					if ( sessionStorage.upauth == null || sessionStorage.upauth == "" ) {
+						/*continue to be nobody*/
+						this.isSomebody = false;
+						this.icon = "face";
+						this.msg = "Log-in";
+					} else {
+						this.isSomebody = true;
+						this.icon = "exit-to-app";
+						this.msg = "Log-out";
+					}
+				} else {
+					app.$.toast.text = 'Sorry! No Web Storage support... ';
+					app.$.toast.show();
+				}
+			},
+
+			//	Commputed (Functions)
+			//============================
+			_computedIcon: function(isSomebody)
+			{
+				if (isSomebody) {
+					this.icon = "exit-to-app";
+					this.msg = "Log-out";
+				} else {
+					this.icon = "face";
+					this.msg = "Log-in";
+				}
+			},
+
+
+			//	EventHandler (Functions)
+			//============================
+			_loginout: function(e) {
+				e.stopPropagation();
+				if (this.isSomebody) {
+					sessionStorage.removeItem("upauth");
+					this.icon = "face";
+					this.msg = "Log-in";
+					this.isSomebody = false;
+					Polymer.dom.flush();
+					this.updateStyles();
+					window.location.reload();
+				} else {
+					app.$.centralDialogBox.innerHTML = "";
+
+					var el2 = new UserLoginUpDialogBox();
+					app.$.centralDialogBox.appendChild(el2);
+					Polymer.dom.flush();
+					this.updateStyles();
+
+					app.$.centralDialogBox.toggle();
+				}
+				e.stopPropagation();
+			}
+		});
+	</script>
+</dom-module>

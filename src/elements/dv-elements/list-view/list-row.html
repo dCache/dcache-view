@@ -1,0 +1,236 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../../../bower_components/iron-icons/communication-icons.html">
+<link rel="import" href="../../../bower_components/iron-icons/notification-icons.html">
+
+<link rel="import" href="../file-type/file-type-icon.html">
+
+<dom-module id="list-row">
+	<style>
+		:host {
+			@apply(--layout-block);
+			font-size: 0.7em;
+		}
+		.row {
+			@apply(--layout-horizontal);
+			@apply(--layout-center);
+			height: 40px;
+			border-bottom: 1px solid #e5e5e5;
+			text-decoration: none !important;
+		}
+		.name{
+			@apply(--layout-flex-3);
+		}
+		.ctime, .mtime {
+			@apply(--layout-flex);
+		}
+		.mtime {
+			text-align: center;
+		}
+		.size {
+			@apply(--layout-flex);
+			text-align: right;
+		}
+		.size > span {
+			padding-right: 10px;
+		}
+		.fit {
+			@apply(--layout-fit);
+		}
+		.online {
+			font-size: 0.3em;
+			color: #2196F3;
+		}
+		.nearline {
+			border: 1px solid #969696;
+			border-radius:3px;
+			margin: 0px !important;
+			font-size: 0.1em !important;
+			color: #f44336;
+            -ms-transform: rotate(180deg); /* IE 9 */
+            -webkit-transform: rotate(180deg); /* Chrome, Safari, Opera */
+            transform: rotate(180deg);
+            animation: blink-animation 1s steps(5, start) 3;
+            -webkit-animation: blink-animation 1s steps(5, start) 3;
+            width: 24px;
+            height: 18px;
+        }
+		@keyframes blink-animation {
+            to {visibility: hidden;}
+		}
+		@-webkit-keyframes blink-animation {
+            to {visibility: hidden;}
+		}
+	</style>
+	<template>
+		<div id="row" class="row">
+			<file-type-icon filetype="{{fileType}}" style="padding-left: 10px;"></file-type-icon>
+			<div class="cell name">
+				<label id="filename" style="padding-left:5px;">{{name}}</label>
+			</div>
+			<div class="cell ctime">{{computedCTime}}</div>
+			<div class="cell mtime">
+				<template is="dom-if" if="{{isNearline}}" restamp>
+					<iron-icon icon="communication:voicemail" class="nearline"></iron-icon>
+				</template>
+				<template is="dom-if" if="{{isOnline}}" restamp>
+					<iron-icon icon="av:album" class="online"></iron-icon>
+				</template>
+			</div>
+			<div class="cell size" id="hovering">
+				<span>{{computedSize}}</span>
+			</div>
+		</div>
+
+	</template>
+	<script>
+		Polymer({
+			is: 'list-row',
+
+			properties: {
+				name: {
+					type: String,
+					notify: true
+				},
+
+				fileType: {
+					type: String,
+					notify: true
+				},
+
+				ctime: {
+					type: String,
+					notify: true
+				},
+
+				computedCTime: {
+					type: String,
+					computed:'_computedCTime(ctime)'
+				},
+
+				mtime: {
+					type: String,
+					notify: true
+				},
+
+				size: {
+					type: String,
+					notify: true
+				},
+
+				computedSize: {
+					type: String,
+					computed:'_computeSize(fileType, size)'
+				},
+
+				parentPath: {
+					type: String,
+					notify: true
+				},
+
+				filePath: {
+					type: String,
+					computed:'_computeFilePath(parentPath, name)'
+				},
+
+				loc: {
+					type: String,
+					notify: true
+				},
+
+				locality: {
+					type: String,
+					notify: true,
+					computed: '_computeLocality(loc)'
+				},
+				isNearline: {
+					type: Boolean,
+					notify: true
+				},
+				isOnline: {
+					type: Boolean,
+					notify: true
+				}
+			},
+
+			//	EventListeners
+			//========================
+			listeners: {
+				'row.dblclick': '_openFileLoc'
+			},
+
+
+			//	"Computed" Functions
+			//========================
+			_computeFilePath: function(parentPath, name)
+			{
+				return parentPath + name;
+			},
+
+			_computeLocality: function(loc)
+			{
+				if(loc == "NEARLINE"){
+					this.isNearline = true;
+					this.isOnline = false;
+				} else if ( loc == "ONLINE") {
+					this.isNearline = false;
+					this.isOnline = true;
+				} else {
+					this.isNearline = false;
+					this.isOnline = false;
+				}
+			},
+
+			_computedCTime: function(ctime)
+			{
+				var x = new Date(ctime);
+				return x.toLocaleString();
+			},
+
+			_computeSize: function(fileType, size)
+			{
+				if ( fileType == "DIR" ) {
+					return  "--";
+				} else {
+					if (size == 0) {
+						return "0 Byte";
+					}
+
+					var k = 1000;
+					var dm = 1 || 3;
+                    var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+                    var i = Math.floor(Math.log(size) / Math.log(k));
+
+                    return parseFloat((size / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+				}
+			},
+
+			//	EventHandler (Functions)
+			//============================
+			_openFileLoc: function()
+			{
+				var x = this.fileType;
+				var path;
+
+				if (x == "DIR") {
+					path = this.filePath;
+
+					path = path.replace(/\//g, "=");
+					var y = '/home/'+ path;
+					page(y);
+				} else {
+                    //Download a file
+					if (window.CONFIG.webdavEndpoint == ""){
+						path = "http://" + window.location.hostname + ":2880" + this.filePath
+					} else {
+						path = window.CONFIG.webdavEndpoint + this.filePath;
+					}
+					window.open(path);
+				}
+			}
+		});
+	</script>
+</dom-module>

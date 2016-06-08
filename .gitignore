@@ -1,0 +1,25 @@
+##  Ignore maven-generated directories and their contents.
+target
+node
+node_modules
+bower_components
+etc
+
+## Ignore IntelliJ-generated files and directories
+.idea
+*.iml
+
+## Ignore Mac generated files, wherever they are
+.DS_Store
+
+## Ignore Eclipse-generated files and directories
+## The globbed version does not work on Mac OS X.9.
+## The expression of the file or directory name
+## should be sufficient to indicate it should be
+## ignored whatever its parent path.
+.project
+.classpath
+.settings/
+
+## Ignore
+#/src/scripts/config.js

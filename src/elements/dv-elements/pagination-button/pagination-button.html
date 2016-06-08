@@ -1,0 +1,74 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<dom-module id="pagination-button">
+	<style>
+		:host{
+			display: inline-block;
+			/*Prevent text selection after double click*/
+            -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+            -moz-user-select: none; /* mozilla browsers */
+            -khtml-user-select: none; /* webkit (konqueror) browsers */
+            -ms-user-select: none; /* IE10+ */
+		}
+		div {
+			display: inline;
+        }
+		a {
+            color: black;
+		    float: left;
+		    padding: 8px 16px;
+		    text-decoration: none;
+		    border: 1px solid #fafafa;
+		    transition: background-color .3s;
+		    font-size: 13px;
+		    background-color: #fafafa;
+		    border-radius: 3px;
+		    margin: 0 1px;
+		}
+		a.active {
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #b9babb;
+		}
+		a:hover:not(.active) {
+			background-color: #efefef;
+			cursor:pointer;
+			border: 1px solid #f44336;
+		}
+
+	</style>
+	<template>
+		<div><a on-tap="_ref">{{dirName}}</a></div>
+	</template>
+	<script>
+		PaginationButton = Polymer({
+			is: 'pagination-button',
+
+			properties: {
+				dirName: {
+					type: String,
+					notify: true
+				},
+
+				canonicalPath: {
+					type: String,
+					notify: true
+				}
+			},
+
+			//  Elememt Constructor
+            //================================
+            factoryImpl: function(dirName, canonicalPath)
+            {
+                this.dirName = dirName;
+                this.canonicalPath = canonicalPath;
+            },
+
+            _ref: function()
+			{
+                p = this.canonicalPath;
+				page(p);
+			}
+		});
+	</script>
+</dom-module>

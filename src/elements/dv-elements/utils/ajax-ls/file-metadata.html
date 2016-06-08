@@ -1,0 +1,262 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../../bower_components/iron-icons/iron-icons.html">
+
+
+<link rel="import" href="../../../../bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
+<link rel="import" href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../../../bower_components/paper-icon-button/paper-icon-button.html">
+
+
+<link rel="import" href="../../file-type/file-type-icon.html">
+
+<dom-module id="file-metadata">
+	<style>
+		:host {
+			height: 100%;
+			margin: 0;
+		}
+		.dir {
+            --iron-icon-fill-color:#4FC3F7;
+		}
+		.flex {
+			@apply(--layout-flex);
+		}
+		.spacer {
+			margin-left: 10px !important;
+		}
+		paper-scroll-header-panel {
+			height: 100%;
+		}
+		paper-toolbar {
+			background: #fafafa;
+			color: #333;
+		}
+		.content {
+			padding: 2px 7px;
+			background: #eee;
+		}
+		.cafe-light {
+            color: var(--paper-grey-600);
+        }
+		.cafe-header {
+			@apply(--paper-font-headline);
+		}
+		.cafe-light {
+            color: var(--paper-grey-600);
+        }
+		.cafe-location {
+            float: right;
+            font-size: 15px;
+            vertical-align: middle;
+        }
+	</style>
+	<template>
+		<paper-scroll-header-panel class="flex" fixed>
+
+			<paper-toolbar>
+				<div class="spacer title">Metadata Info</div>
+				<paper-icon-button icon="close" title="close" id="closeFileMetadataPanel"></paper-icon-button>
+			</paper-toolbar>
+
+			<div class="content">
+				<iron-ajax
+						auto
+						url="{{url}}"
+						method="GET"
+						content-type="application/json"
+						headers$='[[_computeHeaders(isSomebody)]]'
+						handle-as="json"
+						last-response="{{metadata}}"
+						on-response="handleResponse">
+				</iron-ajax>
+                <paper-card>
+                    <div class="card-content">
+                        <div class="cafe-header">{{metadata.fileName}}
+                            <div class="cafe-location cafe-light">
+                                <file-type-icon filetype="{{metadata.fileType}}"></file-type-icon>
+                            </div>
+                        </div>
+
+                        <p><b>Created on:</b></p>
+                        <div style="width:220px; word-wrap: break-word;">
+                            <code>{{cTime}}</code>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <p><b>Last Modified:</b></p>
+                        <div class="horizontal justified">
+                            <div style="width:220px; word-wrap: break-word;">
+                                <code>{{mTime}}</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <p><b>Path:</b></p>
+                        <div class="horizontal justified">
+                            <div style="width:220px; word-wrap: break-word;">
+                                <code>{{path}}</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <p><b>File Type:</b></p>
+                        <div class="horizontal justified">
+                            <code>{{metadata.fileType}}</code>
+                        </div>
+                    </div>
+
+                    <template is="dom-if" if="{{isNotDir}}">
+                        <div class="card-actions">
+                            <p><b>Locality Information:</b></p>
+                            <div class="horizontal justified">
+                                <div style=" width:220px; word-wrap: break-word;">
+                                    <code>{{metadata.fileLocality}}</code>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </paper-card>
+			</div>
+		</paper-scroll-header-panel>
+	</template>
+	<script>
+		FileMetadata = Polymer({
+			is: 'file-metadata',
+
+			properties: {
+				fileName: {
+					type: String,
+					notify: true
+				},
+
+				path: {
+					type: String,
+					notify: true
+				},
+
+				fileType: {
+					type: String,
+					notify: true
+				},
+
+				cTime: {
+					type: String,
+					notify: true
+				},
+
+				mTime: {
+					type: String,
+					notify: true
+				},
+
+				parentPath: {
+					type: String,
+					notify: true,
+					computed:'_computeParent(path)'
+				},
+
+				isSomebody: {
+					type: Boolean,
+					notify: true
+				},
+
+				url: {
+					type: Object,
+                    notify: true,
+                    computed: '_url(path)'
+				},
+
+				isNotDir: {
+					type: Boolean,
+					notify: true
+				}
+			},
+
+			//Element Constructor
+			factoryImpl: function(fileName, path, fileType)
+			{
+				this.fileName = fileName;
+				this.path = path;
+				this.fileType = fileType;
+				if (fileType == "DIR") {
+					this.isNotDir = false;
+				} else { this.isNotDir = true; }
+			},
+
+			attached: function()
+			{
+				this.isSomebody = app.$.WhoAmI.isSomebody;
+			},
+
+			//EventListener
+			listeners: {
+				'closeFileMetadataPanel.tap': '_closeFileMetadataPanel'
+			},
+
+			//Computed Functions
+			_url: function(path)
+            {
+                if ( path==null || path == "" ) {
+                    return window.CONFIG.webapiEndpoint + "namespace/?locality=true";
+                } else {
+                    return window.CONFIG.webapiEndpoint + "namespace"+ path +"/?locality=true";
+                }
+            },
+
+			_computeHeaders: function(isSomebody)
+			{
+				//For now use this for this development stage
+				//	TODO: need to re-wire this function activities
+
+				if(isSomebody == true) {
+					if ( sessionStorage.upauth == null || sessionStorage.upauth == "" ) {
+						return '{"Accept":"application/json"}';
+					} else {
+						auth = sessionStorage.upauth;
+						return '{"Accept":"application/json", "Authorization":"Basic ' + auth + '"}';
+					}
+				} else {
+					return '{"Accept":"application/json"}';
+				}
+			},
+
+			_computeParent: function(path)
+			{
+				var parentPath = decodeURIComponent(app.params);
+
+				if (parentPath == null || parentPath == "") {
+					parentPath = "/";
+				} else {
+					parentPath = parentPath.replace(/=/g, "/");
+
+					if (path == parentPath){
+						parentPath = parentPath.substring(0, parentPath.length - this.fileName.length);
+					}
+				}
+				return parentPath;
+			},
+
+			//EventHandler
+			_closeFileMetadataPanel: function(e)
+			{
+				e.stopPropagation();
+				app.$.metadata.closeDrawer();
+				e.stopPropagation();
+			},
+
+			handleResponse: function(e, request)
+			{
+				x = request.xhr.response;
+				if (x != null || x != undefined || x != "" ) {
+					this.cTime = new Date(x.creationTime);
+                    this.mTime = new Date(x.mtime);
+				}
+			}
+		});
+	</script>
+</dom-module>
