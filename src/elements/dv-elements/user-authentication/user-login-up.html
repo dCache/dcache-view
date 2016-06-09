@@ -1,11 +1,11 @@
 <!--
 FIXME:Consider making it be a behaviour that will be share across all necessary elements
 -->
-<link rel="import" href="../dialog-box/user-login-up-dialog-box.html">
-
+<link rel="import" href="user-login-up-form.html">
 <dom-module id="user-login-up">
 	<style>
 		:host {
+			@apply(--layout-horizontal);
 		}
 		.capitalize {
 			text-transform: initial !important;
@@ -16,6 +16,9 @@ FIXME:Consider making it be a behaviour that will be share across all necessary 
 		}
 	</style>
 	<template>
+		<template is="dom-if" if="{{!isSomebody}}" restamp>
+			<user-login-up-form username="{{user}}" password="{{pw}}"></user-login-up-form>
+		</template>
 		<paper-button on-tap="_loginout">
 			<iron-icon icon="{{icon}}"></iron-icon>
 			<label class="capitalize">{{msg}}</label>
@@ -38,6 +41,15 @@ FIXME:Consider making it be a behaviour that will be share across all necessary 
 				icon: {
 					type: String,
 					notify: true
+				},
+
+				user: {
+					type: String,
+					notify: true
+				},
+				pw: {
+					type: String,
+					notify: true
 				}
 			},
 
@@ -49,11 +61,11 @@ FIXME:Consider making it be a behaviour that will be share across all necessary 
 					if ( sessionStorage.upauth == null || sessionStorage.upauth == "" ) {
 						/*continue to be nobody*/
 						this.isSomebody = false;
-						this.icon = "face";
+						this.icon = "exit-to-app";
 						this.msg = "Log-in";
 					} else {
 						this.isSomebody = true;
-						this.icon = "exit-to-app";
+						this.icon = "social:person";
 						this.msg = "Log-out";
 					}
 				} else {
@@ -67,10 +79,10 @@ FIXME:Consider making it be a behaviour that will be share across all necessary 
 			_computedIcon: function(isSomebody)
 			{
 				if (isSomebody) {
-					this.icon = "exit-to-app";
+					this.icon = "social:person";
 					this.msg = "Log-out";
 				} else {
-					this.icon = "face";
+					this.icon = "exit-to-app";
 					this.msg = "Log-in";
 				}
 			},
@@ -81,22 +93,41 @@ FIXME:Consider making it be a behaviour that will be share across all necessary 
 			_loginout: function(e) {
 				e.stopPropagation();
 				if (this.isSomebody) {
+					//log-out
 					sessionStorage.removeItem("upauth");
-					this.icon = "face";
-					this.msg = "Log-in";
+					this.icon = "social:person";
+					this.msg = "Log-out";
 					this.isSomebody = false;
 					Polymer.dom.flush();
 					this.updateStyles();
 					window.location.reload();
 				} else {
-					app.$.centralDialogBox.innerHTML = "";
+					//log-in
+					if (this.user == undefined || this.user == "" || this.pw == "" || this.pw == undefined) {
+						app.$.toast.text = 'Please enter your username and password to login. ';
+						app.$.toast.show();
+						return;
+					}
+					up = this.user + ":" + this.pw;
+					var bs64Encode = window.btoa(up);
 
-					var el2 = new UserLoginUpDialogBox();
-					app.$.centralDialogBox.appendChild(el2);
-					Polymer.dom.flush();
-					this.updateStyles();
+					//TODO: make an ajax request to find-out if the user is known/authorize
+					/*if ( request == "OK" ) {
+					 //store and reload
+					 sessionStorage.setItem("upauth", bs64Encode);
+					 window.location.reload();
+					 } else {
+					 // something is wrong. Either display the error message or just go with this
+					 app.$.toast.text = 'Authentication failed. Invalid username and password. ';
+					 app.$.toast.show();
+					 return;
+					 }*/
 
-					app.$.centralDialogBox.toggle();
+					sessionStorage.setItem("upauth", bs64Encode);
+
+					//then,
+					window.location.reload();
+
 				}
 				e.stopPropagation();
 			}

@@ -1,0 +1,88 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+
+
+
+<dom-module is="user-login-up-form">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            th {
+                font-size: 0.6em;
+                text-align: left;
+            }
+        </style>
+        <iron-a11y-keys id="a11y" target="[[target]]" keys="enter" on-keys-pressed="_login"></iron-a11y-keys>
+        <table>
+            <tr>
+                <th>username</th>
+                <th>password</th>
+            </tr>
+            <tr>
+                <td>
+                    <input is="iron-input" value="{{username::input}}" autofocus>
+                </td>
+                <td>
+                    <input is="iron-input" value="{{password::input}}" type="password">
+                </td>
+            </tr>
+
+        </table>
+    </template>
+    <script>
+        Polymer({
+            is: 'user-login-up-form',
+
+            properties: {
+                username: {
+                    type: String,
+                    notify: true
+                },
+                password: {
+                    type: String,
+                    notify: true
+                },
+                target: {
+                    type: Object,
+                    value: function() {
+                        return this;
+                    }
+                }
+            },
+
+            _login: function() {
+                //log-in
+                if (this.username == undefined || this.username == "" ||
+                        this.password == "" || this.password == undefined) {
+                    app.$.toast.text = 'Please enter your username and password to login. ';
+                    app.$.toast.show();
+                    return;
+                }
+                up = this.username + ":" + this.password;
+                var bs64Encode = window.btoa(up);
+
+                //TODO: make an ajax request to find-out if the user is known/authorize
+                /*if ( request == "OK" ) {
+                 //store and reload
+                 sessionStorage.setItem("upauth", bs64Encode);
+                 window.location.reload();
+                 } else {
+                 // something is wrong. Either display the error message or just go with this
+                 app.$.toast.text = 'Authentication failed. Invalid username and password. ';
+                 app.$.toast.show();
+                 return;
+                 }*/
+
+                sessionStorage.setItem("upauth", bs64Encode);
+
+                //then,
+                window.location.reload();
+            }
+        });
+    </script>
+</dom-module>
