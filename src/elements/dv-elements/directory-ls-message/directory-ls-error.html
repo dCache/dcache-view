@@ -1,0 +1,73 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../bower_components/paper-material/paper-material.html">
+
+<dom-module id="directory-ls-error">
+    <style>
+        main {
+            height: 200px;
+            width: 70%;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            overflow: auto;
+            /*Prevent text selection after double click*/
+            -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+            -moz-user-select: none; /* mozilla browsers */
+            -khtml-user-select: none; /* webkit (konqueror) browsers */
+            -ms-user-select: none; /* IE10+ */
+        }
+        main div {
+            width: 50%;
+            padding: 20px;
+            overflow: auto;
+            text-align: center;
+        }
+    </style>
+    <template>
+        <main>
+            <div>
+                <iron-icon icon="icons:warning"
+                           style="color: #f50303; height:4em; width:4em;">
+                </iron-icon>
+                <p>{{code}}</p>
+                <h3>{{message}}</h3>
+            </div>
+        </main>
+    </template>
+    <script>
+        DirectoryLsError = Polymer({
+            is: 'directory-ls-error',
+
+            properties :{
+                message: {
+                    type: String,
+                    notify:true
+                },
+
+                code: {
+                    type: String,
+                    notify:true
+                },
+                showLoginForm: {
+                    type: Boolean,
+                    notify: true
+                }
+            },
+
+            //Element Constructor
+            factoryImpl: function(message, code)
+            {
+                this.code = code;
+                this.message = message;
+            },
+
+            attached: function ()
+            {
+                /*var c = this.code;
+                 var msg = this.message;*/
+            }
+        });
+    </script>
+</dom-module>

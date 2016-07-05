@@ -30,12 +30,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		<!-- Chrome / Android -->
 		<meta name="mobile-web-app-capable" content="yes">
 		<meta name="theme-color" content="black">
-		<link rel="icon" href="icon.png">
 
 		<!-- Safari / iOS -->
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black">
-		<link rel="apple-touch-icon-precomposed" href="apple-touch-icon.png">
 
 		<!-- build:css styles/main.css -->
 		<link rel="stylesheet" href="styles/main.css">
@@ -52,8 +50,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				<paper-toolbar class="medium-tall">
 					<paper-icon-button icon="menu" on-tap="menuAction"></paper-icon-button>
 					<span class="title">[[config.orgName]]</span>
-					<user-login-up id="WhoAmI"></user-login-up>
-					<div class="bottom fit" style="height: 70px; background-color: #eee; display: flex; flex-direction: column; justify-content: center;">
+					<div id="WhoAmI"><user-loginout-button></user-loginout-button></div>
+					<div class="bottom fit" style="height: 70px; background-color: #eee;
+							display: flex; flex-direction: column; justify-content: center;">
 						<selected-title id="selectedTitle" selected="{{route}}"></selected-title>
 					</div>
 				</paper-toolbar>

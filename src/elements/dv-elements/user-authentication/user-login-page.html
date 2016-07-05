@@ -1,0 +1,189 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../bower_components/iron-ajax/iron-request.html">
+<link rel="import" href="../../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../bower_components/iron-input/iron-input.html">
+
+<link rel="import" href="../../../bower_components/paper-button/paper-button.html">
+
+<dom-module id="user-login-page">
+    <style>
+        :host {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+        }
+        #info {
+            @apply(--layout-horizontal);
+            @apply(--layout-center);
+            width: 390px;
+            height: auto;
+            border: 1px dotted rgba(189, 183, 181, 0.5);
+            background-color: #faf8f5;
+            margin-bottom: 3px;
+            color: chocolate;
+            font-size: 0.7em;
+        }
+        #content {
+            @apply(--layout-horizontal);
+            @apply(--layout-center);
+            width: 390px;
+            height: 200px;
+            border:1px solid #c2c2c2;
+            background: #fff;
+        }
+        #innerContent {
+            @apply(--layout-flex);
+            margin-left:3%;
+            margin-right:3%;
+        }
+        #innerContent > div {
+            @apply(--layout-horizontal);
+            width:100%;
+            margin-bottom: 10px;
+        }
+        div > .child {
+            @apply(--layout-flex);
+        }
+
+        input {
+            line-height: 2.2em;
+            padding: 5px;
+            vertical-align: middle;
+        }
+        paper-button {
+            margin: 0px !important;
+            background: #35b2ff;
+            color:#fff;
+            text-transform: capitalize !important;
+        }
+        #logo {
+            margin-left:10px ;
+            font-size: 0.8em;
+            max-width: 120px !important;
+            text-align: center;
+            margin-top: -12%;
+        }
+    </style>
+    <template>
+        <iron-a11y-keys id="a11y" target="[[target]]" keys="enter" on-keys-pressed="_login"></iron-a11y-keys>
+        <iron-ajax id="ajaxUser"
+                   handle-as="json"
+                   on-response="handleResponse" on-error="handleError"></iron-ajax>
+        <div>
+            <div id="info"><p style="padding-left: 5px; padding-right: 5px;">{{loginInformation}}</p></div>
+            <div id="content">
+                <!--<div id="logo">
+                    <div>
+                        <iron-icon icon="icons:lock"
+                                   style="color: #1ef53e; height:3em; width:3em;">
+                        </iron-icon>
+                    </div>
+                    <span>dCache View</span>
+                </div>-->
+                <div id="innerContent">
+                    <div>
+                        <input id="username" class="child" is="iron-input" value="{{username::input}}"
+                               placeholder="Username" autofocus>
+                    </div>
+                    <div>
+                        <input class="child" is="iron-input" value="{{password::input}}" placeholder="Password"
+                               type="password">
+                    </div>
+                    <div>
+                        <paper-button class="child" raised on-tap="_login">Log in</paper-button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </template>
+    <script>
+        UserLoginPage = Polymer({
+            is: "user-login-page",
+
+            properties: {
+                username: {
+                    type: String,
+                    notify: true
+                },
+                password: {
+                    type: String,
+                    notify: true
+                },
+                target: {
+                    type: Object,
+                    value: function() {
+                        return this;
+                    }
+                },
+                loginInformation: {
+                    type: String,
+                    value: "Please login to continue",
+                    notify: true
+                },
+                whoAmI: {
+                    type: Object,
+                    notify: true
+                }
+            },
+
+            //Element Constructor
+            factoryImpl: function(message)
+            {
+                this.loginInformation = message;
+            },
+
+            attached: function () {
+                this.$.username.focus();
+                if (sessionStorage.upauth != null) {
+                    sessionStorage.removeItem('upauth');
+                }
+            },
+
+            _login: function()
+            {
+                if (this.username == undefined || this.username == "" ||
+                        this.password == "" || this.password == undefined) {
+                    app.$.toast.text = 'Please enter your username and password to login. ';
+                    app.$.toast.show();
+                    return;
+                }
+
+                var up = this.username + ":" + this.password;
+                this.auth = window.btoa(up);
+                this.$.ajaxUser.url = window.CONFIG.webapiEndpoint+"user";
+                this.$.ajaxUser.headers = {
+                    "Authorization": "Basic "+this.auth,
+                    "X-Requested-With": "XMLHttpRequest"
+                };
+                this.$.ajaxUser.generateRequest();
+            },
+
+            handleError: function (e, request)
+            {
+                this.auth = null;
+                var errorXHR = request.request.__data__.xhr.response.errors[0];
+                app.$.toast.text =  errorXHR.message+ '! Please check that you have supplied ' +
+                        'the correct username and password. ';
+                app.$.toast.show();
+            },
+
+            handleResponse: function(e, request)
+            {
+                if ( request.xhr.response.status == "AUTHENTICATED" ) {
+                    sessionStorage.setItem("upauth", this.auth);
+                    window.location.reload();
+                } else if ( request.xhr.response.status == "ANONYMOUS" ) {
+                    app.$.toast.text =  'Please check that you have supplied ' +
+                            'the correct username and password. ';
+                    app.$.toast.show();
+                }
+            }
+        })
+    </script>
+</dom-module>
