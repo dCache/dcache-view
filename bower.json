@@ -1,13 +1,13 @@
 {
-  "name": "dcache face version 02",
+  "name": "dcache view",
   "authors": [
     "Olufemi Adeyemi <olufemi.segun.adeyemi@desy.de>"
   ],
-  "description": "redesigning the dcache user main page",
+  "description": "A Web application that provide an easy to use User Interface for dCache System",
   "main": "",
   "moduleType": [],
-  "license": "MIT",
-  "homepage": "",
+  "license": "GNU Affero General Public License",
+  "homepage": "http://www.dcache.org/",
   "private": true,
   "ignore": [
     "**/.*",
