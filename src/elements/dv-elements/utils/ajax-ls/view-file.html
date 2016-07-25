@@ -106,8 +106,8 @@
 
 				upw: {
 					type: String,
-					value: "anonymous:nopassword",
-					notify: true
+					notify: true,
+					computed: '_computedUpw(path)'
 				},
 
 				url: {
@@ -117,10 +117,13 @@
 				}
 			},
 
-			attached: function()
+			_computedUpw: function(path)
 			{
-				if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null))
-					this.upw = window.atob(sessionStorage.upauth);
+				if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
+					return window.atob(sessionStorage.upauth);
+				} else {
+					return "anonymous:nopassword";
+				}
 			},
 
 			_computedClass: function(isSelected)
