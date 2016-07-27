@@ -7,7 +7,7 @@
 <link rel="import" href="../../../bower_components/iron-icons/notification-icons.html">
 
 <link rel="import" href="../file-type/file-type-icon.html">
-
+<link rel="import" href="../hover-contextual/hover-contextual.html">
 <dom-module id="list-row">
 	<style>
 		:host {
@@ -63,6 +63,9 @@
 		}
 		@-webkit-keyframes blink-animation {
             to {visibility: hidden;}
+		}
+		.hidden {
+			visibility: hidden;
 		}
 	</style>
 	<template>
@@ -159,7 +162,9 @@
 			//	EventListeners
 			//========================
 			listeners: {
-				'row.dblclick': '_openFileLoc'
+				'row.dblclick': '_openFileLoc',
+				'row.mouseover': '_mouseOver',
+				'row.mouseleave': '_mouseLeave'
 			},
 
 
@@ -230,7 +235,36 @@
 					}
 					window.open(path);
 				}
-			}
+			},
+
+			_mouseOver: function(e)
+			{
+				e.stopPropagation();
+				var b = Polymer.dom(this.$.row).lastElementChild;
+				var a = '<span class="style-scope list-row">'+this.computedSize+'</span>';
+				if ( ((b.innerHTML).toString()).trim() == a.trim() ) {
+					b.classList.add('hidden');
+					var el1 = new HoverContextual(this.name, this.fileType, this.filePath);
+					Polymer.dom(this.$.row).appendChild(el1);
+				}
+				e.stopPropagation();
+			},
+
+			_mouseLeave: function(e)
+			{
+				e.stopPropagation();
+				var b = Polymer.dom(this.$.row).lastElementChild;
+				var d = this.$.hovering;
+				if (d.classList.contains("hidden")) {
+					d.classList.remove('hidden');
+				}
+
+				var a = '<span class="style-scope list-row">'+this.computedSize+'</span>';
+				if (((b.innerHTML).toString()).trim() != a.trim()) {
+					Polymer.dom(this.$.row).removeChild(b);
+				}
+				e.stopPropagation();
+			},
 		});
 	</script>
 </dom-module>
