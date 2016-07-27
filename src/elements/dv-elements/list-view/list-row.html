@@ -228,10 +228,15 @@
 					page(y);
 				} else {
                     //Download a file
-					if (window.CONFIG.webdavEndpoint == ""){
-						path = "http://" + window.location.hostname + ":2880" + this.filePath
+					var webdav = window.CONFIG.webdavEndpoint;
+					if (webdav == "") {
+						path = window.location.protocol + "://" + window.location.hostname + ":2880" + this.filePath;
 					} else {
-						path = window.CONFIG.webdavEndpoint + this.filePath;
+						if (webdav.endsWith("/")) {
+							path = webdav.substring(0, webdav.length-1) + this.filePath;
+						} else {
+							path = webdav + this.filePath;
+						}
 					}
 					window.open(path);
 				}
@@ -264,7 +269,7 @@
 					Polymer.dom(this.$.row).removeChild(b);
 				}
 				e.stopPropagation();
-			},
+			}
 		});
 	</script>
 </dom-module>
