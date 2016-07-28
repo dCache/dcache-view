@@ -21,6 +21,15 @@ gulp.task('copy-index', function() {
         .pipe(gulp.dest('./target'));
 });
 
+gulp.task('copy-robots', function() {
+    return gulp.src([
+        'src/robots.txt'
+    ], {
+        base: ''
+    })
+        .pipe(gulp.dest('./target'));
+});
+
 gulp.task('copy-webcomponents', function() {
     return gulp.src([
         './src/bower_components/webcomponentsjs/webcomponents-lite.min.js'
@@ -79,7 +88,7 @@ gulp.task('deploy-local', function(){
         }))
 });*/
 
-gulp.task('build', ['copy-index', 'copy-css', 'copy-script', 'copy-webcomponents', 'vulcanize']);
+gulp.task('build', ['copy-index', 'copy-robots', 'copy-css', 'copy-script', 'copy-webcomponents', 'vulcanize']);
 
 gulp.task('default', ['bower', 'build'], function () {
     gulp.start('deploy-local');
