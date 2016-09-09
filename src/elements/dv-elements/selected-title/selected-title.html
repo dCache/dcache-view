@@ -5,9 +5,13 @@
 <link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../../bower_components/paper-item/paper-item.html">
 
 <link rel="import" href="../utils/ajax-ls/file-metadata.html">
 <link rel="import" href="../pagination-button/pagination-button.html">
+<link rel="import" href="../upload-files/upload-files-button.html">
 
 <dom-module id="selected-title">
 	<style>
@@ -43,6 +47,11 @@
 		}
 		.standardTools > div {
 			display:inline-flex;
+			max-height: 40px;
+			max-width: 40px;
+			@apply(--layout-center);
+		}
+		.standardTools > div + div {
 			margin-left: 10px;
 		}
 		.pagination > div {
@@ -83,6 +92,9 @@
 					</div>
 				</div>
 				<div class="standardTools flex">
+					<div>
+						<upload-files-button></upload-files-button>
+					</div>
 					<div>
 						<paper-icon-button class="info" icon="info" on-tap="_metadataInfo"></paper-icon-button>
 						<paper-tooltip>metadata information</paper-tooltip>
@@ -139,12 +151,14 @@
 
 				if (path == "/") {
 					y = x.selectedItem;
+
 					if ( y == null ) {
 						el1 = new FileMetadata("Root", "/", "DIR");
 					} else {
 						el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType);
 					}
 					app.$.metadataDrawer.appendChild(el1);
+
 				} else {
 					if ( x == null || x.selectedItem == null ) {
 						var n = path.lastIndexOf("/");

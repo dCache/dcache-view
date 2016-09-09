@@ -115,6 +115,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			<paper-toast id="toast">
 				<span class="toast-hide-button" role="button" tabindex="0" onclick="app.$.toast.hide()">Ok</span>
 			</paper-toast>
+
+			<paper-toast id="uploadToast" text="Upload Status Panel" duration="0">
+				<paper-button onclick="uploadToast.toggle()" class="yellow-button" style="margin-left:240px;">
+					Close
+				</paper-button>
+				<div id="uploadList"
+					 style="max-height:500px; max-width:460px; overflow-y: auto; overflow-x: hidden"></div>
+			</paper-toast>
 		</template>
 
 		<script src="scripts/dv.js"></script>

@@ -1,0 +1,210 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../bower_components/iron-label/iron-label.html">
+
+<dom-module id="upload-toast-file">
+    <style>
+        :host{
+            display: block;
+            width: 420px;
+            height: 65px;
+            padding: 0px;
+            border-bottom: 10px solid #323232;
+            background-color: #fff;
+        }
+        :host > .main {
+            width: 100%;
+            height: 100%;
+        }
+        .main {
+            @apply(--layout-horizontal);
+            padding: 0px;
+            margin: 0px;
+        }
+        .main > #fileStatusInfo {
+            @apply(--layout-flex);
+        }
+        #statusIcon {
+            padding-top: 5px;
+            width: 50px;
+            display: block;
+        }
+        #uploadFile {
+            @apply(--layout-horizontal);
+            height: 56px;
+        }
+        #uploadFile > #fileIcon {
+            width: 50px;
+            display: block;
+            @apply(--layout-horizontal);
+            @apply(--layout-center);
+        }
+        #uploadFile > #fileInfo {
+            @apply(--layout-flex);
+        }
+        #fileName {
+            height: 38px;
+            @apply(--layout-horizontal);
+            @apply(--layout-center);
+        }
+        #fileNameHolder {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #333;
+            max-width:300px;
+            font-size: 1em;
+        }
+        #statusMessage {
+            font-size: 0.8em;
+        }
+        #progressBar {
+            max-height: 8px;
+            padding-left: 1px;
+            padding-right: 6px;
+            margin-bottom: 4px;
+        }
+        #progressBar > * {
+            width: 100% !important;
+        }
+        .statusContent {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+        }
+
+        label.complete {
+            color: #00688b;
+        }
+        iron-icon.completeIcon {
+            color: #00a1d7;
+        }
+
+        label.error {
+            color: #674c4f !important;
+        }
+        iron-icon.errorIcon {
+            color: #ff3a53 !important;
+        }
+
+        label.progress {
+            color: #c3af0d;
+        }
+        .progressIcon {
+            color: #8b6800;
+        }
+
+        paper-progress.complete {
+            --paper-progress-active-color: #4e9cdb !important;
+        }
+        paper-progress.error {
+            --paper-progress-active-color: #ff7586 !important;
+        }
+        paper-progress.progress {
+            --paper-progress-active-color: #ffc925 !important;
+        }
+
+    </style>
+    <template>
+        <div class="main">
+            <div id="fileStatusInfo">
+                <div id="uploadFile">
+                    <div id="fileIcon">
+                        <file-type-icon filetype="{{fileType}}" style="padding-left: 10px;"></file-type-icon>
+                    </div>
+                    <div id="fileInfo">
+                        <div id="fileName">
+                            <div id="fileNameHolder">
+                                {{fileName}}
+                            </div>
+                        </div>
+                        <div id="statusMessage">
+                            <span style="background: #373737;color:#fff; font-size: 1em !important;">Status:</span>
+                            <label class$="[[_computedClass(hasError,isComplete,inProgress)]]"> {{message}}</label>
+                        </div>
+                    </div>
+                    <div id="statusIcon">
+                        <template is="dom-if" if="{{isComplete}}" restamp>
+                            <div class="statusContent">
+                                <iron-icon icon="icons:check-circle" class="completeIcon"></iron-icon>
+                            </div>
+                        </template>
+                        <template is="dom-if" if="{{hasError}}" restamp>
+                            <div class="statusContent">
+                                <iron-icon icon="icons:warning" class="errorIcon"></iron-icon>
+                            </div>
+                        </template>
+                        <template is="dom-if" if="{{inProgress}}" restamp>
+                            <div class="statusContent"><b class="progressIcon">{{progressValue}}</b></div>
+                        </template>
+                    </div>
+                </div>
+                <div id="progressBar">
+                    <paper-progress indeterminate></paper-progress>
+                </div>
+            </div>
+        </div>
+    </template>
+    <script>
+        UploadToastFile = Polymer({
+            is: 'upload-toast-file',
+
+            properties: {
+                fileName: {
+                    type: String,
+                    notify: true
+                },
+                fileType: {
+                    type: String,
+                    notify: true
+                },
+                isComplete: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
+                },
+                hasError: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
+                },
+                inProgress: {
+                    type: Boolean,
+                    value: true,
+                    notify: true
+                },
+                message: {
+                    type: String,
+                    value: "uploading...",
+                    notify: true
+                },
+                progressValue: {
+                    type: String,
+                    notify: true
+                }
+            },
+
+            factoryImpl: function(fileName, fileType)
+            {
+                this.fileName = fileName;
+                this.fileType = fileType;
+            },
+
+            _computedClass:function (hasError,isComplete,inProgress)
+            {
+                var classes = '';
+                if (hasError) {
+                    classes += ' error';
+                } else if (isComplete) {
+                    classes += ' complete';
+                } else if (inProgress) {
+                    classes += ' progress';
+                }
+
+                this.updateStyles();
+
+                return classes;
+            }
+        })
+    </script>
+</dom-module>

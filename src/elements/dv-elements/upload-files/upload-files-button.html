@@ -1,0 +1,144 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<script src="../utils/dcache-view-uploader/dcache-view-uploader.js"></script>
+
+<link rel="import" href="upload-toast-file.html">
+<dom-module id="upload-files-button">
+    <style>
+        :host{
+            display: inline-block;
+        }
+        #files {
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+    </style>
+    <template>
+        <div>
+            <input id="files" type="file" multiple>
+            <label for="files">
+                <paper-icon-button icon="icons:cloud-upload"></paper-icon-button>
+                <paper-tooltip>upload files</paper-tooltip>
+            </label>
+        </div>
+    </template>
+    <script>
+        UploadFilesButton = Polymer({
+            is: 'upload-files-button',
+            properties: {
+                upauth: {
+                    type: String,
+                    notify: true,
+                    value: function () {
+                        if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
+                            return sessionStorage.upauth;
+                        } else {
+                            return window.btoa("anonymous:nopassword");
+                        }
+                    }
+                }
+            },
+
+            listeners: {
+                'files.change': 'handleFileSelection'
+            },
+
+            handleFileSelection: function (e)
+            {
+                e.stopPropagation();
+                e.preventDefault();
+                app.$.uploadToast.close();
+                if (typeof files !== "undefined") {
+                    app.$.uploadToast.open();
+                    this.uploadFile(e.target.files);
+                } else {
+                    app.$.toast.text = 'No support for the File API in this web browser. ';
+                    app.$.toast.show();
+                }
+            },
+
+            uploadFile: function (files)
+            {
+                var u;
+                var uploadList = app.$.uploadToast.querySelector("#uploadList");
+                uploadList.innerHTML ="";
+                var path = app.$.homedir.querySelector('view-file').path + "/";
+                var f;
+                for (var i=0; f = files[i]; i++) {
+                    var el = new UploadToastFile(f.name, "REGULAR");
+                    el.setAttribute("id", i.toString());
+                    uploadList.appendChild(el);
+                    const upLs = el;
+                    var uploadURL;
+                    if (window.CONFIG.webdavEndpoint == "") {
+                        uploadURL = window.location.protocol + "//" + window.location.hostname
+                                + ":2880" + path + f.name;
+                        console.log(uploadURL);
+                    } else {
+                        uploadURL = window.CONFIG.webdavEndpoint + path + f.name;
+                    }
+                    var uploader = new UploadHandler({
+                        file: f,
+                        upauth: this.upauth,
+                        url: uploadURL,
+                        onComplete: function (data) {
+                            var progressBar = upLs.querySelector('paper-progress');
+                            progressBar.indeterminate = false;
+                            progressBar.value = 100;
+                            progressBar.classList.remove("error", "progress");
+                            progressBar.classList.add("complete");
+
+                            upLs.inProgress = false;
+                            upLs.hasError = false;
+                            upLs.isComplete = true;
+                            upLs.message = "Uploaded";
+                            var list = document.querySelector('iron-list');
+                            list.unshift('items',
+                                    {
+                                        "fileName" : data.name,
+                                        "fileLocality" : "",
+                                        "size" : data.size,
+                                        "fileType" : "REGULAR",
+                                        "mtime" : data.lastModified,
+                                        "creationTime" : Date.now()
+                                    }
+                            );
+                        }.bind(this),
+
+                        onProgress: function (evt) {
+                            if (evt.lengthComputable) {
+                                var progressBar = upLs.querySelector('paper-progress');
+                                progressBar.classList.remove("error", "complete");
+                                progressBar.classList.add("progress");
+                                progressBar.indeterminate = false;
+                                progressBar.value = (evt.load / evt.total) * 100;
+                            }
+                            upLs.progressValue = progressBar.value;
+                            upLs.inProgress = true;
+                            upLs.isComplete = false;
+                            upLs.hasError = false;
+                        }.bind(this),
+
+                        onError: function (evt) {
+                            var progressBar = upLs.querySelector('paper-progress');
+                            progressBar.classList.remove("progress", "complete");
+                            progressBar.classList.add("error");
+                            progressBar.indeterminate = false;
+                            progressBar.value = 100;
+                            upLs.message = evt.statusText;
+                            upLs.inProgress = false;
+                            upLs.isComplete = false;
+                            upLs.hasError = true;
+                        }.bind(this)
+                    });
+                    uploader.upload();
+                    Polymer.dom.flush();
+                }
+                Polymer.dom.flush();
+            }
+        });
+    </script>
+</dom-module>

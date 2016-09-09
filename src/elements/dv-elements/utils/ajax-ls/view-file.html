@@ -117,6 +117,10 @@
 				}
 			},
 
+			observers: [
+					'changedItems(items.*)'
+			],
+
 			factoryImpl: function(path) {
 				this.path = path;
 			},
@@ -230,6 +234,12 @@
 				this.updateStyles();
 
 				e.stopPropagation();
+			},
+
+			changedItems: function (changedRecord) {
+				if (changedRecord.path) {
+					this.querySelector('iron-list').fire('iron-resize');
+				}
 			}
 		});
 	</script>
