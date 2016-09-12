@@ -12,6 +12,15 @@ gulp.task('bower', function() {
     return bower();
 });
 
+gulp.task('copy-favicons', function() {
+    return gulp.src([
+        'src/favicons/*'
+    ], {
+        base: ''
+    })
+        .pipe(gulp.dest('./target/favicons'));
+});
+
 gulp.task('copy-index', function() {
     return gulp.src([
         'src/index.html'
@@ -73,8 +82,8 @@ gulp.task('jar', function() {
         .pipe(gulp.dest('./target'));
 });
 
-
-gulp.task('build', ['copy-index', 'copy-robots', 'copy-css', 'copy-script', 'copy-webcomponents', 'vulcanize']);
+gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-script',
+    'copy-webcomponents', 'vulcanize']);
 
 gulp.task('default', ['bower', 'build'], function () {
     gulp.start('jar');
