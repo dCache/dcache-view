@@ -76,13 +76,7 @@
                 //e.stopPropagation();
                 if (this.upauth == null || this.upauth == "" || this.upauth == undefined ) {
                     //log-in
-                    var vf;
-                    if (app.route == "home"){
-                       vf = app.$.homeDir;
-                    } else if(app.route == "pathfinder") {
-                        vf = app.$.pathFinder;
-                    }
-                    var content = vf.querySelector('#content');
+                    var content = app.$.homedir.querySelector('#content');
                     var moreMessage = "If you have an account, enter your User Name and Password.";
                     content.innerHTML = "";
                     var ulp = new UserLoginPage(moreMessage);

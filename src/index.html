@@ -60,7 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					<div id="WhoAmI"><user-loginout-button></user-loginout-button></div>
 					<div class="bottom fit" style="height: 70px; background-color: #eee;
 							display: flex; flex-direction: column; justify-content: center;">
-						<selected-title id="selectedTitle" selected="{{route}}"></selected-title>
+						<selected-title id="selectedTitle" pg-route="{{route}}"></selected-title>
 					</div>
 				</paper-toolbar>
 				<div class="fit">
@@ -93,19 +93,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 												<paper-toolbar id="list-table-header">
 													<div></div>
 												</paper-toolbar>
-												<div class="fit">
+												<div class="fit" id="homedir">
 													<view-file id="homeDir"></view-file>
-												</div>
-											</paper-header-panel>
-										</section>
-
-										<section data-route="pathfinder" class="fit" style="background-color:#ECECEC;">
-											<paper-header-panel mode="seamed" class="flex">
-												<paper-toolbar id="list-table-header">
-													<div></div>
-												</paper-toolbar>
-												<div class="fit">
-													<view-file id="pathFinder" path$="{{params}}"></view-file>
 												</div>
 											</paper-header-panel>
 										</section>

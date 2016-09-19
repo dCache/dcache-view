@@ -78,7 +78,9 @@
 			<div class="row">
 				<div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
 				<div class="flex3 pagination">
-					<div id="pagination"></div>
+					<div id="pagination">
+						<pagination-button dir-name="Root" canonical-path="/" active></pagination-button>
+					</div>
 				</div>
 				<div class="standardTools flex">
 					<div>
@@ -96,27 +98,28 @@
 			is: 'selected-title',
 
 			properties: {
-				selected: {
+				pgRoute: {
 					type: String,
 					notify: true
 				},
 
 				isHome: {
-                    type: Boolean,
-                    value: true,
-                    computed: '_isHome(selected)'
-		        }
+					type: Boolean,
+					notify: true
+				}
 			},
 
-			//	Computed Functions
-			//==============================
-			_isHome: function (selected)
-			{
-				return !!(selected == "home" || selected == "pathfinder");
-			},
+			observers: [
+				'changedSection(pgRoute)'
+			],
 
-			//	EventHandler (Functions)
-			//==============================
+			changedSection: function (pgRoute) {
+				switch (pgRoute) {
+					case "home":
+						this.isHome = true;
+						break;
+				}
+			},
 
 			/**------------------------------------------------------------
 			 * Open a Drawer and display metadata of a file/directory
@@ -126,38 +129,30 @@
 			{
 				e.stopPropagation();
 
-				var name;
-				var path = decodeURIComponent(app.params);
 				var el1;
-				var x = this.selected;
-				var y = app.$.homeDir.querySelector("#abc").selectedItem;
+				var z = app.$.homedir.querySelector('view-file');
+				var x = app.$.homedir.querySelector("#abc");
+
+				var path = z.path;
 
 				app.$.metadataDrawer.innerHTML = "";
 
-				if ( x == "home" ){
-					if ( y == null ){
+				if (path == "/") {
+					y = x.selectedItem;
+					if ( y == null ) {
 						el1 = new FileMetadata("Root", "/", "DIR");
 					} else {
-						name = y.fileName;
-						path = "/" + name;
-						fileType = y.fileType;
-						el1 = new FileMetadata(name, path, fileType);
+						el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType);
 					}
 					app.$.metadataDrawer.appendChild(el1);
-
-				} else if ( x == "pathfinder" ) {
-					var z = app.$.pathFinder.querySelector("#abc");
-					if ( z == null || z.selectedItem == null ) {
-						path = path.replace(/=/g, "/");
+				} else {
+					if ( x == null || x.selectedItem == null ) {
 						var n = path.lastIndexOf("/");
-						name = path.slice(n+1);
+						var name = path.slice(n+1);
 						el1 = new FileMetadata(name, path, "DIR");
-					} else if (z.selectedItem != null ) {
-						name = z.selectedItem.fileName;
-						path = path.replace(/=/g, "/");
-						path = path + "/" + name;
-						fileType = z.selectedItem.fileType;
-						el1 = new FileMetadata(name, path, fileType);
+					} else {
+						var y = x.selectedItem;
+						el1 = new FileMetadata(y.fileName, path + "/" + y.fileName, y.fileType);
 					}
 					app.$.metadataDrawer.appendChild(el1);
 				}
@@ -166,12 +161,6 @@
 
 				app.$.metadata.togglePanel();
 				e.stopPropagation();
-			},
-
-			_home: function()
-			{
-				app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
-				page(app.baseUrl);
 			}
 		});
 	</script>
