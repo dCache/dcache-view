@@ -82,25 +82,53 @@
       _view: function(e)
       {
         e.stopPropagation();
-        //TODO: Factor this function below out. Simply create an element for this sole purpose.
         var x = this.fileType;
         var path;
-
-        if (x == "DIR") {
+        /**
+         * TODO: Factor-out this code.
+         * This code is similar to the function for the
+         * on-tap event in the Pagination Button element.
+         */
+        if ( x == "DIR" ) {
           path = this.path;
-          path = path.replace(/\//g, "=");
-          var y = '/home/'+ path;
-          page(y);
+
+          app.$.homedir.innerHTML = "";
+          app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
+
+          var elRoot = new PaginationButton("Root", "/");
+          if ( path == "/") {
+            elRoot.querySelector('a').classList.add("active");
+            app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+          } else {
+            elRoot.querySelector('a').classList.remove("active");
+            app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+            var dirNames = path.split("/");
+            var pt =  "";
+            for (var i = 1; i < dirNames.length; i++) {
+              pt += "/" + dirNames[i];
+              var el = new PaginationButton(dirNames[i], pt);
+              el.querySelector('a').classList.remove("active");
+              if ( i == (dirNames.length-1) ) {
+                el.querySelector('a').classList.add("active");
+              }
+              app.$.selectedTitle.querySelector("#pagination").appendChild(el);
+            }
+          }
+
+          var el1 = new ViewFile(path);
+          app.$.homedir.appendChild(el1);
+
+          Polymer.dom.flush();
         } else {
           //Download a file
-          var str = window.CONFIG.webdavEndpoint;
-          if (str == "") {
-            path = window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
+          var webdav = window.CONFIG.webdavEndpoint;
+          if (webdav == "") {
+            path = window.location.protocol + "://" + window.location.hostname + ":2880" + this.filePath;
           } else {
-            if (str.endsWith("/")) {
-              path = str.substring(0, str.length-1) + this.path;
+            if (webdav.endsWith("/")) {
+              path = webdav.substring(0, webdav.length-1) + this.filePath;
             } else {
-              path = str + this.path;
+              path = webdav + this.filePath;
             }
           }
           window.open(path);

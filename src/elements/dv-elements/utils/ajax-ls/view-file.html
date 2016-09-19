@@ -74,7 +74,7 @@
 	</template>
 
 	<script>
-		Polymer
+		ViewFile = Polymer
 		({
 			is: "view-file",
 
@@ -115,6 +115,10 @@
 					notify: true,
 					computed: '_url(path)'
 				}
+			},
+
+			factoryImpl: function(path) {
+				this.path = path;
 			},
 
 			_computedUpw: function(path)

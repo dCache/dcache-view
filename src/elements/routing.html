@@ -20,34 +20,6 @@
 
         // Routes
         page('*', function(ctx, next) {
-            var a = ctx.canonicalPath;
-            var b = "/home/";
-            var c = a.replace((b+"="), "");
-            app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
-
-            var elRoot = new PaginationButton("Root", "/");
-            if ( c == "/") {
-                elRoot.querySelector('a').classList.add("active");
-                app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-            } else if ( c.includes("=") ) {
-                app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-                var d = c.split("=");
-
-                for (var i = 0; i < d.length; i++) {
-                    b += "=".concat(d[i]);
-                    var el = new PaginationButton(d[i], b);
-                    if ( i == (d.length-1) ) {
-                        el.querySelector('a').classList.add("active");
-                    }
-                    app.$.selectedTitle.querySelector("#pagination").appendChild(el);
-                }
-            } else {
-                app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-                var el = new PaginationButton(c, a);
-                el.querySelector('a').classList.add("active");
-                app.$.selectedTitle.querySelector("#pagination").appendChild(el);
-            }
-            Polymer.dom.flush();
             next();
         });
 
@@ -58,18 +30,6 @@
 
         page(app.baseUrl, function() {
             app.route = 'home';
-            app.params = "";
-        });
-
-        page('/home/:path', function(data) {
-            app.route = 'pathfinder';
-            x = data.path;
-            x = x.replace("/home/=","=");
-            app.params = encodeURIComponent(x);
-        });
-
-        page('/favourite', function() {
-            app.route = 'favourite';
             app.params = "";
         });
 

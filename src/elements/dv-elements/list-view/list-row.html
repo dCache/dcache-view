@@ -8,6 +8,9 @@
 
 <link rel="import" href="../file-type/file-type-icon.html">
 <link rel="import" href="../hover-contextual/hover-contextual.html">
+<link rel="import" href="../utils/ajax-ls/view-file.html">
+<link rel="import" href="../pagination-button/pagination-button.html">
+
 <dom-module id="list-row">
 	<style>
 		:host {
@@ -219,13 +222,41 @@
 			{
 				var x = this.fileType;
 				var path;
-
-				if (x == "DIR") {
+				/**
+				 * TODO: Factor-out this code.
+				 * This code is similar to the function for the
+				 * on-tap event in the Pagination Button element.
+				 */
+				if ( x == "DIR" ) {
 					path = this.filePath;
 
-					path = path.replace(/\//g, "=");
-					var y = '/home/'+ path;
-					page(y);
+					app.$.homedir.innerHTML = "";
+					app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
+
+					var elRoot = new PaginationButton("Root", "/");
+					if ( path == "/") {
+						elRoot.querySelector('a').classList.add("active");
+						app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+					} else {
+						elRoot.querySelector('a').classList.remove("active");
+						app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+						var dirNames = path.split("/");
+						var pt =  "";
+						for (var i = 1; i < dirNames.length; i++) {
+							pt += "/" + dirNames[i];
+							var el = new PaginationButton(dirNames[i], pt);
+							el.querySelector('a').classList.remove("active");
+							if ( i == (dirNames.length-1) ) {
+								el.querySelector('a').classList.add("active");
+							}
+							app.$.selectedTitle.querySelector("#pagination").appendChild(el);
+						}
+					}
+
+					var el1 = new ViewFile(path);
+					app.$.homedir.appendChild(el1);
+
+					Polymer.dom.flush();
 				} else {
                     //Download a file
 					var webdav = window.CONFIG.webdavEndpoint;
