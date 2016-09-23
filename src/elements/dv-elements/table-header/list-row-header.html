@@ -1,0 +1,40 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="list-row-header">
+    <style>
+        :host {
+            display: block;
+            font-size: 0.75em;
+            @apply(--layout-block);
+            @apply(--layout-fit);
+            margin: 0px 30px;
+        }
+        .row {
+            @apply(--layout-horizontal);
+            @apply(--layout-center);
+            height: 40px;
+        }
+        .flex {
+            @apply(--layout-flex);
+        }
+        .flex3 {
+            @apply(--layout-flex-3);
+        }
+    </style>
+    <template>
+        <div class="row">
+            <div style="padding-left: 10px; padding-right: 10px">Type</div>
+            <div class="flex3" style="padding-left:5px;">Name</div>
+            <div class="flex">Creation time</div>
+            <div class="flex" style="text-align: center;">Locality</div>
+            <div class="flex" style="text-align: right; padding-right: 10px;">Size</div>
+        </div>
+    </template>
+    <script>
+        Polymer ({
+            is: 'list-row-header'
+        })
+    </script>
+</dom-module>
