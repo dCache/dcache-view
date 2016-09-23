@@ -67,9 +67,6 @@
 		@-webkit-keyframes blink-animation {
             to {visibility: hidden;}
 		}
-		.hidden {
-			visibility: hidden;
-		}
 	</style>
 	<template>
 		<div id="row" class="row">
@@ -279,26 +276,21 @@
 				var b = Polymer.dom(this.$.row).lastElementChild;
 				var a = '<span class="style-scope list-row">'+this.computedSize+'</span>';
 				if ( ((b.innerHTML).toString()).trim() == a.trim() ) {
-					b.classList.add('hidden');
+					b.querySelector('span').innerHTML = "";
 					var el1 = new HoverContextual(this.name, this.fileType, this.filePath);
-					Polymer.dom(this.$.row).appendChild(el1);
+					b.querySelector('span').appendChild(el1);
 				}
+				Polymer.dom.flush();
 				e.stopPropagation();
 			},
 
 			_mouseLeave: function(e)
 			{
 				e.stopPropagation();
-				var b = Polymer.dom(this.$.row).lastElementChild;
-				var d = this.$.hovering;
-				if (d.classList.contains("hidden")) {
-					d.classList.remove('hidden');
-				}
-
-				var a = '<span class="style-scope list-row">'+this.computedSize+'</span>';
-				if (((b.innerHTML).toString()).trim() != a.trim()) {
-					Polymer.dom(this.$.row).removeChild(b);
-				}
+				var b = this.$.hovering.querySelector('span');
+				b.removeChild(b.lastChild);
+				b.textContent = this.computedSize;
+				Polymer.dom.flush();
 				e.stopPropagation();
 			}
 		});
