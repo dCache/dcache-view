@@ -27,10 +27,10 @@
 		.name{
 			@apply(--layout-flex-3);
 		}
-		.ctime, .mtime {
+		.ctime, .locality {
 			@apply(--layout-flex);
 		}
-		.mtime {
+		.locality {
 			text-align: center;
 		}
 		.size {
@@ -70,12 +70,12 @@
 	</style>
 	<template>
 		<div id="row" class="row">
-			<file-type-icon filetype="{{fileType}}" style="padding-left: 10px;"></file-type-icon>
+			<file-type-icon filetype="{{fileType}}" style="padding-left: 15px; padding-right: 10px"></file-type-icon>
 			<div class="cell name">
 				<label id="filename" style="padding-left:5px;">{{name}}</label>
 			</div>
 			<div class="cell ctime">{{computedCTime}}</div>
-			<div class="cell mtime">
+			<div class="cell locality">
 				<template is="dom-if" if="{{isNearline}}" restamp>
 					<iron-icon icon="communication:voicemail" class="nearline"></iron-icon>
 				</template>
