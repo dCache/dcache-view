@@ -77,8 +77,8 @@ gulp.task('vulcanize', function() {
 });
 
 gulp.task('jar', function() {
-    return gulp.src('./target/*')
-        .pipe(zip('dcache-view-1.0.1.jar'))
+    return gulp.src('./target/**')
+        .pipe(zip('dcache-view-1.0.2.jar'))
         .pipe(gulp.dest('./target'));
 });
 
