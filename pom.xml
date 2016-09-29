@@ -5,7 +5,7 @@
 
     <groupId>org.dcache</groupId>
     <artifactId>dcache-view</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <inceptionYear>2016</inceptionYear>
 
@@ -26,6 +26,44 @@
             <distribution>manual</distribution>
         </license>
     </licenses>
+
+    <distributionManagement>
+        <downloadUrl>https://download.dcache.org/nexus/content/repositories/releases/</downloadUrl>
+
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>dcache.release.repository</id>
+            <name>dCache.org release repository</name>
+            <url>https://download.dcache.org/nexus/content/repositories/releases/</url>
+            <layout>default</layout>
+        </repository>
+        <snapshotRepository>
+            <uniqueVersion>true</uniqueVersion>
+            <id>dcache.snapshot.repository</id>
+            <name>dCache.org snapshot repository</name>
+            <url>https://download.dcache.org/nexus/content/repositories/snapshots/</url>
+            <layout>default</layout>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>http://github.com/dCache/dcache-view/issues/</url>
+    </issueManagement>
+
+    <scm>
+        <url>https://github.com/dCache/dcache-view</url>
+        <connection>scm:git:https://github.com/dCache/dcache-view.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/dCache/dcache-view.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <repositories>
+        <repository>
+            <id>dcache.repository</id>
+            <url>https://download.dcache.org/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
@@ -66,6 +104,38 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <file>target/${project.artifactId}-${project.version}.jar</file>
+                            <groupId>org.dcache</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <packaging>jar</packaging>
+                            <pomFile>pom.xml</pomFile>
+                            <version>${project.version}</version>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
             </plugin>
         </plugins>
     </build>
