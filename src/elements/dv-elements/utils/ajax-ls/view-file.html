@@ -183,6 +183,9 @@
 					content.innerHTML = "";
 					var el1 = new EmptyDirectory();
 					content.appendChild(el1);
+					app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
+				} else {
+					app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
 				}
 
 				Polymer.dom.flush();
@@ -197,6 +200,8 @@
 				var msg;
 				var code;
 				var content = this.$.content;
+
+				app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
 
 				try {
 					x = request.request.__data__.xhr.response.errors[0];
