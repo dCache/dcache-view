@@ -123,7 +123,7 @@
           //Download a file
           var webdav = window.CONFIG.webdavEndpoint;
           if (webdav == "") {
-            path = window.location.protocol + "://" + window.location.hostname + ":2880" + this.filePath;
+            path = window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
           } else {
             if (webdav.endsWith("/")) {
               path = webdav.substring(0, webdav.length-1) + this.filePath;
