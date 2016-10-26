@@ -70,6 +70,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 								<a data-route="home" href$="{{baseUrl}}">
 									<paper-fab icon="device:storage" title="My Root" class="blue" mini></paper-fab>
 								</a>
+
+								<a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
+									<paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
+								</a>
 							</paper-menu>
 						</div>
 
@@ -98,6 +102,72 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 												</div>
 											</paper-header-panel>
 										</section>
+
+										<section data-route="admin" class="fit" style="background-color:#ECECEC;">
+											<paper-material
+													elevation="1"
+													style="margin:40px;padding:15px;background:#fdfdfd;">
+												<paper-toolbar>
+													<div class="title" style="text-align: center">admin toolbox</div>
+												</paper-toolbar>
+												<admin-page></admin-page>
+											</paper-material>
+										</section>
+
+										<section data-route="admin-component-page" class="fit"
+												 style="background-color:#ECECEC;">
+											<div main>
+												<iron-pages attr-for-selected="admin-component"
+															selected="{{params.component}}">
+													<section admin-component="cell-services" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for Cell Services</div>
+													</section>
+													<section admin-component="pool-usage" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for Pool Usage</div>
+													</section>
+													<section admin-component="pool-queues" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for Pool Queues</div>
+													</section>
+													<section admin-component="pool-queue-plots" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for Pool Queue Plots</div>
+													</section>
+													<section admin-component="pool-selection-setup" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for the Pool Selection Setup</div>
+													</section>
+													<section admin-component="space-tokens" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for the Space Tokens</div>
+													</section>
+													<section admin-component="active-transfers" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for Active Transfers</div>
+													</section>
+													<section admin-component="tape-transfer-queue" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for the Tape Transfer Queue</div>
+													</section>
+													<section admin-component="billing-plots" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for Billing Plots</div>
+													</section>
+													<section admin-component="file-lifetime-plots" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for File Lifetime Plots</div>
+													</section>
+													<section admin-component="alarms" class="fit"
+															 style="background-color:#ECECEC;">
+														<div>Here is the page for Alarms</div>
+													</section>
+												</iron-pages>
+											</div>
+										</section>
+
+
 									</iron-pages>
 								</div>
 							</paper-drawer-panel>

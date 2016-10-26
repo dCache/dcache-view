@@ -33,6 +33,16 @@
             app.params = "";
         });
 
+        page('/admin', function() {
+            app.route = 'admin';
+            app.params = "";
+        });
+
+        page('/admin/:component', function(data) {
+            app.route = 'admin-component-page';
+            app.params = data.params;
+        });
+
         // 404
         page('*', function() {
             app.$.toast.text = 'Can\'t find: ' + window.location.href  + '. Redirected you to Home Page';

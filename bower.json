@@ -22,6 +22,7 @@
     "polymer": "Polymer/polymer#^1.2.0",
     "page": "visionmedia/page.js#~1.6.4",
     "create-directory": "dcache-elements/create-directory#^0.0.2",
-    "dcache-namespace": "dcache-elements/dcache-namespace#^0.0.1"
+    "dcache-namespace": "dcache-elements/dcache-namespace#^0.0.1",
+    "admin-page": "dcache-elements/admin-page#^0.0.5"
   }
 }
