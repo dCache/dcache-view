@@ -1,7 +1,7 @@
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
 
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
-
+<link rel="import" href="../../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../../bower_components/paper-tooltip/paper-tooltip.html">
@@ -12,6 +12,9 @@
 <link rel="import" href="../utils/ajax-ls/file-metadata.html">
 <link rel="import" href="../pagination-button/pagination-button.html">
 <link rel="import" href="../upload-files/upload-files-button.html">
+
+<link rel="import" href="../../../bower_components/create-directory/create-directory.html">
+<link rel="import" href="../../../bower_components/dcache-namespace/dcache-namespace.html">
 
 <dom-module id="selected-title">
 	<style>
@@ -81,6 +84,9 @@
             border-bottom-left-radius:70%;
             color: #616161;
 		}
+		.create {
+			color: #2196F3;
+		}
 	</style>
 	<template>
 		<template is="dom-if" if="{{isHome}}">
@@ -93,10 +99,18 @@
 				</div>
 				<div class="standardTools flex">
 					<div>
+						<paper-icon-button class="create"
+										   icon="create-new-folder"
+										   on-tap="_create"></paper-icon-button>
+						<paper-tooltip>create new folder</paper-tooltip>
+					</div>
+					<div>
 						<upload-files-button></upload-files-button>
 					</div>
 					<div>
-						<paper-icon-button class="info" icon="info" on-tap="_metadataInfo"></paper-icon-button>
+						<paper-icon-button class="info"
+										   icon="icons:info"
+										   on-tap="_metadataInfo"></paper-icon-button>
 						<paper-tooltip>metadata information</paper-tooltip>
 					</div>
 				</div>
@@ -175,6 +189,68 @@
 
 				app.$.metadata.togglePanel();
 				e.stopPropagation();
+			},
+
+			_create: function (e)
+			{
+				var home = document.getElementById('homedir');
+				var vf = home.querySelector('view-file');
+				var path = vf.path;
+				var dialogBox = document.getElementById('centralDialogBox');
+
+				//TODO: Lazy load create-directory and dcache-namespace
+				var mkdir = document.createElement('create-directory');
+				mkdir.dirFullPath = path;
+				mkdir.addEventListener('create',function(e) {
+					var name = e.detail.newFolderName;
+					var url = window.CONFIG.webapiEndpoint + "namespace" + path;
+					var namespace = document.createElement('dcache-namespace');
+
+					if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
+						namespace.auth = sessionStorage.upauth;
+					}
+
+					namespace.promise.then(
+							function(req) {
+								dialogBox.close();
+								dialogBox.removeChild(mkdir);
+
+								var list = vf.querySelector('iron-list');
+
+								//FIX: below is a temporary fix
+								//TODO: for an empty directory return an empty item (view-file)
+								//TODO: CODE-DUPLICATION - make this a utility: shared-behaviour
+								if (list != null) {
+									list.unshift('items',
+											{
+												"fileName" : name,
+												"fileLocality" : "",
+												"size" : "--",
+												"fileType" : "DIR",
+												"mtime" : "--",
+												"creationTime" : Date.now() //Assumption
+												//TODO: add creation time to the return object of the ajax response
+											}
+									);
+									vf.querySelector('iron-list').fire('iron-resize');
+								}
+								app.$.toast.text = req.response.status + ". ";
+								app.$.toast.show();
+							}
+					).catch(
+							function(err) {
+								app.$.toast.text = err.toString() + ". ";
+								app.$.toast.show();
+							}
+					);
+
+					namespace.mkdir({
+						url: url,
+						name: name
+					});
+				});
+				dialogBox.appendChild(mkdir);
+				dialogBox.open();
 			}
 		});
 	</script>

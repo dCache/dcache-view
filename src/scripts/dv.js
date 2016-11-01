@@ -27,4 +27,18 @@
     app.menuAction = function(){
         app.$.dfDrawerPanel.togglePanel();
     };
+
+    //Ensure that paper-input in the dialog box is always focused
+    window.addEventListener('iron-overlay-opened', function(event) {
+        var input = event.target.querySelector('[autofocus]');
+        switch(input.tagName.toLowerCase()) {
+            case 'input':
+                input.focus();
+                break;
+            case 'paper-textarea':
+            case 'paper-input':
+                input.$.input.focus();
+                break;
+        }
+    });
 })(document);
