@@ -1,6 +1,7 @@
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../../bower_components/dcache-namespace/dcache-namespace.html">
 
 <link rel="import" href="../utils/ajax-ls/file-metadata.html">
 <dom-module id="hover-contextual">
@@ -19,6 +20,7 @@
       }
     </style>
     <div>
+      <paper-icon-button icon="delete" title="delete" id="delete"></paper-icon-button>
       <paper-icon-button icon="{{icon}}" title="{{tip}}" id="view"></paper-icon-button>
       <paper-icon-button icon="info" title="metadata information" id="info"></paper-icon-button>
     </div>
@@ -52,7 +54,7 @@
         path: {
           type: String,
           notify: true
-        },
+        }
       },
 
       factoryImpl: function(name, fileType, path)
@@ -65,8 +67,10 @@
           case "DIR":
             this.icon = "visibility";
             this.tip = "open folder";
+            this.$.delete.style.display = "none";
+            this.updateStyles();
             break;
-          default:
+          case "REGULAR":
             this.icon = "cloud-download";
             this.tip = "download file";
             break;
@@ -76,7 +80,8 @@
       listeners:
       {
         'view.tap': '_view',
-        'info.tap': '_info'
+        'info.tap': '_info',
+        'delete.tap': '_delete'
       },
 
       _view: function(e)
@@ -121,16 +126,7 @@
           Polymer.dom.flush();
         } else {
           //Download a file
-          var webdav = window.CONFIG.webdavEndpoint;
-          if (webdav == "") {
-            path = window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
-          } else {
-            if (webdav.endsWith("/")) {
-              path = webdav.substring(0, webdav.length-1) + this.filePath;
-            } else {
-              path = webdav + this.filePath;
-            }
-          }
+          path = this._fileWebdavPath();
           window.open(path);
         }
         e.stopPropagation();
@@ -146,6 +142,58 @@
         Polymer.dom.flush();
         app.$.metadata.openDrawer();
         e.stopPropagation();
+      },
+      _delete: function ()
+      {
+        var url = this._fileWebdavPath();
+        var name = this.name;
+
+        if (sessionStorage.upauth == null || sessionStorage.upauth === undefined){
+            app.$.toast.text = 'You need to login to delete a file.';
+            app.$.toast.show();
+            return;
+        }
+        var namespace = document.createElement('dcache-namespace');
+        namespace.auth = sessionStorage.upauth;
+        namespace.promise.then(
+          function () {
+            var list = document.querySelector('iron-list');
+            var arr = list.items;
+            console.log(arr);
+            const len = arr.length;
+            var i;
+            for (i=0; i<len; i++) {
+                console.log(name);
+                console.log(arr[i].fileName);
+                if (arr[i].fileName == name) {
+                    list.splice('items', i, 1);
+                    break;
+                }
+            }
+          }
+        ).catch(
+          function(err) {
+            app.$.toast.text = err;
+            app.$.toast.show();
+          }
+        );
+        namespace.delete({
+            url: url
+        });
+      },
+
+      _fileWebdavPath: function ()
+      {
+          var webdav = window.CONFIG.webdavEndpoint;
+          if (webdav == "") {
+              return window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
+          } else {
+              if (webdav.endsWith("/")) {
+                  return webdav.substring(0, webdav.length-1) + this.filePath;
+              } else {
+                  return webdav + this.filePath;
+              }
+          }
       }
     });
   </script>
