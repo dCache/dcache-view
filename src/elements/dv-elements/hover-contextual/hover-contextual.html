@@ -159,12 +159,9 @@
           function () {
             var list = document.querySelector('iron-list');
             var arr = list.items;
-            console.log(arr);
             const len = arr.length;
             var i;
             for (i=0; i<len; i++) {
-                console.log(name);
-                console.log(arr[i].fileName);
                 if (arr[i].fileName == name) {
                     list.splice('items', i, 1);
                     break;
@@ -189,9 +186,9 @@
               return window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
           } else {
               if (webdav.endsWith("/")) {
-                  return webdav.substring(0, webdav.length-1) + this.filePath;
+                  return webdav.substring(0, webdav.length-1) + this.path;
               } else {
-                  return webdav + this.filePath;
+                  return webdav + this.path;
               }
           }
       }
