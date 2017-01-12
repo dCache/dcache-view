@@ -65,7 +65,9 @@
                 var u;
                 var uploadList = app.$.uploadToast.querySelector("#uploadList");
                 uploadList.innerHTML ="";
-                var path = app.$.homedir.querySelector('view-file').path + "/";
+                var path = ((app.$.homedir.querySelector('view-file').path).endsWith("/"))
+                    ? app.$.homedir.querySelector('view-file').path
+                    : app.$.homedir.querySelector('view-file').path + "/";
                 var f;
                 for (var i=0; f = files[i]; i++) {
                     var el = new UploadToastFile(f.name, "REGULAR");
@@ -76,7 +78,7 @@
                     if (window.CONFIG.webdavEndpoint == "") {
                         uploadURL = window.location.protocol + "//" + window.location.hostname
                                 + ":2880" + path + f.name;
-                        console.log(uploadURL);
+
                     } else {
                         uploadURL = window.CONFIG.webdavEndpoint + path + f.name;
                     }
