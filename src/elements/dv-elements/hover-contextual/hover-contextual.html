@@ -126,7 +126,7 @@
           Polymer.dom.flush();
         } else {
           //Download a file
-          path = this._fileWebdavPath();
+          path = this._fileUrl("webdav");
           window.open(path);
         }
         e.stopPropagation();
@@ -145,7 +145,7 @@
       },
       _delete: function ()
       {
-        var url = this._fileWebdavPath();
+        var url = this._fileUrl("rest");
         var name = this.name;
 
         if (sessionStorage.upauth == null || sessionStorage.upauth === undefined){
@@ -179,18 +179,24 @@
         });
       },
 
-      _fileWebdavPath: function ()
+      _fileUrl: function (serviceEndpoint)
       {
-          var webdav = window.CONFIG.webdavEndpoint;
-          if (webdav == "") {
-              return window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
-          } else {
-              if (webdav.endsWith("/")) {
-                  return webdav.substring(0, webdav.length-1) + this.path;
-              } else {
-                  return webdav + this.path;
-              }
+          switch (serviceEndpoint) {
+              case "webdav":
+                  var webdav = window.CONFIG.webdavEndpoint;
+                  if (webdav == "") {
+                      return window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
+                  } else {
+                      if (webdav.endsWith("/")) {
+                          return webdav.substring(0, webdav.length-1) + this.path;
+                      } else {
+                          return webdav + this.path;
+                      }
+                  }
+              case "rest":
+                  return window.CONFIG.webapiEndpoint + "namespace" + this.path;
           }
+
       }
     });
   </script>
