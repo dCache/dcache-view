@@ -2,6 +2,7 @@
 
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../../bower_components/iron-label/iron-label.html">
+<link rel="import" href="../../../bower_components/file-icon/file-icon.html">
 
 <dom-module id="upload-toast-file">
     <style>
@@ -110,7 +111,7 @@
             <div id="fileStatusInfo">
                 <div id="uploadFile">
                     <div id="fileIcon">
-                        <file-type-icon filetype="{{fileType}}" style="padding-left: 10px;"></file-type-icon>
+                        <file-icon mime-type="[[fileMimeType]]" style="padding-left: 10px;"></file-icon>
                     </div>
                     <div id="fileInfo">
                         <div id="fileName">
@@ -158,6 +159,10 @@
                     type: String,
                     notify: true
                 },
+                fileMimeType: {
+                    type: String,
+                    notify: true
+                },
                 isComplete: {
                     type: Boolean,
                     value: false,
@@ -184,10 +189,11 @@
                 }
             },
 
-            factoryImpl: function(fileName, fileType)
+            factoryImpl: function(fileName, fileType, fileMimeType)
             {
                 this.fileName = fileName;
                 this.fileType = fileType;
+                this.fileMimeType = fileMimeType;
             },
 
             _computedClass:function (hasError,isComplete,inProgress)
