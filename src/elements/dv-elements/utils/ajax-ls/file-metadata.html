@@ -10,7 +10,7 @@
 <link rel="import" href="../../../../bower_components/paper-icon-button/paper-icon-button.html">
 
 
-<link rel="import" href="../../file-type/file-type-icon.html">
+<link rel="import" href="../../../../bower_components/file-icon/file-icon.html">
 <link rel="import" href="../../directory-ls-message/directory-ls-error.html">
 
 <dom-module id="file-metadata">
@@ -77,7 +77,7 @@
                     <div class="card-content">
                         <div class="cafe-header">{{metadata.fileName}}
                             <div class="cafe-location cafe-light">
-                                <file-type-icon filetype="{{metadata.fileType}}"></file-type-icon>
+                                <file-icon mime-type="{{metadata.fileMimeType}}"></file-icon>
                             </div>
                         </div>
 
