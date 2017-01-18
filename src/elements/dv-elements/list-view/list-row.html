@@ -6,7 +6,8 @@
 <link rel="import" href="../../../bower_components/iron-icons/communication-icons.html">
 <link rel="import" href="../../../bower_components/iron-icons/notification-icons.html">
 
-<link rel="import" href="../file-type/file-type-icon.html">
+<link rel="import" href="../../../bower_components/file-icon/file-icon.html">
+
 <link rel="import" href="../hover-contextual/hover-contextual.html">
 <link rel="import" href="../utils/ajax-ls/view-file.html">
 <link rel="import" href="../pagination-button/pagination-button.html">
@@ -70,7 +71,7 @@
 	</style>
 	<template>
 		<div id="row" class="row">
-			<file-type-icon filetype="{{fileType}}" style="padding-left: 15px; padding-right: 10px"></file-type-icon>
+			<file-icon mime-type="{{fileMimeType}}" style="padding-left: 15px; padding-right: 10px"></file-icon>
 			<div class="cell name">
 				<label id="filename" style="padding-left:5px;">{{name}}</label>
 			</div>
@@ -100,6 +101,11 @@
 				},
 
 				fileType: {
+					type: String,
+					notify: true
+				},
+
+				fileMimeType: {
 					type: String,
 					notify: true
 				},
