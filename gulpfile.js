@@ -2,12 +2,6 @@ var gulp = require('gulp');
 var vulcanize = require('gulp-vulcanize');
 var bower = require('gulp-bower');
 
-var maven = require('gulp-maven-deploy');
-var zip = require('gulp-zip');
-var cheerio = require('cheerio');
-var fs = require('fs');
-var version;
-
 gulp.task('bower', function() {
     return bower();
 });
@@ -76,22 +70,9 @@ gulp.task('vulcanize', function() {
         .pipe(gulp.dest('./target/elements'));
 });
 
-gulp.task('read-pom', function () {
-    var pom = fs.readFileSync('./pom.xml');
-    var $ = cheerio.load(pom, { xmlMode: true });
-    version = $('project').children('version').text();
-});
-
-gulp.task('jar', function() {
-    var dvname = "dcache-view-" + version + ".jar";
-    return gulp.src('./target/**')
-        .pipe(zip(dvname))
-        .pipe(gulp.dest('./target'));
-});
-
 gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-script',
-    'copy-webcomponents', 'vulcanize', 'read-pom']);
+    'copy-webcomponents']);
 
 gulp.task('default', ['bower', 'build'], function () {
-    gulp.start('jar');
+    gulp.start('vulcanize');
 });
