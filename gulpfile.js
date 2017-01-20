@@ -2,6 +2,13 @@ var gulp = require('gulp');
 var vulcanize = require('gulp-vulcanize');
 var bower = require('gulp-bower');
 
+/**
+ * Since the third party dependencies elements referenced inside bower.json,
+ * especially the google elements like: iron-elements and paper-elements
+ * have no fixed version number. A workaround have been introduced pending
+ * the time the issue will be resolve.
+ * (see https://github.com/PolymerElements/iron-elements/issues/50)
+ */
 gulp.task('bower', function() {
     return bower();
 });
@@ -70,9 +77,8 @@ gulp.task('vulcanize', function() {
         .pipe(gulp.dest('./target/elements'));
 });
 
-gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-script',
-    'copy-webcomponents']);
+gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-script']);
 
 gulp.task('default', ['bower', 'build'], function () {
-    gulp.start('vulcanize');
+    gulp.start('vulcanize','copy-webcomponents');
 });
