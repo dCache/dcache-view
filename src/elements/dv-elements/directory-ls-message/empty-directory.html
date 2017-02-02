@@ -38,9 +38,15 @@
     <script>
         EmptyDirectory = Polymer({
             is: 'empty-directory',
-
-            //Element Constructor
-            factoryImpl: function() {}
+            factoryImpl: function() {},
+            attached: function ()
+            {
+                app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
+            },
+            detached: function ()
+            {
+                app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
+            }
         });
     </script>
 </dom-module>

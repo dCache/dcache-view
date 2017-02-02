@@ -166,6 +166,12 @@
                     break;
                 }
             }
+
+            if (len == 1) {
+                var ed = document.createElement('empty-directory');
+                var vf = document.querySelector('view-file');
+                vf.querySelector('#content').appendChild(ed);
+            }
           }
         ).catch(
           function(err) {
