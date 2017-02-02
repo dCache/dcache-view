@@ -54,6 +54,8 @@
     "admin-page": "dcache-elements/admin-page#^0.0.5",
     "file-icon": "dcache-elements/file-icon#^0.0.3",
     "move-file": "dcache-elements/move-file#^0.0.2",
-    "paper-dialog": "PolymerElements/paper-dialog#1.1.0"
+    "paper-dialog": "PolymerElements/paper-dialog#1.1.0",
+    "iron-scroll-threshold": "PolymerElements/iron-scroll-threshold#^1.0.3",
+    "paper-spinner": "PolymerElements/paper-spinner#^1.2.1"
   }
 }

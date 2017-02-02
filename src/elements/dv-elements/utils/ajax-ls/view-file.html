@@ -3,9 +3,10 @@
 <link rel="import" href="../../../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../../../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../../../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../../../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
 
-<link rel="import" href="../../../../bower_components/paper-card/paper-card.html">
 <link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../../../bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="../../../../bower_components/dcache-namespace/dcache-namespace.html">
 
@@ -14,7 +15,6 @@
 <link rel="import" href="../../directory-ls-message/directory-ls-error.html">
 <link rel="import" href="../../user-authentication/user-login-page.html">
 <link rel="import" href="../../user-authentication/switch-user-credential-dialog-box.html">
-
 
 <dom-module id="view-file">
 	<template>
@@ -30,9 +30,6 @@
 				-moz-user-select: none; /* mozilla browsers */
 				-khtml-user-select: none; /* webkit (konqueror) browsers */
 				-ms-user-select: none; /* IE10+ */
-			}
-			.fit {
-				@apply(--layout-fit);
 			}
 			.item {
 				text-decoration: none !important;
@@ -51,18 +48,26 @@
 			iron-list {
 				flex: 1 1 auto;
 			}
+			.loading {
+				text-align: center;
+				height: 40px;
+			}
+			.loading paper-spinner {
+				width: 20px;
+				height: 20px;
+				margin-right: 10px;
+			}
 		</style>
 		<iron-ajax id="ajax"
-				   auto
 				   url="{{url}}"
 				   method="GET"
 				   content-type="application/json"
 				   headers$='[[_computeHeaders(upw)]]'
 				   handle-as="json" on-response="handleResponse"
-				   last-response="{{data}}" on-error="handleError">
+				   on-error="handleError" loading="{{loading}}">
 		</iron-ajax>
 		<paper-material id="content" elevation="1">
-			<iron-list id="abc" items="[[data.children]]"
+			<iron-list id="feList" items="[]"
 					   selected-item="{{selectedItem}}"
 					   selected-items="{{selectedItems}}" selection-enabled>
 				<template>
@@ -91,6 +96,14 @@
 				</paper-input>
 			</div>
 		</paper-dialog>
+		<div class="loading">
+			<paper-spinner alt="Loading data" active="{{loading}}"></paper-spinner>
+		</div>
+
+		<iron-scroll-threshold id="threshold"
+							   lower-threshold="500"
+							   on-lower-threshold="_loadNamespaceData">
+		</iron-scroll-threshold>
 	</template>
 
 	<script>
@@ -136,6 +149,7 @@
 					notify: true,
 					computed: '_url(path)'
 				},
+
                 name: {
 				    type:String,
 					notify: true
@@ -145,7 +159,18 @@
                     value: function() {
                         return this.$.input;
                     }
-                }
+                },
+
+				__counter__: {
+				    type: Number,
+					value: 0,
+					notify: true
+				},
+				loading: {
+				    type: Boolean,
+					value: true,
+					notify: true
+				}
 			},
 
 			observers: [
@@ -153,9 +178,17 @@
 					'selectedItemsChanged(selectedItems)'
 			],
 
-			factoryImpl: function(path) {
+			factoryImpl: function(path)
+            {
 				this.path = path;
 			},
+
+			ready: function ()
+			{
+                var target = app.$.homedir.parentNode;
+                this.$.feList.scrollTarget = target;
+                this.$.threshold.scrollTarget = target;
+            },
 
 			_computedUpw: function(path)
 			{
@@ -206,14 +239,21 @@
 				return '{"Authorization":"Basic ' + window.btoa(upw) + '", "Accept":"application/json"}';
 			},
 
-			handleResponse: function(e, request)
+			handleResponse: function(e)
 			{
-				var x = request.xhr.response.children;
+                var children = e.detail.response.children;
+				var d = this;
 
-				if ( x.length == 0 ) {
+				if ( children.length == 0 && this.__counter__ == 0 ) {
 					var content = this.$.content;
 					var el1 = new EmptyDirectory();
 					content.appendChild(el1);
+				} else {
+                    children.forEach(function (child) {
+						d.$.feList.push('items', child)
+                    });
+                    this.$.threshold.clearTriggers();
+                    this.__counter__++;
 				}
 
 				Polymer.dom.flush();
@@ -293,13 +333,14 @@
                 this._renameTargetNode = targetNode;
                 dialog.open();
             },
+
             _rename: function ()
-			{
-				var d = this;
-				var namespace = document.createElement('dcache-namespace');
+            {
+                var d = this;
+                var namespace = document.createElement('dcache-namespace');
                 namespace.auth = window.btoa(this.upw);
                 var path = this.path.endsWith("/") ? this.path : this.path + "/";
-                var source = window.CONFIG.webapiEndpoint + "namespace"+ path + this._previousName;
+                var source = window.CONFIG.webapiEndpoint + "namespace" + path + this._previousName;
                 var target = path + this.name;
                 namespace.mv({
                     url: source,
@@ -322,6 +363,14 @@
                         dialog.close();
                     }
                 );
+            },
+
+            _loadNamespaceData: function ()
+			{
+			    const limit = 100;
+                var offset = this.__counter__ * limit;
+                this.$.ajax.params = {"limit":limit, "offset": offset};
+                this.$.ajax.generateRequest();
             }
 		});
 	</script>
