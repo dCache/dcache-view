@@ -56,7 +56,6 @@
                 }
             },
 
-            //Element Constructor
             factoryImpl: function(message, code)
             {
                 this.code = code;
@@ -65,8 +64,15 @@
 
             attached: function ()
             {
-                /*var c = this.code;
-                 var msg = this.message;*/
+                if (this.parentNode == (app.$.homedir.querySelector('view-file')).querySelector('#content')) {
+                    app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
+                }
+            },
+            detached: function ()
+            {
+                if (this.parentNode == (app.$.homedir.querySelector('view-file')).querySelector('#content')) {
+                    app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
+                }
             }
         });
     </script>

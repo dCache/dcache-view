@@ -231,26 +231,27 @@
 								dialogBox.close();
 								dialogBox.removeChild(mkdir);
 
-								var list = vf.querySelector('iron-list');
+                                var ed = vf.querySelector('empty-directory');
+                                if (ed != null) {
+                                    vf.querySelector('#content').removeChild(ed);
+                                }
 
-								//FIX: below is a temporary fix
-								//TODO: for an empty directory return an empty item (view-file)
+                                var list = vf.querySelector('iron-list');
 								//TODO: CODE-DUPLICATION - make this a utility: shared-behaviour
-								if (list != null) {
-									list.unshift('items',
-											{
-												"fileName" : name,
-												"fileMimeType" : "application/octet-stream",
-												"fileLocality" : "",
-												"size" : "--",
-												"fileType" : "DIR",
-												"mtime" : "--",
-												"creationTime" : Date.now() //Assumption
-												//TODO: add creation time to the return object of the ajax response
-											}
-									);
-									vf.querySelector('iron-list').fire('iron-resize');
-								}
+								list.unshift('items',
+									{
+										"fileName" : name,
+										"fileMimeType" : "application/octet-stream",
+										"fileLocality" : "",
+										"size" : "--",
+										"fileType" : "DIR",
+										"mtime" : "--",
+										"creationTime" : Date.now() //Assumption
+										//TODO: add creation time to the return object of the ajax response
+									}
+								);
+								vf.querySelector('iron-list').fire('iron-resize');
+
 								app.$.toast.text = req.response.status + ". ";
 								app.$.toast.show();
 							}

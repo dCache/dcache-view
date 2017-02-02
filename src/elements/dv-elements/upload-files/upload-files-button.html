@@ -95,7 +95,12 @@
                             upLs.hasError = false;
                             upLs.isComplete = true;
                             upLs.message = "Uploaded";
-                            var list = document.querySelector('iron-list');
+                            var vf = document.querySelector('view-file');
+                            var ed = vf.querySelector('empty-directory');
+                            if (ed != null) {
+                                vf.querySelector('#content').removeChild(ed);
+                            }
+                            var list = vf.querySelector('iron-list');
                             list.unshift('items',
                                     {
                                         "fileName" : data.name,

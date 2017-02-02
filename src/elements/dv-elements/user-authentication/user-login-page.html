@@ -76,14 +76,6 @@
         <div>
             <div id="info"><p style="padding-left: 5px; padding-right: 5px;">{{loginInformation}}</p></div>
             <div id="content">
-                <!--<div id="logo">
-                    <div>
-                        <iron-icon icon="icons:lock"
-                                   style="color: #1ef53e; height:3em; width:3em;">
-                        </iron-icon>
-                    </div>
-                    <span>dCache View</span>
-                </div>-->
                 <div id="innerContent">
                     <div>
                         <input id="username" class="child" is="iron-input" value="{{username::input}}"
@@ -138,11 +130,17 @@
                 this.loginInformation = message;
             },
 
-            attached: function () {
+            attached: function ()
+            {
+                app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
                 this.$.username.focus();
                 if (sessionStorage.upauth != null) {
                     sessionStorage.removeItem('upauth');
                 }
+            },
+            detached: function ()
+            {
+                app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
             },
 
             _login: function()
