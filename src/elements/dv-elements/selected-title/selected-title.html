@@ -213,6 +213,7 @@
 				var vf = home.querySelector('view-file');
 				var path = vf.path;
 				var dialogBox = document.getElementById('centralDialogBox');
+                dialogBox.innerHTML = "";
 
 				//TODO: Lazy load create-directory and dcache-namespace
 				var mkdir = document.createElement('create-directory');
@@ -266,6 +267,10 @@
 						url: url,
 						name: name
 					});
+				});
+                mkdir.addEventListener('close',function() {
+                    dialogBox.close();
+                    dialogBox.removeChild(mkdir);
 				});
 				dialogBox.appendChild(mkdir);
 				dialogBox.open();
