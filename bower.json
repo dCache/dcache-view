@@ -52,6 +52,8 @@
     "create-directory": "dcache-elements/create-directory#^0.0.3",
     "dcache-namespace": "dcache-elements/dcache-namespace#^0.0.2",
     "admin-page": "dcache-elements/admin-page#^0.0.5",
-    "file-icon": "dcache-elements/file-icon#^0.0.3"
+    "file-icon": "dcache-elements/file-icon#^0.0.3",
+    "iron-scroll-threshold": "PolymerElements/iron-scroll-threshold#^1.0.3",
+    "paper-spinner": "PolymerElements/paper-spinner#^1.2.1"
   }
 }
