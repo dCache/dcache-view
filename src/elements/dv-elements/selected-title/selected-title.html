@@ -15,6 +15,8 @@
 
 <link rel="import" href="../../../bower_components/create-directory/create-directory.html">
 <link rel="import" href="../../../bower_components/dcache-namespace/dcache-namespace.html">
+<link rel="import" href="../../../bower_components/move-file/move-icons.html">
+<link rel="import" href="../../../bower_components/move-file/move-file.html">
 
 <dom-module id="selected-title">
 	<style>
@@ -98,6 +100,14 @@
 					</div>
 				</div>
 				<div class="standardTools flex">
+					<template is="dom-if" if="{{isSelected}}" restamp>
+						<div>
+							<paper-icon-button class="move"
+											   icon="move-icons:movefolder"
+											   on-tap="_move"></paper-icon-button>
+							<paper-tooltip>move the selected file to another directory</paper-tooltip>
+						</div>
+					</template>
 					<div>
 						<paper-icon-button class="create"
 										   icon="create-new-folder"
@@ -143,6 +153,11 @@
 				isAdmin: {
 					type: Boolean,
 					notify: true
+				},
+                isSelected: {
+                    type: Boolean,
+					value: false,
+                    notify: true
 				}
 			},
 
@@ -275,7 +290,64 @@
 				});
 				dialogBox.appendChild(mkdir);
 				dialogBox.open();
-			}
+			},
+            _move: function ()
+			{
+                var home = document.getElementById('homedir');
+                var vf = home.querySelector('view-file');
+                var currentPath = vf.path;
+                var dialogBox = document.getElementById('centralDialogBox');
+                dialogBox.innerHTML = "";
+                var mv = document.createElement('move-file');
+                mv.currentPath = currentPath;
+                /**
+                 * FIXME:
+                 * This is a temp solution, readjust when the
+                 * multiple selection is enable - >
+				 * code: mv.mvFiles = [vf.selectedItems] & mv.addEventListener();
+                 */
+                mv.mvFiles = [vf.selectedItems];
+                mv.addEventListener('move', function (e) {
+                    var list = vf.querySelector('iron-list');
+                    var arr = list.items;
+                    const len = arr.length;
+                    var i;
+                    for (i=0; i<len; i++) {
+                        if (arr[i].fileName == vf.selectedItems.fileName) {
+                            list.splice('items', i, 1);
+                            break;
+                        }
+                    }
+                    dialogBox.close();
+                    app.$.toast.text = e.detail.response.status + ". ";
+                    app.$.toast.show();
+                });
+                mv.addEventListener('error', function (e) {
+                    var err = e.detail.error;
+                    app.$.toast.text = err.toString() + ". ";
+                    app.$.toast.show();
+                });
+                mv.addEventListener('dismiss', function (e) {
+                    dialogBox.close();
+                });
+                mv.addEventListener('move-create', function (e) {
+                    var list = vf.querySelector('iron-list');
+                    list.unshift('items',
+                        {
+                            "fileName" : e.detail.name,
+                            "fileMimeType" : "application/vnd.dcache.folder",
+                            "fileLocality" : "",
+                            "size" : "--",
+                            "fileType" : "DIR",
+                            "mtime" : "--",
+                            "creationTime" : Date.now() //Assumption
+                        }
+                    );
+                    vf.querySelector('iron-list').fire('iron-resize');
+                });
+                dialogBox.appendChild(mv);
+                dialogBox.open();
+            }
 		});
 	</script>
 </dom-module>

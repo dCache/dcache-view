@@ -96,7 +96,8 @@
 				},
 
 				selectedItems: {
-					type: Object
+					type: Object,
+					notify: true
 				},
 
 				selectedItem: {
@@ -122,7 +123,8 @@
 			},
 
 			observers: [
-					'changedItems(items.*)'
+					'changedItems(items.*)',
+					'selectedItemsChanged(selectedItems)'
 			],
 
 			factoryImpl: function(path) {
@@ -241,7 +243,18 @@
 				if (changedRecord.path) {
 					this.querySelector('iron-list').fire('iron-resize');
 				}
-			}
+			},
+            selectedItemsChanged: function (selectedItems)
+			{
+				/**
+				 * FIXME:
+				 * This is a temp solution, readjust when the
+				 * multiple selection is enable
+				 */
+                if (document.getElementById('selectedTitle') != null) {
+                    document.getElementById('selectedTitle').isSelected = selectedItems != null;
+                }
+            }
 		});
 	</script>
 </dom-module>
