@@ -45,9 +45,6 @@
                 }
             },
 
-            /**
-             * Element Constructor
-             */
             factoryImpl: function() {},
 
             attached: function()
@@ -68,11 +65,8 @@
                 }
             },
 
-            /**
-             * EventHandler (Functions)
-             *  ============================
-             */
-            _loginout: function() {
+            _loginout: function()
+            {
                 //e.stopPropagation();
                 if (this.upauth == null || this.upauth == "" || this.upauth == undefined ) {
                     //log-in
@@ -93,8 +87,7 @@
                     this.updateStyles();
                     window.location.reload();
                 }
-                //e.stopPropagation();
-            },
+            }
         });
     </script>
 </dom-module>

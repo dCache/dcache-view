@@ -14,65 +14,65 @@
 <link rel="import" href="../../directory-ls-message/directory-ls-error.html">
 
 <dom-module id="file-metadata">
-	<style>
-		:host {
-			height: 100%;
-			margin: 0;
-		}
-		.dir {
+    <style>
+        :host {
+            height: 100%;
+            margin: 0;
+        }
+        .dir {
             --iron-icon-fill-color:#4FC3F7;
-		}
-		.flex {
-			@apply(--layout-flex);
-		}
-		.spacer {
-			margin-left: 10px !important;
-		}
-		paper-scroll-header-panel {
-			height: 100%;
-		}
-		paper-toolbar {
-			background: #fafafa;
-			color: #333;
-		}
-		.content {
-			padding: 2px 7px;
-			background: #eee;
-		}
-		.cafe-light {
+        }
+        .flex {
+            @apply(--layout-flex);
+        }
+        .spacer {
+            margin-left: 10px !important;
+        }
+        paper-scroll-header-panel {
+            height: 100%;
+        }
+        paper-toolbar {
+            background: #fafafa;
+            color: #333;
+        }
+        .content {
+            padding: 2px 7px;
+            background: #eee;
+        }
+        .cafe-light {
             color: var(--paper-grey-600);
         }
-		.cafe-header {
-			@apply(--paper-font-headline);
-		}
-		.cafe-light {
+        .cafe-header {
+            @apply(--paper-font-headline);
+        }
+        .cafe-light {
             color: var(--paper-grey-600);
         }
-		.cafe-location {
+        .cafe-location {
             float: right;
             font-size: 15px;
             vertical-align: middle;
         }
-	</style>
-	<template>
-		<paper-scroll-header-panel class="flex" fixed>
+    </style>
+    <template>
+        <paper-scroll-header-panel class="flex" fixed>
 
-			<paper-toolbar>
-				<div class="spacer title">Metadata Info</div>
-				<paper-icon-button icon="close" title="close" id="closeFileMetadataPanel"></paper-icon-button>
-			</paper-toolbar>
+            <paper-toolbar>
+                <div class="spacer title">Metadata Info</div>
+                <paper-icon-button icon="close" title="close" id="closeFileMetadataPanel"></paper-icon-button>
+            </paper-toolbar>
 
-			<div class="content">
-				<iron-ajax
-						auto
-						url="{{url}}"
-						method="GET"
-						content-type="application/json"
-						headers$='[[_computeHeaders(upw)]]'
-						handle-as="json"
-						last-response="{{metadata}}"
-						on-response="handleResponse" on-error="handleError">
-				</iron-ajax>
+            <div class="content">
+                <iron-ajax
+                        auto
+                        url="{{url}}"
+                        method="GET"
+                        content-type="application/json"
+                        headers$='[[_computeHeaders(upw)]]'
+                        handle-as="json"
+                        last-response="{{metadata}}"
+                        on-response="handleResponse" on-error="handleError">
+                </iron-ajax>
                 <paper-card id="content">
                     <div class="card-content">
                         <div class="cafe-header">{{metadata.fileName}}
@@ -122,73 +122,72 @@
                         </div>
                     </template>
                 </paper-card>
-			</div>
-		</paper-scroll-header-panel>
-	</template>
-	<script>
-		FileMetadata = Polymer({
-			is: 'file-metadata',
+            </div>
+        </paper-scroll-header-panel>
+    </template>
+    <script>
+        FileMetadata = Polymer({
+            is: 'file-metadata',
 
-			properties: {
-				fileName: {
-					type: String,
-					notify: true
-				},
+            properties: {
+                fileName: {
+                    type: String,
+                    notify: true
+                },
 
-				path: {
-					type: String,
-					notify: true
-				},
+                path: {
+                    type: String,
+                    notify: true
+                },
 
-				fileType: {
-					type: String,
-					notify: true
-				},
+                fileType: {
+                    type: String,
+                    notify: true
+                },
 
-				cTime: {
-					type: String,
-					notify: true
-				},
+                cTime: {
+                    type: String,
+                    notify: true
+                },
 
-				mTime: {
-					type: String,
-					notify: true
-				},
+                mTime: {
+                    type: String,
+                    notify: true
+                },
 
-				parentPath: {
-					type: String,
-					notify: true,
-					computed:'_computeParent(path)'
-				},
+                parentPath: {
+                    type: String,
+                    notify: true,
+                    computed:'_computeParent(path)'
+                },
 
-				upw: {
-					type: String,
-					notify: true,
+                upw: {
+                    type: String,
+                    notify: true,
                     computed: '_computedUpw(path)'
-				},
+                },
 
-				url: {
-					type: Object,
+                url: {
+                    type: Object,
                     notify: true,
                     computed: '_url(path)'
-				},
+                },
 
-				isNotDir: {
-					type: Boolean,
-					notify: true
-				}
-			},
+                isNotDir: {
+                    type: Boolean,
+                    notify: true
+                }
+            },
 
-			//Element Constructor
-			factoryImpl: function(fileName, path, fileType)
-			{
-				this.fileName = fileName;
-				this.path = path;
-				this.fileType = fileType;
-				if (fileType == "DIR") {
-					this.isNotDir = false;
-				} else { this.isNotDir = true; }
-			},
+            factoryImpl: function(fileName, path, fileType)
+            {
+                this.fileName = fileName;
+                this.path = path;
+                this.fileType = fileType;
+                if (fileType == "DIR") {
+                    this.isNotDir = false;
+                } else { this.isNotDir = true; }
+            },
 
             _computedUpw: function(path)
             {
@@ -199,98 +198,95 @@
                 }
             },
 
-			//EventListener
-			listeners: {
-				'closeFileMetadataPanel.tap': '_closeFileMetadataPanel'
-			},
-
-			//Computed Functions
-			_url: function(path)
-            {
-				if ( this.path==null || this.path == "" || this.path == "/") {
-					return window.CONFIG.webapiEndpoint + "namespace/?children=true&locality=true";
-				} else {
-					path = decodeURIComponent(this.path);
-					path = path.replace(/=/g, "/");
-					return window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&locality=true";
-				}
+            listeners: {
+                'closeFileMetadataPanel.tap': '_closeFileMetadataPanel'
             },
 
-			_computeHeaders: function(upw)
-			{
-				return '{"Authorization":"Basic ' + window.btoa(upw) + '", "Accept":"application/json"}';
-			},
+            _url: function(path)
+            {
+                if ( this.path==null || this.path == "" || this.path == "/") {
+                    return window.CONFIG.webapiEndpoint + "namespace/?children=true&locality=true";
+                } else {
+                    path = decodeURIComponent(this.path);
+                    path = path.replace(/=/g, "/");
+                    return window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&locality=true";
+                }
+            },
 
-			_computeParent: function(path)
-			{
-				var parentPath = decodeURIComponent(app.params);
+            _computeHeaders: function(upw)
+            {
+                return '{"Authorization":"Basic ' + window.btoa(upw) + '", "Accept":"application/json"}';
+            },
 
-				if (parentPath == null || parentPath == "") {
-					parentPath = "/";
-				} else {
-					parentPath = parentPath.replace(/=/g, "/");
+            _computeParent: function(path)
+            {
+                var parentPath = decodeURIComponent(app.params);
 
-					if (path == parentPath){
-						parentPath = parentPath.substring(0, parentPath.length - this.fileName.length);
-					}
-				}
-				return parentPath;
-			},
+                if (parentPath == null || parentPath == "") {
+                    parentPath = "/";
+                } else {
+                    parentPath = parentPath.replace(/=/g, "/");
 
-			//EventHandler
-			_closeFileMetadataPanel: function(e)
-			{
-				e.stopPropagation();
-				app.$.metadata.closeDrawer();
-				e.stopPropagation();
-			},
+                    if (path == parentPath){
+                        parentPath = parentPath.substring(0, parentPath.length - this.fileName.length);
+                    }
+                }
+                return parentPath;
+            },
 
-			handleResponse: function(e, request)
-			{
-				x = request.xhr.response;
-				if (x != null || x != undefined || x != "" ) {
-					this.cTime = new Date(x.creationTime);
+            _closeFileMetadataPanel: function(e)
+            {
+                e.stopPropagation();
+                app.$.metadata.closeDrawer();
+                e.stopPropagation();
+            },
+
+            handleResponse: function(e, request)
+            {
+                x = request.xhr.response;
+                if (x != null || x != undefined || x != "" ) {
+                    this.cTime = new Date(x.creationTime);
                     this.mTime = new Date(x.mtime);
-				}
-			},
+                }
+            },
 
-			handleError: function (e, request)
-			{
-				var x;
-				var msg;
-				var code;
-				var content = this.$.content;
+            handleError: function (e, request)
+            {
+                var x;
+                var msg;
+                var code;
+                var content = this.$.content;
 
-				content.innerHTML = "";
-				var div = document.createElement("div");
-				div.classList.add("card-content");
+                content.innerHTML = "";
+                var div = document.createElement("div");
+                div.classList.add("card-content");
 
-				try {
-					x = request.request.__data__.xhr.response.errors[0];
-					msg = x.message;
-					code = x.status;
-					switch (code) {
-						case 401:
-							msg = "Unauthorized";
-							break;
-						case 403:
-							msg="Access Denied";
-							break;
-					}
-				} catch (err) {
-					msg = "Hmm... something is terribly wrong!";
-					code = 500;
-				}
+                try {
+                    x = request.request.__data__.xhr.response.errors[0];
+                    msg = x.message;
+                    code = x.status;
+                    switch (code) {
+                        case 401:
+                            msg = "Unauthorized";
+                            break;
+                        case 403:
+                            msg="Access Denied";
+                            break;
+                    }
+                } catch (err) {
+                    msg = "Hmm... something is terribly wrong!";
+                    code = 500;
+                }
 
-				var el1 = new DirectoryLsError(msg, code);
-				div.appendChild(el1);
-				content.appendChild(div);
+                var el1 = new DirectoryLsError(msg, code);
+                div.appendChild(el1);
+                content.appendChild(div);
 
-				Polymer.dom.flush();
-				this.updateStyles();
+                Polymer.dom.flush();
+                this.updateStyles();
 
-				e.stopPropagation();
-			}
-		});
-	</script>
+                e.stopPropagation();
+            }
+        });
+    </script>
 </dom-module>
