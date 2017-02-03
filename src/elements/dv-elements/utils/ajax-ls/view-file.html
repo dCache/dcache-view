@@ -5,6 +5,9 @@
 <link rel="import" href="../../../../bower_components/iron-selector/iron-selector.html">
 
 <link rel="import" href="../../../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="../../../../bower_components/dcache-namespace/dcache-namespace.html">
 
 <link rel="import" href="../../list-view/list-row.html">
 <link rel="import" href="../../directory-ls-message/empty-directory.html">
@@ -75,6 +78,19 @@
 				</template>
 			</iron-list>
 		</paper-material>
+		<paper-dialog id="dialog"
+					  horizontal-align="left" vertical-align="top"
+					  style="margin:0; width:400px; background-color:#eee;">
+			<div style="padding-top:0;padding-bottom:0;margin-top:0;margin-left:0;margin-right:0;">
+				<iron-a11y-keys target="[[target]]"
+								keys="enter" on-keys-pressed="_rename">
+				</iron-a11y-keys>
+				<paper-input id="input" value="{{name::input}}"
+							 auto-validate pattern="[^/]*" preventInvalidInput
+							 error-message="Invalid name" required autofocus>
+				</paper-input>
+			</div>
+		</paper-dialog>
 	</template>
 
 	<script>
@@ -119,7 +135,17 @@
 					type: Object,
 					notify: true,
 					computed: '_url(path)'
-				}
+				},
+                name: {
+				    type:String,
+					notify: true
+				},
+                target: {
+                    type: Object,
+                    value: function() {
+                        return this.$.input;
+                    }
+                }
 			},
 
 			observers: [
@@ -239,21 +265,63 @@
 				e.stopPropagation();
 			},
 
-			changedItems: function (changedRecord) {
+			changedItems: function (changedRecord)
+			{
 				if (changedRecord.path) {
 					this.querySelector('iron-list').fire('iron-resize');
 				}
 			},
+
             selectedItemsChanged: function (selectedItems)
-			{
-				/**
-				 * FIXME:
-				 * This is a temp solution, readjust when the
-				 * multiple selection is enable
-				 */
+            {
+                /**
+                 * FIXME:
+                 * This is a temp solution, readjust when the
+                 * multiple selection is enable
+                 */
                 if (document.getElementById('selectedTitle') != null) {
                     document.getElementById('selectedTitle').isSelected = selectedItems != null;
                 }
+            },
+
+            openDialog: function (targetNode, name)
+			{
+			    this.name = name;
+			    this._previousName = name;
+                var dialog = Polymer.dom(this.root).querySelector('#dialog');
+                dialog.positionTarget = targetNode.querySelector('#nameContainer');
+                this._renameTargetNode = targetNode;
+                dialog.open();
+            },
+            _rename: function ()
+			{
+				var d = this;
+				var namespace = document.createElement('dcache-namespace');
+                namespace.auth = window.btoa(this.upw);
+                var path = this.path.endsWith("/") ? this.path : this.path + "/";
+                var source = window.CONFIG.webapiEndpoint + "namespace"+ path + this._previousName;
+                var target = path + this.name;
+                namespace.mv({
+                    url: source,
+                    destination: target
+                });
+
+                var dialog = Polymer.dom(this.root).querySelector('#dialog');
+                namespace.promise.then(
+                    function () {
+                        d._renameTargetNode.querySelector('#fileName').innerHTML = d.name;
+                        d._renameTargetNode.name = d.name;
+                        app.$.toast.text = "Done! File renamed. ";
+                        app.$.toast.show();
+                        dialog.close();
+                    }
+                ).catch(
+                    function (err) {
+                        app.$.toast.text = err.toString() + ". ";
+                        app.$.toast.show();
+                        dialog.close();
+                    }
+                );
             }
 		});
 	</script>

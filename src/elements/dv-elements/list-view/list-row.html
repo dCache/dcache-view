@@ -6,6 +6,9 @@
 <link rel="import" href="../../../bower_components/iron-icons/communication-icons.html">
 <link rel="import" href="../../../bower_components/iron-icons/notification-icons.html">
 
+
+<link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
+
 <link rel="import" href="../../../bower_components/file-icon/file-icon.html">
 
 <link rel="import" href="../hover-contextual/hover-contextual.html">
@@ -68,12 +71,42 @@
 		@-webkit-keyframes blink-animation {
             to {visibility: hidden;}
 		}
+		#filename {
+			min-width:10px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		#nameContainer {
+			display: flex;
+			align-items: center;
+			padding-right: 24px;
+		}
+		.flex {
+			flex-grow:1;
+		}
+		paper-icon-button {
+			color: rgba(0, 0, 0, 0.54);
+			--paper-icon-button-hover: {
+				color: #f09300;
+			};
+		}
+		paper-icon-button > iron-icon {
+			width: 18px !important;
+			height: 18px !important;
+		}
 	</style>
 	<template>
 		<div id="row" class="row">
 			<file-icon mime-type="{{fileMimeType}}" style="padding-left: 15px; padding-right: 10px"></file-icon>
 			<div class="cell name">
-				<label id="filename" style="padding-left:5px;">{{name}}</label>
+				<div id="nameContainer">
+					<span id="fileName" style="padding-left:5px;">{{name}}</span>
+					<span class="flex"></span>
+					<paper-icon-button icon="icons:create"
+									   title="click to edit file name"
+									   on-tap="_editFileName"></paper-icon-button>
+				</div>
 			</div>
 			<div class="cell ctime">{{computedCTime}}</div>
 			<div class="cell locality">
@@ -88,7 +121,6 @@
 				<span>{{computedSize}}</span>
 			</div>
 		</div>
-
 	</template>
 	<script>
 		Polymer({
@@ -298,7 +330,15 @@
 				b.textContent = this.computedSize;
 				Polymer.dom.flush();
 				e.stopPropagation();
-			}
+			},
+            _editFileName: function (e)
+			{
+                e.stopPropagation();
+                var vf = document.querySelector('view-file');
+                var targetNode = this;
+                vf.openDialog(targetNode, this.name);
+                e.stopPropagation();
+            }
 		});
 	</script>
 </dom-module>
