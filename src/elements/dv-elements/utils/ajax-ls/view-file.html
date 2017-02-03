@@ -14,231 +14,232 @@
 
 
 <dom-module id="view-file">
-	<template>
-		<style>
-			:host {
-				display: block;
-				max-height: 100vh;
-				display: flex;
-				flex-direction: column;
-				margin: 0px 30px;
-				/*Prevent text selection after double click*/
-				-webkit-user-select: none; /* webkit (safari, chrome) browsers */
-				-moz-user-select: none; /* mozilla browsers */
-				-khtml-user-select: none; /* webkit (konqueror) browsers */
-				-ms-user-select: none; /* IE10+ */
-			}
-			.fit {
-				@apply(--layout-fit);
-			}
-			.item {
-				text-decoration: none !important;
-				background-color: white;
-				@apply(--layout-flex);
-				cursor:pointer;
-			}
-			.item:hover {
-				background-color: #e9e9e9;
-			}
-			.item.selected {
-				background-color: #2196F3;
-				color: #fafafa;
-				outline: 0;
-			}
-			iron-list {
-				flex: 1 1 auto;
-			}
-		</style>
-		<iron-ajax id="ajax"
-				   auto
-				   url="{{url}}"
-				   method="GET"
-				   content-type="application/json"
-				   headers$='[[_computeHeaders(upw)]]'
-				   handle-as="json" on-response="handleResponse"
-				   last-response="{{data}}" on-error="handleError">
-		</iron-ajax>
-		<paper-material id="content" elevation="1">
-			<iron-list id="abc" items="[[data.children]]"
-					   selected-item="{{selectedItem}}"
-					   selected-items="{{selectedItems}}" selection-enabled>
-				<template>
-					<div>
-						<list-row class$="[[_computedClass(selected)]]" tabindex$="[[tabIndex]]"
-								  name="{{item.fileName}}" file-type="{{item.fileType}}"
-								  ctime="{{item.creationTime}}" mtime="{{item.mtime}}"
-								  size="{{item.size}}" loc="{{item.fileLocality}}"
-								  parent-path="[[parent]]">
-						</list-row>
-					</div>
-				</template>
-			</iron-list>
-		</paper-material>
-	</template>
+    <template>
+        <style>
+            :host {
+                display: block;
+                max-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                margin: 0px 30px;
+                /*Prevent text selection after double click*/
+                -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+                -moz-user-select: none; /* mozilla browsers */
+                -khtml-user-select: none; /* webkit (konqueror) browsers */
+                -ms-user-select: none; /* IE10+ */
+            }
+            .fit {
+                @apply(--layout-fit);
+            }
+            .item {
+                text-decoration: none !important;
+                background-color: white;
+                @apply(--layout-flex);
+                cursor:pointer;
+            }
+            .item:hover {
+                background-color: #e9e9e9;
+            }
+            .item.selected {
+                background-color: #2196F3;
+                color: #fafafa;
+                outline: 0;
+            }
+            iron-list {
+                flex: 1 1 auto;
+            }
+        </style>
+        <iron-ajax id="ajax"
+                   auto
+                   url="{{url}}"
+                   method="GET"
+                   content-type="application/json"
+                   headers$='[[_computeHeaders(upw)]]'
+                   handle-as="json" on-response="handleResponse"
+                   last-response="{{data}}" on-error="handleError">
+        </iron-ajax>
+        <paper-material id="content" elevation="1">
+            <iron-list id="abc" items="[[data.children]]"
+                       selected-item="{{selectedItem}}"
+                       selected-items="{{selectedItems}}" selection-enabled>
+                <template>
+                    <div>
+                        <list-row class$="[[_computedClass(selected)]]" tabindex$="[[tabIndex]]"
+                                  name="{{item.fileName}}" file-type="{{item.fileType}}"
+                                  ctime="{{item.creationTime}}" mtime="{{item.mtime}}"
+                                  size="{{item.size}}" loc="{{item.fileLocality}}"
+                                  parent-path="[[parent]]">
+                        </list-row>
+                    </div>
+                </template>
+            </iron-list>
+        </paper-material>
+    </template>
 
-	<script>
-		ViewFile = Polymer
-		({
-			is: "view-file",
+    <script>
+        ViewFile = Polymer
+        ({
+            is: "view-file",
 
-			properties: {
-				path: {
-					type: String,
-					value: "/",
-					notify: true
-				},
+            properties: {
+                path: {
+                    type: String,
+                    value: "/",
+                    notify: true
+                },
 
-				parent: {
-					type: String,
-					notify: true,
-					computed: '_computeParentPath(path)'
-				},
+                parent: {
+                    type: String,
+                    notify: true,
+                    computed: '_computeParentPath(path)'
+                },
 
-				selectedItems: {
-					type: Object
-				},
+                selectedItems: {
+                    type: Object
+                },
 
-				selectedItem: {
-					type: Object
-				},
+                selectedItem: {
+                    type: Object
+                },
 
-				isSel: {
-					type: Boolean,
-					notify: true
-				},
+                isSel: {
+                    type: Boolean,
+                    notify: true
+                },
 
-				upw: {
-					type: String,
-					notify: true,
-					computed: '_computedUpw(path)'
-				},
+                upw: {
+                    type: String,
+                    notify: true,
+                    computed: '_computedUpw(path)'
+                },
 
-				url: {
-					type: Object,
-					notify: true,
-					computed: '_url(path)'
-				}
-			},
+                url: {
+                    type: Object,
+                    notify: true,
+                    computed: '_url(path)'
+                }
+            },
 
-			factoryImpl: function(path) {
-				this.path = path;
-			},
+            factoryImpl: function(path)
+            {
+                this.path = path;
+            },
 
-			_computedUpw: function(path)
-			{
-				if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
-					return window.atob(sessionStorage.upauth);
-				} else {
-					return "anonymous:nopassword";
-				}
-			},
+            _computedUpw: function(path)
+            {
+                if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
+                    return window.atob(sessionStorage.upauth);
+                } else {
+                    return "anonymous:nopassword";
+                }
+            },
 
-			_computedClass: function(isSelected)
-			{
-				var classes = 'item';
-				if (isSelected) {
-					classes += ' selected';
-				}
+            _computedClass: function(isSelected)
+            {
+                var classes = 'item';
+                if (isSelected) {
+                    classes += ' selected';
+                }
 
-				this.updateStyles();
+                this.updateStyles();
 
-				return classes;
-			},
+                return classes;
+            },
 
-			_url: function(path)
-			{
-				if ( this.path==null || this.path == "" || this.path == "/") {
-					return window.CONFIG.webapiEndpoint + "namespace/?children=true&locality=true";
-				} else {
-					path = decodeURIComponent(this.path);
-					path = path.replace(/=/g, "/");
-					return window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&locality=true";
-				}
-			},
+            _url: function(path)
+            {
+                if ( this.path==null || this.path == "" || this.path == "/") {
+                    return window.CONFIG.webapiEndpoint + "namespace/?children=true&locality=true";
+                } else {
+                    path = decodeURIComponent(this.path);
+                    path = path.replace(/=/g, "/");
+                    return window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&locality=true";
+                }
+            },
 
-			_computeParentPath: function(path)
-			{
-				if ( this.path == null || this.path == "" || this.path == "/" ) {
-					path = "/";
-					return path;
-				} else {
-					path = decodeURIComponent(this.path);
-					path = path.replace(/=/g, "/");
-					return path + "/";
-				}
-			},
+            _computeParentPath: function(path)
+            {
+                if ( this.path == null || this.path == "" || this.path == "/" ) {
+                    path = "/";
+                    return path;
+                } else {
+                    path = decodeURIComponent(this.path);
+                    path = path.replace(/=/g, "/");
+                    return path + "/";
+                }
+            },
 
-			_computeHeaders: function(upw)
-			{
-				return '{"Authorization":"Basic ' + window.btoa(upw) + '", "Accept":"application/json"}';
-			},
+            _computeHeaders: function(upw)
+            {
+                return '{"Authorization":"Basic ' + window.btoa(upw) + '", "Accept":"application/json"}';
+            },
 
-			handleResponse: function(e, request)
-			{
-				var x = request.xhr.response.children;
+            handleResponse: function(e, request)
+            {
+                var x = request.xhr.response.children;
 
-				if ( x.length == 0 ){
-					var content = this.$.content;
-					content.innerHTML = "";
-					var el1 = new EmptyDirectory();
-					content.appendChild(el1);
-					app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
-				} else {
-					app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
-				}
+                if ( x.length == 0 ){
+                    var content = this.$.content;
+                    content.innerHTML = "";
+                    var el1 = new EmptyDirectory();
+                    content.appendChild(el1);
+                    app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
+                } else {
+                    app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
+                }
 
-				Polymer.dom.flush();
-				this.updateStyles();
+                Polymer.dom.flush();
+                this.updateStyles();
 
-				e.stopPropagation();
-			},
+                e.stopPropagation();
+            },
 
-			handleError: function (e, request)
-			{
-				var x;
-				var msg;
-				var code;
-				var content = this.$.content;
+            handleError: function (e, request)
+            {
+                var x;
+                var msg;
+                var code;
+                var content = this.$.content;
 
-				app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
+                app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
 
-				try {
-					x = request.request.__data__.xhr.response.errors[0];
-					msg = x.message;
-					code = x.status;
-					switch (code) {
-						case 401:
-							var moreMessage = "If you have an account, enter your User Name and Password.";
-							content.innerHTML = "";
-							var ulp = new UserLoginPage(moreMessage);
-							content.appendChild(ulp);
-							Polymer.dom.flush();
-							this.updateStyles();
-							return;
-							break;
-						case 403:
-							app.$.centralDialogBox.innerHTML = "";
-							var el2 = new SwitchUserCredentialDialogBox();
-							app.$.centralDialogBox.appendChild(el2);
-							Polymer.dom.flush();
-							this.updateStyles();
-							app.$.centralDialogBox.toggle();
-							break;
-					}
-				} catch (err) {
-					msg = "Something is terribly wrong! Please contact your admin";
-					code = 500;
-				}
+                try {
+                    x = request.request.__data__.xhr.response.errors[0];
+                    msg = x.message;
+                    code = x.status;
+                    switch (code) {
+                        case 401:
+                            var moreMessage = "If you have an account, enter your User Name and Password.";
+                            content.innerHTML = "";
+                            var ulp = new UserLoginPage(moreMessage);
+                            content.appendChild(ulp);
+                            Polymer.dom.flush();
+                            this.updateStyles();
+                            return;
+                            break;
+                        case 403:
+                            app.$.centralDialogBox.innerHTML = "";
+                            var el2 = new SwitchUserCredentialDialogBox();
+                            app.$.centralDialogBox.appendChild(el2);
+                            Polymer.dom.flush();
+                            this.updateStyles();
+                            app.$.centralDialogBox.toggle();
+                            break;
+                    }
+                } catch (err) {
+                    msg = "Something is terribly wrong! Please contact your admin";
+                    code = 500;
+                }
 
-				content.innerHTML = "";
-				var el1 = new DirectoryLsError(msg, code);
-				content.appendChild(el1);
+                content.innerHTML = "";
+                var el1 = new DirectoryLsError(msg, code);
+                content.appendChild(el1);
 
-				Polymer.dom.flush();
-				this.updateStyles();
+                Polymer.dom.flush();
+                this.updateStyles();
 
-				e.stopPropagation();
-			}
-		});
-	</script>
+                e.stopPropagation();
+            }
+        });
+    </script>
 </dom-module>

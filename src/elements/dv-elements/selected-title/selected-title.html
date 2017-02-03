@@ -10,158 +10,155 @@
 <link rel="import" href="../pagination-button/pagination-button.html">
 
 <dom-module id="selected-title">
-	<style>
-		:host {
-			display: block;
-			color: #333;
-			padding-left: 7px;
-		}
-		.row {
-			@apply(--layout-horizontal);
-			@apply(--layout-center);
-		}
-		.flex {
-			@apply(--layout-flex);
-		}
-		.flex2 {
-			@apply(--layout-flex-2);
-		}
-		.flex3 {
-			@apply(--layout-flex-3);
-		}
-		.standardTools {
-			padding-right: 20px;
-			@apply(--layout-horizontal);
-			@apply(--layout-end-justified);
-		}
-		.standardTools > paper-toggle-button {
-			display:inline-flex;
-			height:40px;
-			--paper-toggle-button-checked-bar-color: red;
-			--paper-toggle-button-checked-button-color:  red;
-			--paper-toggle-button-checked-ink-color: red;
-		}
-		.standardTools > div {
-			display:inline-flex;
-			margin-left: 10px;
-		}
-		.pagination > div {
-			display:inline-flex;
-		}
-		#pagination {
+    <style>
+        :host {
+            display: block;
+            color: #333;
+            padding-left: 7px;
+        }
+        .row {
+            @apply(--layout-horizontal);
+            @apply(--layout-center);
+        }
+        .flex {
+            @apply(--layout-flex);
+        }
+        .flex2 {
+            @apply(--layout-flex-2);
+        }
+        .flex3 {
+            @apply(--layout-flex-3);
+        }
+        .standardTools {
+            padding-right: 20px;
+            @apply(--layout-horizontal);
+            @apply(--layout-end-justified);
+        }
+        .standardTools > paper-toggle-button {
+            display:inline-flex;
+            height:40px;
+            --paper-toggle-button-checked-bar-color: red;
+            --paper-toggle-button-checked-button-color:  red;
+            --paper-toggle-button-checked-ink-color: red;
+        }
+        .standardTools > div {
+            display:inline-flex;
+            margin-left: 10px;
+        }
+        .pagination > div {
+            display:inline-flex;
+        }
+        #pagination {
             display: inline-block;
             padding: 0;
             margin: 0;
             @apply(--layout-horizontal);
-		}
-		#pagination pagination-button {
+        }
+        #pagination pagination-button {
             display: inline;
         }
-		paper-tooltip {
+        paper-tooltip {
             --paper-tooltip-background: #5cb5ec;
         }
-		.info {
+        .info {
             border: solid 1px #dedede;
             border-radius: 20px;
             background: #f7f7f7;
-		}
-		.home {
+        }
+        .home {
             border-top-right-radius:20%;
             border-bottom-right-radius:20%;
             border-top-left-radius:70%;
             border-bottom-left-radius:70%;
             color: #616161;
-		}
-	</style>
-	<template>
-		<template is="dom-if" if="{{isHome}}">
-			<div class="row">
-				<div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
-				<div class="flex3 pagination">
-					<div id="pagination">
-						<pagination-button dir-name="Root" canonical-path="/" active></pagination-button>
-					</div>
-				</div>
-				<div class="standardTools flex">
-					<div>
-						<paper-icon-button class="info" icon="info" on-tap="_metadataInfo"></paper-icon-button>
-						<paper-tooltip>metadata information</paper-tooltip>
-					</div>
-				</div>
-			</div>
-		</template>
+        }
+    </style>
+    <template>
+        <template is="dom-if" if="{{isHome}}">
+            <div class="row">
+                <div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
+                <div class="flex3 pagination">
+                    <div id="pagination">
+                        <pagination-button dir-name="Root" canonical-path="/" active></pagination-button>
+                    </div>
+                </div>
+                <div class="standardTools flex">
+                    <div>
+                        <paper-icon-button class="info" icon="info" on-tap="_metadataInfo"></paper-icon-button>
+                        <paper-tooltip>metadata information</paper-tooltip>
+                    </div>
+                </div>
+            </div>
+        </template>
 
-	</template>
-	<script>
-		Polymer
-		({
-			is: 'selected-title',
+    </template>
+    <script>
+        Polymer
+        ({
+            is: 'selected-title',
 
-			properties: {
-				pgRoute: {
-					type: String,
-					notify: true
-				},
+            properties: {
+                pgRoute: {
+                    type: String,
+                    notify: true
+                },
 
-				isHome: {
-					type: Boolean,
-					notify: true
-				}
-			},
+                isHome: {
+                    type: Boolean,
+                    notify: true
+                }
+            },
 
-			observers: [
-				'changedSection(pgRoute)'
-			],
+            observers: [
+                'changedSection(pgRoute)'
+            ],
 
-			changedSection: function (pgRoute) {
-				switch (pgRoute) {
-					case "home":
-						this.isHome = true;
-						break;
-				}
-			},
+            changedSection: function (pgRoute)
+            {
+                switch (pgRoute) {
+                    case "home":
+                        this.isHome = true;
+                        break;
+                }
+            },
 
-			/**------------------------------------------------------------
-			 * Open a Drawer and display metadata of a file/directory
-			 *-------------------------------------------------------------
-			 */
-			_metadataInfo: function(e)
-			{
-				e.stopPropagation();
+            _metadataInfo: function(e)
+            {
+                e.stopPropagation();
 
-				var el1;
-				var z = app.$.homedir.querySelector('view-file');
-				var x = app.$.homedir.querySelector("#abc");
+                var el1;
+                var z = app.$.homedir.querySelector('view-file');
+                var x = app.$.homedir.querySelector("#abc");
 
-				var path = z.path;
+                var path = z.path;
 
-				app.$.metadataDrawer.innerHTML = "";
+                app.$.metadataDrawer.innerHTML = "";
 
-				if (path == "/") {
-					y = x.selectedItem;
-					if ( y == null ) {
-						el1 = new FileMetadata("Root", "/", "DIR");
-					} else {
-						el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType);
-					}
-					app.$.metadataDrawer.appendChild(el1);
-				} else {
-					if ( x == null || x.selectedItem == null ) {
-						var n = path.lastIndexOf("/");
-						var name = path.slice(n+1);
-						el1 = new FileMetadata(name, path, "DIR");
-					} else {
-						var y = x.selectedItem;
-						el1 = new FileMetadata(y.fileName, path + "/" + y.fileName, y.fileType);
-					}
-					app.$.metadataDrawer.appendChild(el1);
-				}
+                if (path == "/") {
+                    y = x.selectedItem;
+                    if ( y == null ) {
+                        el1 = new FileMetadata("Root", "/", "DIR");
+                    } else {
+                        el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType);
+                    }
+                    app.$.metadataDrawer.appendChild(el1);
+                } else {
+                    if ( x == null || x.selectedItem == null ) {
+                        var n = path.lastIndexOf("/");
+                        var name = path.slice(n+1);
+                        el1 = new FileMetadata(name, path, "DIR");
+                    } else {
+                        var y = x.selectedItem;
+                        el1 = new FileMetadata(y.fileName, path + "/" + y.fileName, y.fileType);
+                    }
+                    app.$.metadataDrawer.appendChild(el1);
+                }
 
-				Polymer.dom.flush();
+                Polymer.dom.flush();
 
-				app.$.metadata.togglePanel();
-				e.stopPropagation();
-			}
-		});
-	</script>
+                app.$.metadata.togglePanel();
+                e.stopPropagation();
+            }
+        });
+    </script>
 </dom-module>

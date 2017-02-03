@@ -5,11 +5,6 @@
 
     // Sets app default base URL
     app.baseUrl = '/';
-    if (window.location.port === '') {  // if production
-        // Uncomment app.baseURL below and
-        // set app.baseURL to '/your-pathname/' if running from folder in production
-        // app.baseUrl = '/polymer-starter-kit/app/';
-    }
 
     // Listen for template bound event to know when bindings
     // have resolved and content has been stamped to the page
@@ -20,9 +15,6 @@
     window.addEventListener('WebComponentsReady', function() {
         // imports are loaded and elements have been registered
     });
-
-    //Prevent text selection after double click
-    //app.addEventListener('mousedown', function(e){ e.preventDefault(); }, false);
 
     app.menuAction = function(){
         app.$.dfDrawerPanel.togglePanel();

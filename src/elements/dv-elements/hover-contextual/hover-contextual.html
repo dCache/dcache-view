@@ -25,128 +25,128 @@
   </template>
 
   <script>
-    HoverContextual = Polymer({
-      is: 'hover-contextual',
+      HoverContextual = Polymer({
+          is: 'hover-contextual',
 
-      properties: {
-        icon: {
-          type: String,
-          notify: true
-        },
+          properties: {
+              icon: {
+                  type: String,
+                  notify: true
+              },
 
-        tip: {
-          type: String,
-          notify: true
-        },
+              tip: {
+                  type: String,
+                  notify: true
+              },
 
-        name: {
-          type: String,
-          notify: true
-        },
+              name: {
+                  type: String,
+                  notify: true
+              },
 
-        fileType: {
-          type: String,
-          notify: true
-        },
+              fileType: {
+                  type: String,
+                  notify: true
+              },
 
-        path: {
-          type: String,
-          notify: true
-        },
-      },
-
-      factoryImpl: function(name, fileType, path)
-      {
-        this.name = name;
-        this.fileType = fileType;
-        this.path = path;
-
-        switch (fileType) {
-          case "DIR":
-            this.icon = "visibility";
-            this.tip = "open folder";
-            break;
-          default:
-            this.icon = "cloud-download";
-            this.tip = "download file";
-            break;
-        }
-      },
-
-      listeners:
-      {
-        'view.tap': '_view',
-        'info.tap': '_info'
-      },
-
-      _view: function(e)
-      {
-        e.stopPropagation();
-        var x = this.fileType;
-        var path;
-        /**
-         * TODO: Factor-out this code.
-         * This code is similar to the function for the
-         * on-tap event in the Pagination Button element.
-         */
-        if ( x == "DIR" ) {
-          path = this.path;
-
-          app.$.homedir.innerHTML = "";
-          app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
-
-          var elRoot = new PaginationButton("Root", "/");
-          if ( path == "/") {
-            elRoot.querySelector('a').classList.add("active");
-            app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-          } else {
-            elRoot.querySelector('a').classList.remove("active");
-            app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-            var dirNames = path.split("/");
-            var pt =  "";
-            for (var i = 1; i < dirNames.length; i++) {
-              pt += "/" + dirNames[i];
-              var el = new PaginationButton(dirNames[i], pt);
-              el.querySelector('a').classList.remove("active");
-              if ( i == (dirNames.length-1) ) {
-                el.querySelector('a').classList.add("active");
+              path: {
+                  type: String,
+                  notify: true
               }
-              app.$.selectedTitle.querySelector("#pagination").appendChild(el);
-            }
+          },
+
+          factoryImpl: function(name, fileType, path)
+          {
+              this.name = name;
+              this.fileType = fileType;
+              this.path = path;
+
+              switch (fileType) {
+                  case "DIR":
+                      this.icon = "visibility";
+                      this.tip = "open folder";
+                      break;
+                  default:
+                      this.icon = "cloud-download";
+                      this.tip = "download file";
+                      break;
+              }
+          },
+
+          listeners:
+          {
+              'view.tap': '_view',
+              'info.tap': '_info'
+          },
+
+          _view: function(e)
+          {
+              e.stopPropagation();
+              var x = this.fileType;
+              var path;
+              /**
+               * TODO: Factor-out this code.
+               * This code is similar to the function for the
+               * on-tap event in the Pagination Button element.
+               */
+              if ( x == "DIR" ) {
+                  path = this.path;
+
+                  app.$.homedir.innerHTML = "";
+                  app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
+
+                  var elRoot = new PaginationButton("Root", "/");
+                  if ( path == "/") {
+                      elRoot.querySelector('a').classList.add("active");
+                      app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+                  } else {
+                      elRoot.querySelector('a').classList.remove("active");
+                      app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+                      var dirNames = path.split("/");
+                      var pt =  "";
+                      for (var i = 1; i < dirNames.length; i++) {
+                          pt += "/" + dirNames[i];
+                          var el = new PaginationButton(dirNames[i], pt);
+                          el.querySelector('a').classList.remove("active");
+                          if ( i == (dirNames.length-1) ) {
+                              el.querySelector('a').classList.add("active");
+                          }
+                          app.$.selectedTitle.querySelector("#pagination").appendChild(el);
+                      }
+                  }
+
+                  var el1 = new ViewFile(path);
+                  app.$.homedir.appendChild(el1);
+
+                  Polymer.dom.flush();
+              } else {
+                  //Download a file
+                  var webdav = window.CONFIG.webdavEndpoint;
+                  if (webdav == "") {
+                      path = window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
+                  } else {
+                      if (webdav.endsWith("/")) {
+                          path = webdav.substring(0, webdav.length-1) + this.filePath;
+                      } else {
+                          path = webdav + this.filePath;
+                      }
+                  }
+                  window.open(path);
+              }
+              e.stopPropagation();
+          },
+
+          _info: function(e)
+          {
+              e.stopPropagation();
+              //TODO: Factor this function below out. Simply create an element for this sole purpose.
+              var el1 = new FileMetadata(this.name, this.path, this.fileType);
+              app.$.metadataDrawer.innerHTML = "";
+              app.$.metadataDrawer.appendChild(el1);
+              Polymer.dom.flush();
+              app.$.metadata.openDrawer();
+              e.stopPropagation();
           }
-
-          var el1 = new ViewFile(path);
-          app.$.homedir.appendChild(el1);
-
-          Polymer.dom.flush();
-        } else {
-          //Download a file
-          var webdav = window.CONFIG.webdavEndpoint;
-          if (webdav == "") {
-            path = window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
-          } else {
-            if (webdav.endsWith("/")) {
-              path = webdav.substring(0, webdav.length-1) + this.filePath;
-            } else {
-              path = webdav + this.filePath;
-            }
-          }
-          window.open(path);
-        }
-        e.stopPropagation();
-      },
-
-      _info: function(e)
-      {
-        e.stopPropagation();
-        //TODO: Factor this function below out. Simply create an element for this sole purpose.
-        var el1 = new FileMetadata(this.name, this.path, this.fileType);
-        app.$.metadataDrawer.innerHTML = "";
-        app.$.metadataDrawer.appendChild(el1);
-        Polymer.dom.flush();
-        app.$.metadata.openDrawer();
-        e.stopPropagation();
-      }
-    });
+      });
   </script>
 </dom-module>
