@@ -239,20 +239,21 @@
 
                                 var list = vf.querySelector('iron-list');
 								//TODO: CODE-DUPLICATION - make this a utility: shared-behaviour
-								list.unshift('items',
-									{
-										"fileName" : name,
-										"fileMimeType" : "application/octet-stream",
-										"fileLocality" : "",
-										"size" : "--",
-										"fileType" : "DIR",
-										"mtime" : "--",
-										"creationTime" : Date.now() //Assumption
-										//TODO: add creation time to the return object of the ajax response
-									}
-								);
-								vf.querySelector('iron-list').fire('iron-resize');
-
+								if (list != null) {
+									list.unshift('items',
+											{
+												"fileName" : name,
+												"fileMimeType" : "application/vnd.dcache.folder",
+												"fileLocality" : "",
+												"size" : "--",
+												"fileType" : "DIR",
+												"mtime" : "--",
+												"creationTime" : Date.now() //Assumption
+												//TODO: add creation time to the return object of the ajax response
+											}
+									);
+									vf.querySelector('iron-list').fire('iron-resize');
+								}
 								app.$.toast.text = req.response.status + ". ";
 								app.$.toast.show();
 							}
