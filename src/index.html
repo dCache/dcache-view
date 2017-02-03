@@ -18,183 +18,183 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
+    <head>
+        <meta charset="utf-8">
 
-		<title>dCache View</title>
-		<meta name="description" content="dcache view">
+        <title>dCache View</title>
+        <meta name="description" content="dcache view">
 
-		<!-- Mobile -->
-		<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+        <!-- Mobile -->
+        <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
 
-		<!-- Chrome / Android -->
-		<meta name="mobile-web-app-capable" content="yes">
-		<meta name="theme-color" content="black">
-		<link rel="icon" sizes="192x192" href="favicons/icon-192x192.png">
+        <!-- Chrome / Android -->
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="theme-color" content="black">
+        <link rel="icon" sizes="192x192" href="favicons/icon-192x192.png">
 
-		<!-- Safari / iOS -->
-		<meta name="apple-mobile-web-app-capable" content="yes">
-		<meta name="apple-mobile-web-app-status-bar-style" content="black">
-		<link rel="apple-touch-icon-precomposed" href="favicons/apple-touch-icon-57x57-precomposed.png">
-		<link rel="apple-touch-icon-precomposed" sizes="76x76" href="favicons/apple-touch-icon-76x76-precomposed.png">
-		<link rel="apple-touch-icon-precomposed" sizes="120x120" href="favicons/apple-touch-icon-120x120-precomposed.png">
-		<link rel="apple-touch-icon-precomposed" sizes="152x152" href="favicons/apple-touch-icon-152x152-precomposed.png">
-		<link rel="apple-touch-icon-precomposed" sizes="180x180" href="favicons/apple-touch-icon-180x180-precomposed.png">
-		<link rel="apple-touch-icon-precomposed" sizes="196x196" href="favicons/apple-touch-icon-196x196-precomposed.png">
+        <!-- Safari / iOS -->
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" href="favicons/apple-touch-icon-57x57-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="76x76" href="favicons/apple-touch-icon-76x76-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="120x120" href="favicons/apple-touch-icon-120x120-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="favicons/apple-touch-icon-152x152-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="180x180" href="favicons/apple-touch-icon-180x180-precomposed.png">
+        <link rel="apple-touch-icon-precomposed" sizes="196x196" href="favicons/apple-touch-icon-196x196-precomposed.png">
 
-		<!-- build:css styles/main.css -->
-		<link rel="stylesheet" href="styles/main.css">
+        <!-- build:css styles/main.css -->
+        <link rel="stylesheet" href="styles/main.css">
 
-		<!-- Web Components -->
-		<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+        <!-- Web Components -->
+        <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
 
-		<link rel="import" href="elements/elements.html">
-	</head>
-	<body class="fullbleed layout vertical" unresolved>
-		<template is="dom-bind" id="app">
-			<paper-header-panel class="flex" mode="standard" shadow id="df-main-header">
+        <link rel="import" href="elements/elements.html">
+    </head>
+    <body class="fullbleed layout vertical" unresolved>
+        <template is="dom-bind" id="app">
+            <paper-header-panel class="flex" mode="standard" shadow id="df-main-header">
 
-				<paper-toolbar class="medium-tall">
-					<paper-icon-button icon="menu" on-tap="menuAction"></paper-icon-button>
-					<span class="title">[[config.orgName]]</span>
-					<div id="WhoAmI"><user-loginout-button></user-loginout-button></div>
-					<div class="bottom fit" style="height: 70px; background-color: #eee;
-							display: flex; flex-direction: column; justify-content: center;">
-						<selected-title id="selectedTitle" pg-route="{{route}}"></selected-title>
-					</div>
-				</paper-toolbar>
-				<div class="fit">
-					<paper-drawer-panel drawer-width="60px" id="dfDrawerPanel">
-						<div class="horizontal layout" drawer>
-							<paper-menu attr-for-selected="data-route" id="df-page-navigator" selected="[[route]]">
-								<a data-route="home" href$="{{baseUrl}}">
-									<paper-fab icon="device:storage" title="My Root" class="blue" mini></paper-fab>
-								</a>
+                <paper-toolbar class="medium-tall">
+                    <paper-icon-button icon="menu" on-tap="menuAction"></paper-icon-button>
+                    <span class="title">[[config.orgName]]</span>
+                    <div id="WhoAmI"><user-loginout-button></user-loginout-button></div>
+                    <div class="bottom fit" style="height: 70px; background-color: #eee;
+                            display: flex; flex-direction: column; justify-content: center;">
+                        <selected-title id="selectedTitle" pg-route="{{route}}"></selected-title>
+                    </div>
+                </paper-toolbar>
+                <div class="fit">
+                    <paper-drawer-panel drawer-width="60px" id="dfDrawerPanel">
+                        <div class="horizontal layout" drawer>
+                            <paper-menu attr-for-selected="data-route" id="df-page-navigator" selected="[[route]]">
+                                <a data-route="home" href$="{{baseUrl}}">
+                                    <paper-fab icon="device:storage" title="My Root" class="blue" mini></paper-fab>
+                                </a>
 
-								<a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
-									<paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
-								</a>
-							</paper-menu>
-						</div>
+                                <a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
+                                    <paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
+                                </a>
+                            </paper-menu>
+                        </div>
 
-						<div main>
-							<paper-drawer-panel id="metadata" responsive-width="300000px" right-drawer disable-swipe>
-								<paper-header-panel id="metadataDrawer" drawer>
-									<paper-scroll-header-panel class="flex">
-										<paper-toolbar style="background:#fafafa; color:#333;">
-											<span>Oops!</span>
-										</paper-toolbar>
-										<div class="content">
-											You are not suppose to see this :(-
-										</div>
-									</paper-scroll-header-panel>
-								</paper-header-panel>
+                        <div main>
+                            <paper-drawer-panel id="metadata" responsive-width="300000px" right-drawer disable-swipe>
+                                <paper-header-panel id="metadataDrawer" drawer>
+                                    <paper-scroll-header-panel class="flex">
+                                        <paper-toolbar style="background:#fafafa; color:#333;">
+                                            <span>Oops!</span>
+                                        </paper-toolbar>
+                                        <div class="content">
+                                            You are not suppose to see this :(-
+                                        </div>
+                                    </paper-scroll-header-panel>
+                                </paper-header-panel>
 
-								<div main>
-									<iron-pages attr-for-selected="data-route" selected="{{route}}">
-										<section data-route="home" class="fit" style="background-color:#ECECEC;">
-											<paper-header-panel mode="seamed" class="flex">
-												<paper-toolbar id="listTableHeader">
-													<list-row-header></list-row-header>
-												</paper-toolbar>
-												<div class="fit" id="homedir">
-													<view-file id="homeDir"></view-file>
-												</div>
-											</paper-header-panel>
-										</section>
+                                <div main>
+                                    <iron-pages attr-for-selected="data-route" selected="{{route}}">
+                                        <section data-route="home" class="fit" style="background-color:#ECECEC;">
+                                            <paper-header-panel mode="seamed" class="flex">
+                                                <paper-toolbar id="listTableHeader">
+                                                    <list-row-header></list-row-header>
+                                                </paper-toolbar>
+                                                <div class="fit" id="homedir">
+                                                    <view-file id="homeDir"></view-file>
+                                                </div>
+                                            </paper-header-panel>
+                                        </section>
 
-										<section data-route="admin" class="fit" style="background-color:#ECECEC;">
-											<paper-material
-													elevation="1"
-													style="margin:40px;padding:15px;background:#fdfdfd;">
-												<paper-toolbar>
-													<div class="title" style="text-align: center">admin toolbox</div>
-												</paper-toolbar>
-												<admin-page></admin-page>
-											</paper-material>
-										</section>
+                                        <section data-route="admin" class="fit" style="background-color:#ECECEC;">
+                                            <paper-material
+                                                    elevation="1"
+                                                    style="margin:40px;padding:15px;background:#fdfdfd;">
+                                                <paper-toolbar>
+                                                    <div class="title" style="text-align: center">admin toolbox</div>
+                                                </paper-toolbar>
+                                                <admin-page></admin-page>
+                                            </paper-material>
+                                        </section>
 
-										<section data-route="admin-component-page" class="fit"
-												 style="background-color:#ECECEC;">
-											<div main>
-												<iron-pages attr-for-selected="admin-component"
-															selected="{{params.component}}">
-													<section admin-component="cell-services" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for Cell Services</div>
-													</section>
-													<section admin-component="pool-usage" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for Pool Usage</div>
-													</section>
-													<section admin-component="pool-queues" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for Pool Queues</div>
-													</section>
-													<section admin-component="pool-queue-plots" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for Pool Queue Plots</div>
-													</section>
-													<section admin-component="pool-selection-setup" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for the Pool Selection Setup</div>
-													</section>
-													<section admin-component="space-tokens" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for the Space Tokens</div>
-													</section>
-													<section admin-component="active-transfers" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for Active Transfers</div>
-													</section>
-													<section admin-component="tape-transfer-queue" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for the Tape Transfer Queue</div>
-													</section>
-													<section admin-component="billing-plots" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for Billing Plots</div>
-													</section>
-													<section admin-component="file-lifetime-plots" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for File Lifetime Plots</div>
-													</section>
-													<section admin-component="alarms" class="fit"
-															 style="background-color:#ECECEC;">
-														<div>Here is the page for Alarms</div>
-													</section>
-												</iron-pages>
-											</div>
-										</section>
+                                        <section data-route="admin-component-page" class="fit"
+                                                 style="background-color:#ECECEC;">
+                                            <div main>
+                                                <iron-pages attr-for-selected="admin-component"
+                                                            selected="{{params.component}}">
+                                                    <section admin-component="cell-services" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for Cell Services</div>
+                                                    </section>
+                                                    <section admin-component="pool-usage" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for Pool Usage</div>
+                                                    </section>
+                                                    <section admin-component="pool-queues" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for Pool Queues</div>
+                                                    </section>
+                                                    <section admin-component="pool-queue-plots" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for Pool Queue Plots</div>
+                                                    </section>
+                                                    <section admin-component="pool-selection-setup" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for the Pool Selection Setup</div>
+                                                    </section>
+                                                    <section admin-component="space-tokens" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for the Space Tokens</div>
+                                                    </section>
+                                                    <section admin-component="active-transfers" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for Active Transfers</div>
+                                                    </section>
+                                                    <section admin-component="tape-transfer-queue" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for the Tape Transfer Queue</div>
+                                                    </section>
+                                                    <section admin-component="billing-plots" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for Billing Plots</div>
+                                                    </section>
+                                                    <section admin-component="file-lifetime-plots" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for File Lifetime Plots</div>
+                                                    </section>
+                                                    <section admin-component="alarms" class="fit"
+                                                             style="background-color:#ECECEC;">
+                                                        <div>Here is the page for Alarms</div>
+                                                    </section>
+                                                </iron-pages>
+                                            </div>
+                                        </section>
 
 
-									</iron-pages>
-								</div>
-							</paper-drawer-panel>
-						</div>
-					</paper-drawer-panel>
-				</div>
-			</paper-header-panel>
+                                    </iron-pages>
+                                </div>
+                            </paper-drawer-panel>
+                        </div>
+                    </paper-drawer-panel>
+                </div>
+            </paper-header-panel>
 
-			<!-- HERE IS A CENTRAL DIALOG BOX -->
-			<central-dialog-box id="centralDialogBox" modal role="alertdialog">
-			</central-dialog-box>
+            <!-- HERE IS A CENTRAL DIALOG BOX -->
+            <central-dialog-box id="centralDialogBox" modal role="alertdialog">
+            </central-dialog-box>
 
-			<!-- HERE IS A CENTRAL TOAST -->
-			<paper-toast id="toast">
-				<span class="toast-hide-button" role="button" tabindex="0" onclick="app.$.toast.hide()">Ok</span>
-			</paper-toast>
+            <!-- HERE IS A CENTRAL TOAST -->
+            <paper-toast id="toast">
+                <span class="toast-hide-button" role="button" tabindex="0" onclick="app.$.toast.hide()">Ok</span>
+            </paper-toast>
 
-			<paper-toast id="uploadToast" text="Upload Status Panel" duration="0">
-				<paper-button onclick="uploadToast.toggle()" class="yellow-button" style="margin-left:240px;">
-					Close
-				</paper-button>
-				<div id="uploadList"
-					 style="max-height:500px; max-width:460px; overflow-y: auto; overflow-x: hidden"></div>
-			</paper-toast>
-		</template>
+            <paper-toast id="uploadToast" text="Upload Status Panel" duration="0">
+                <paper-button onclick="uploadToast.toggle()" class="yellow-button" style="margin-left:240px;">
+                    Close
+                </paper-button>
+                <div id="uploadList"
+                     style="max-height:500px; max-width:460px; overflow-y: auto; overflow-x: hidden"></div>
+            </paper-toast>
+        </template>
 
-		<script src="scripts/dv.js"></script>
-		<script src="scripts/config.js"></script>
-	</body>
+        <script src="scripts/dv.js"></script>
+        <script src="scripts/config.js"></script>
+    </body>
 </html>

@@ -17,265 +17,262 @@
 <link rel="import" href="../../../bower_components/dcache-namespace/dcache-namespace.html">
 
 <dom-module id="selected-title">
-	<style>
-		:host {
-			display: block;
-			color: #333;
-			padding-left: 7px;
-		}
-		.row {
-			@apply(--layout-horizontal);
-			@apply(--layout-center);
-		}
-		.flex {
-			@apply(--layout-flex);
-		}
-		.flex2 {
-			@apply(--layout-flex-2);
-		}
-		.flex3 {
-			@apply(--layout-flex-3);
-		}
-		.standardTools {
-			padding-right: 20px;
-			@apply(--layout-horizontal);
-			@apply(--layout-end-justified);
-		}
-		.standardTools > paper-toggle-button {
-			display:inline-flex;
-			height:40px;
-			--paper-toggle-button-checked-bar-color: red;
-			--paper-toggle-button-checked-button-color:  red;
-			--paper-toggle-button-checked-ink-color: red;
-		}
-		.standardTools > div {
-			display:inline-flex;
-			max-height: 40px;
-			max-width: 40px;
-			@apply(--layout-center);
-		}
-		.standardTools > div + div {
-			margin-left: 10px;
-		}
-		.pagination > div {
-			display:inline-flex;
-		}
-		#pagination {
+    <style>
+        :host {
+            display: block;
+            color: #333;
+            padding-left: 7px;
+        }
+        .row {
+            @apply(--layout-horizontal);
+            @apply(--layout-center);
+        }
+        .flex {
+            @apply(--layout-flex);
+        }
+        .flex2 {
+            @apply(--layout-flex-2);
+        }
+        .flex3 {
+            @apply(--layout-flex-3);
+        }
+        .standardTools {
+            padding-right: 20px;
+            @apply(--layout-horizontal);
+            @apply(--layout-end-justified);
+        }
+        .standardTools > paper-toggle-button {
+            display:inline-flex;
+            height:40px;
+            --paper-toggle-button-checked-bar-color: red;
+            --paper-toggle-button-checked-button-color:  red;
+            --paper-toggle-button-checked-ink-color: red;
+        }
+        .standardTools > div {
+            display:inline-flex;
+            max-height: 40px;
+            max-width: 40px;
+            @apply(--layout-center);
+        }
+        .standardTools > div + div {
+            margin-left: 10px;
+        }
+        .pagination > div {
+            display:inline-flex;
+        }
+        #pagination {
             display: inline-block;
             padding: 0;
             margin: 0;
             @apply(--layout-horizontal);
-		}
-		#pagination pagination-button {
+        }
+        #pagination pagination-button {
             display: inline;
         }
-		paper-tooltip {
+        paper-tooltip {
             --paper-tooltip-background: #5cb5ec;
         }
-		.info {
+        .info {
             border: solid 1px #dedede;
             border-radius: 20px;
             background: #f7f7f7;
-		}
-		.home {
+        }
+        .home {
             border-top-right-radius:20%;
             border-bottom-right-radius:20%;
             border-top-left-radius:70%;
             border-bottom-left-radius:70%;
             color: #616161;
-		}
-		.create {
-			color: #2196F3;
-		}
-	</style>
-	<template>
-		<template is="dom-if" if="{{isHome}}">
-			<div class="row">
-				<div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
-				<div class="flex3 pagination">
-					<div id="pagination">
-						<pagination-button dir-name="Root" canonical-path="/" active></pagination-button>
-					</div>
-				</div>
-				<div class="standardTools flex">
-					<div>
-						<paper-icon-button class="create"
-										   icon="create-new-folder"
-										   on-tap="_create"></paper-icon-button>
-						<paper-tooltip>create new folder</paper-tooltip>
-					</div>
-					<div>
-						<upload-files-button></upload-files-button>
-					</div>
-					<div>
-						<paper-icon-button class="info"
-										   icon="icons:info"
-										   on-tap="_metadataInfo"></paper-icon-button>
-						<paper-tooltip>metadata information</paper-tooltip>
-					</div>
-				</div>
-			</div>
-		</template>
+        }
+        .create {
+            color: #2196F3;
+        }
+    </style>
+    <template>
+        <template is="dom-if" if="{{isHome}}">
+            <div class="row">
+                <div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
+                <div class="flex3 pagination">
+                    <div id="pagination">
+                        <pagination-button dir-name="Root" canonical-path="/" active></pagination-button>
+                    </div>
+                </div>
+                <div class="standardTools flex">
+                    <div>
+                        <paper-icon-button class="create"
+                                           icon="create-new-folder"
+                                           on-tap="_create"></paper-icon-button>
+                        <paper-tooltip>create new folder</paper-tooltip>
+                    </div>
+                    <div>
+                        <upload-files-button></upload-files-button>
+                    </div>
+                    <div>
+                        <paper-icon-button class="info"
+                                           icon="icons:info"
+                                           on-tap="_metadataInfo"></paper-icon-button>
+                        <paper-tooltip>metadata information</paper-tooltip>
+                    </div>
+                </div>
+            </div>
+        </template>
 
-		<template is="dom-if" if="{{isAdmin}}">
-			<div class="row">
-				<div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
-			</div>
-		</template>
+        <template is="dom-if" if="{{isAdmin}}">
+            <div class="row">
+                <div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
+            </div>
+        </template>
 
-	</template>
-	<script>
-		Polymer
-		({
-			is: 'selected-title',
+    </template>
+    <script>
+        Polymer
+        ({
+            is: 'selected-title',
 
-			properties: {
-				pgRoute: {
-					type: String,
-					notify: true
-				},
+            properties: {
+                pgRoute: {
+                    type: String,
+                    notify: true
+                },
 
-				isHome: {
-					type: Boolean,
-					notify: true
-				},
+                isHome: {
+                    type: Boolean,
+                    notify: true
+                },
 
-				isAdmin: {
-					type: Boolean,
-					notify: true
-				}
-			},
+                isAdmin: {
+                    type: Boolean,
+                    notify: true
+                }
+            },
 
-			observers: [
-				'changedSection(pgRoute)'
-			],
+            observers: [
+                'changedSection(pgRoute)'
+            ],
 
-			changedSection: function (pgRoute) {
-				switch (pgRoute) {
-					case "home":
-						this.isAdmin = false;
-						this.isHome = true;
-						break;
-					case "admin":
-						this.isHome = false;
-						this.isAdmin = true;
-						break;
-				}
-			},
+            changedSection: function (pgRoute)
+            {
+                switch (pgRoute) {
+                    case "home":
+                        this.isAdmin = false;
+                        this.isHome = true;
+                        break;
+                    case "admin":
+                        this.isHome = false;
+                        this.isAdmin = true;
+                        break;
+                }
+            },
 
-			/**------------------------------------------------------------
-			 * Open a Drawer and display metadata of a file/directory
-			 *-------------------------------------------------------------
-			 */
-			_metadataInfo: function(e)
-			{
-				e.stopPropagation();
+            _metadataInfo: function(e)
+            {
+                e.stopPropagation();
 
-				var el1;
-				var z = app.$.homedir.querySelector('view-file');
-				var x = app.$.homedir.querySelector("#feList");
+                var el1;
+                var z = app.$.homedir.querySelector('view-file');
+                var x = app.$.homedir.querySelector("#feList");
 
-				var path = z.path;
+                var path = z.path;
 
-				app.$.metadataDrawer.innerHTML = "";
+                app.$.metadataDrawer.innerHTML = "";
 
-				if (path == "/") {
-					y = x.selectedItem;
+                if (path == "/") {
+                    y = x.selectedItem;
 
-					if ( y == null ) {
-						el1 = new FileMetadata("Root", "/", "DIR");
-					} else {
-						el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType);
-					}
-					app.$.metadataDrawer.appendChild(el1);
+                    if ( y == null ) {
+                        el1 = new FileMetadata("Root", "/", "DIR");
+                    } else {
+                        el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType);
+                    }
+                    app.$.metadataDrawer.appendChild(el1);
 
-				} else {
-					if ( x == null || x.selectedItem == null ) {
-						var n = path.lastIndexOf("/");
-						var name = path.slice(n+1);
-						el1 = new FileMetadata(name, path, "DIR");
-					} else {
-						var y = x.selectedItem;
-						el1 = new FileMetadata(y.fileName, path + "/" + y.fileName, y.fileType);
-					}
-					app.$.metadataDrawer.appendChild(el1);
-				}
+                } else {
+                    if ( x == null || x.selectedItem == null ) {
+                        var n = path.lastIndexOf("/");
+                        var name = path.slice(n+1);
+                        el1 = new FileMetadata(name, path, "DIR");
+                    } else {
+                        var y = x.selectedItem;
+                        el1 = new FileMetadata(y.fileName, path + "/" + y.fileName, y.fileType);
+                    }
+                    app.$.metadataDrawer.appendChild(el1);
+                }
 
-				Polymer.dom.flush();
+                Polymer.dom.flush();
 
-				app.$.metadata.togglePanel();
-				e.stopPropagation();
-			},
+                app.$.metadata.togglePanel();
+                e.stopPropagation();
+            },
 
-			_create: function (e)
-			{
-				var home = document.getElementById('homedir');
-				var vf = home.querySelector('view-file');
-				var path = vf.path;
-				var dialogBox = document.getElementById('centralDialogBox');
+            _create: function (e)
+            {
+                var home = document.getElementById('homedir');
+                var vf = home.querySelector('view-file');
+                var path = vf.path;
+                var dialogBox = document.getElementById('centralDialogBox');
                 dialogBox.innerHTML = "";
 
-				//TODO: Lazy load create-directory and dcache-namespace
-				var mkdir = document.createElement('create-directory');
-				mkdir.dirFullPath = path;
-				mkdir.addEventListener('create',function(e) {
-					var name = e.detail.newFolderName;
-					var url = window.CONFIG.webapiEndpoint + "namespace" + path;
-					var namespace = document.createElement('dcache-namespace');
+                //TODO: Lazy load create-directory and dcache-namespace
+                var mkdir = document.createElement('create-directory');
+                mkdir.dirFullPath = path;
+                mkdir.addEventListener('create',function(e) {
+                    var name = e.detail.newFolderName;
+                    var url = window.CONFIG.webapiEndpoint + "namespace" + path;
+                    var namespace = document.createElement('dcache-namespace');
 
-					if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
-						namespace.auth = sessionStorage.upauth;
-					}
+                    if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
+                        namespace.auth = sessionStorage.upauth;
+                    }
 
-					namespace.promise.then(
-							function(req) {
-								dialogBox.close();
-								dialogBox.removeChild(mkdir);
+                    namespace.promise.then(
+                        function(req) {
+                            dialogBox.close();
+                            dialogBox.removeChild(mkdir);
 
-                                var ed = vf.querySelector('empty-directory');
-                                if (ed != null) {
-                                    vf.querySelector('#content').removeChild(ed);
-                                }
+                            var ed = vf.querySelector('empty-directory');
+                            if (ed != null) {
+                                vf.querySelector('#content').removeChild(ed);
+                            }
 
-                                var list = vf.querySelector('iron-list');
-								//TODO: CODE-DUPLICATION - make this a utility: shared-behaviour
-								if (list != null) {
-									list.unshift('items',
-											{
-												"fileName" : name,
-												"fileMimeType" : "application/vnd.dcache.folder",
-												"fileLocality" : "",
-												"size" : "--",
-												"fileType" : "DIR",
-												"mtime" : "--",
-												"creationTime" : Date.now() //Assumption
-												//TODO: add creation time to the return object of the ajax response
-											}
-									);
-									vf.querySelector('iron-list').fire('iron-resize');
-								}
-								app.$.toast.text = req.response.status + ". ";
-								app.$.toast.show();
-							}
-					).catch(
-							function(err) {
-								app.$.toast.text = err.toString() + ". ";
-								app.$.toast.show();
-							}
-					);
+                            var list = vf.querySelector('iron-list');
+                            //TODO: CODE-DUPLICATION - make this a utility: shared-behaviour
+                            if (list != null) {
+                                list.unshift('items',
+                                    {
+                                        "fileName" : name,
+                                        "fileMimeType" : "application/vnd.dcache.folder",
+                                        "fileLocality" : "",
+                                        "size" : "--",
+                                        "fileType" : "DIR",
+                                        "mtime" : "--",
+                                        "creationTime" : Date.now() //Assumption
+                                        //TODO: add creation time to the return object of the ajax response
+                                    }
+                                );
+                                vf.querySelector('iron-list').fire('iron-resize');
+                            }
+                            app.$.toast.text = req.response.status + ". ";
+                            app.$.toast.show();
+                        }
+                    ).catch(
+                        function(err) {
+                            app.$.toast.text = err.toString() + ". ";
+                            app.$.toast.show();
+                        }
+                    );
 
-					namespace.mkdir({
-						url: url,
-						name: name
-					});
-				});
+                    namespace.mkdir({
+                        url: url,
+                        name: name
+                    });
+                });
                 mkdir.addEventListener('close',function() {
                     dialogBox.close();
                     dialogBox.removeChild(mkdir);
-				});
-				dialogBox.appendChild(mkdir);
-				dialogBox.open();
-			}
-		});
-	</script>
+                });
+                dialogBox.appendChild(mkdir);
+                dialogBox.open();
+            }
+        });
+    </script>
 </dom-module>
