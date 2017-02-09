@@ -89,6 +89,9 @@
         .create {
             color: #2196F3;
         }
+        #move {
+            visibility: hidden;
+        }
     </style>
     <template>
         <template is="dom-if" if="{{isHome}}">
@@ -108,6 +111,10 @@
                             <paper-tooltip>move the selected file to another directory</paper-tooltip>
                         </div>
                     </template>
+                    <div>
+                        <paper-toggle-button on-change="_multiselection" noink></paper-toggle-button>
+                        <paper-tooltip>toggle multiple selection</paper-tooltip>
+                    </div>
                     <div>
                         <paper-icon-button class="create"
                                            icon="create-new-folder"
@@ -298,24 +305,25 @@
                 dialogBox.innerHTML = "";
                 var mv = document.createElement('move-file');
                 mv.currentPath = currentPath;
-                /**
-                 * FIXME:
-                 * This is a temp solution, readjust when the
-                 * multiple selection is enable - >
-                 * code: mv.mvFiles = [vf.selectedItems] & mv.addEventListener();
-                 */
-                mv.mvFiles = [vf.selectedItems];
+
+                if (vf.selectedItems.constructor === Array) {
+                    mv.mvFiles = vf.selectedItems;
+                } else {
+                    mv.mvFiles = [vf.selectedItems];
+                }
                 mv.addEventListener('move', function (e) {
                     var list = vf.querySelector('iron-list');
                     var arr = list.items;
                     const len = arr.length;
                     var i;
-                    for (i=0; i<len; i++) {
-                        if (arr[i].fileName == vf.selectedItems.fileName) {
-                            list.splice('items', i, 1);
-                            break;
+                    this.mvFiles.forEach(function (file) {
+                        for (i=0; i < len; i++) {
+                            if (arr[i].fileName == file.fileName) {
+                                list.splice('items', i, 1);
+                                break;
+                            }
                         }
-                    }
+                    });
                     dialogBox.close();
                     app.$.toast.text = e.detail.response.status + ". ";
                     app.$.toast.show();
@@ -345,6 +353,12 @@
                 });
                 dialogBox.appendChild(mv);
                 dialogBox.open();
+            },
+
+            _multiselection: function ()
+            {
+                var vf = document.getElementById('homedir').querySelector('view-file');
+                vf.multiSelection = this.querySelector('paper-toggle-button').active;
             }
         });
     </script>
