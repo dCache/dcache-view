@@ -19,4 +19,9 @@
     app.menuAction = function(){
         app.$.dfDrawerPanel.togglePanel();
     };
+
+    window.addEventListener('paper-responsive-change', function (event) {
+        var narrow = event.detail.narrow;
+        app.$.mainMenu.hidden = !narrow;
+    });
 })(document);
