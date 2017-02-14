@@ -141,6 +141,10 @@
                 this.$.username.focus();
                 if (sessionStorage.upauth != null) {
                     sessionStorage.removeItem('upauth');
+                    sessionStorage.removeItem("uid");
+                    sessionStorage.removeItem("gids");
+                    sessionStorage.removeItem("name");
+                    sessionStorage.removeItem("homeDirectory");
                 }
             },
 
@@ -160,12 +164,14 @@
                     "Authorization": "Basic "+this.auth,
                     "X-Requested-With": "XMLHttpRequest"
                 };
+                sessionStorage.setItem("name", this.username);
                 this.$.ajaxUser.generateRequest();
             },
 
             handleError: function (e, request)
             {
                 this.auth = null;
+                sessionStorage.removeItem("name");
                 var errorXHR = request.request.__data__.xhr.response.errors[0];
                 app.$.toast.text =  errorXHR.message+ '! Please check that you have supplied ' +
                         'the correct username and password. ';
@@ -176,6 +182,9 @@
             {
                 if ( request.xhr.response.status == "AUTHENTICATED" ) {
                     sessionStorage.setItem("upauth", this.auth);
+                    sessionStorage.setItem("uid", request.xhr.response.uid);
+                    sessionStorage.setItem("gids", (request.xhr.response.gids).toString());
+                    sessionStorage.setItem("homeDirectory", request.xhr.response.homeDirectory);
                     window.location.reload();
                 } else if ( request.xhr.response.status == "ANONYMOUS" ) {
                     app.$.toast.text =  'Please check that you have supplied ' +
