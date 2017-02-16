@@ -87,7 +87,7 @@
                         </div>
                     </div>
                     <div class="card-actions">
-                        <p><b>Last Modified:</b></p>
+                        <p><b>Last modified:</b></p>
                         <div class="horizontal justified">
                             <div style="width:220px; word-wrap: break-word;">
                                 <code>{{mTime}}</code>
@@ -105,18 +105,19 @@
                     </div>
 
                     <div class="card-actions">
-                        <p><b>File Type:</b></p>
+                        <p><b>File type:</b></p>
                         <div class="horizontal justified">
                             <code>{{metadata.fileType}}</code>
                         </div>
                     </div>
 
-                    <template is="dom-if" if="{{isNotDir}}">
+                    <template is="dom-if" if="{{isSomebody}}">
                         <div class="card-actions">
-                            <p><b>Locality Information:</b></p>
+                            <p><b>Quality of Service</b></p>
                             <div class="horizontal justified">
                                 <div style=" width:220px; word-wrap: break-word;">
-                                    <code>{{metadata.fileLocality}}</code>
+                                    <span style="font-size: 0.7em; margin: 5px;">Current File Location: </span>
+                                    <code>{{metadata.currentQos}}</code>
                                 </div>
                             </div>
                         </div>
@@ -170,10 +171,10 @@
                 url: {
                     type: Object,
                     notify: true,
-                    computed: '_url(path)'
+                    computed: '_url(upw,path)'
                 },
 
-                isNotDir: {
+                isSomebody: {
                     type: Boolean,
                     notify: true
                 }
@@ -184,9 +185,7 @@
                 this.fileName = fileName;
                 this.path = path;
                 this.fileType = fileType;
-                if (fileType == "DIR") {
-                    this.isNotDir = false;
-                } else { this.isNotDir = true; }
+                this.isSomebody = !(sessionStorage.upauth === undefined || sessionStorage.upauth == null);
             },
 
             _computedUpw: function(path)
@@ -202,14 +201,18 @@
                 'closeFileMetadataPanel.tap': '_closeFileMetadataPanel'
             },
 
-            _url: function(path)
+            _url: function(upw, path)
             {
-                if ( this.path==null || this.path == "" || this.path == "/") {
-                    return window.CONFIG.webapiEndpoint + "namespace/?children=true&locality=true";
+                if ( path==null || path == "" || path == "/") {
+                    return upw == "anonymous:nopassword" ?
+                        window.CONFIG.webapiEndpoint + "namespace/?children=true" :
+                        window.CONFIG.webapiEndpoint + "namespace/?children=true&qos=true";
                 } else {
-                    path = decodeURIComponent(this.path);
+                    path = decodeURIComponent(path);
                     path = path.replace(/=/g, "/");
-                    return window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&locality=true";
+                    return upw == "anonymous:nopassword" ?
+                        window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true" :
+                        window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&qos=true";
                 }
             },
 

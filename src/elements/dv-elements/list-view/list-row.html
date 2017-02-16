@@ -1,11 +1,6 @@
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
 
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../../../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../../../bower_components/iron-icons/editor-icons.html">
-<link rel="import" href="../../../bower_components/iron-icons/communication-icons.html">
-<link rel="import" href="../../../bower_components/iron-icons/notification-icons.html">
-
 
 <link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
 
@@ -31,11 +26,8 @@
         .name{
             @apply(--layout-flex-3);
         }
-        .ctime, .locality {
+        .ctime, .qos {
             @apply(--layout-flex);
-        }
-        .locality {
-            text-align: center;
         }
         .size {
             @apply(--layout-flex);
@@ -46,30 +38,6 @@
         }
         .fit {
             @apply(--layout-fit);
-        }
-        .online {
-            font-size: 0.3em;
-            color: #2196F3;
-        }
-        .nearline {
-            border: 1px solid #969696;
-            border-radius:3px;
-            margin: 0px !important;
-            font-size: 0.1em !important;
-            color: #f44336;
-            -ms-transform: rotate(180deg); /* IE 9 */
-            -webkit-transform: rotate(180deg); /* Chrome, Safari, Opera */
-            transform: rotate(180deg);
-            animation: blink-animation 1s steps(5, start) 3;
-            -webkit-animation: blink-animation 1s steps(5, start) 3;
-            width: 24px;
-            height: 18px;
-        }
-        @keyframes blink-animation {
-            to {visibility: hidden;}
-        }
-        @-webkit-keyframes blink-animation {
-            to {visibility: hidden;}
         }
         #filename {
             min-width:10px;
@@ -109,14 +77,7 @@
                 </div>
             </div>
             <div class="cell ctime">{{computedCTime}}</div>
-            <div class="cell locality">
-                <template is="dom-if" if="{{isNearline}}" restamp>
-                    <iron-icon icon="communication:voicemail" class="nearline"></iron-icon>
-                </template>
-                <template is="dom-if" if="{{isOnline}}" restamp>
-                    <iron-icon icon="av:album" class="online"></iron-icon>
-                </template>
-            </div>
+            <div class="cell qos"><i>{{qosValue}}</i></div>
             <div class="cell size" id="hovering">
                 <span>{{computedSize}}</span>
             </div>
@@ -177,23 +138,15 @@
                     computed:'_computeFilePath(parentPath, name)'
                 },
 
-                loc: {
+                currentQos: {
                     type: String,
                     notify: true
                 },
 
-                locality: {
+                qosValue: {
                     type: String,
                     notify: true,
-                    computed: '_computeLocality(loc)'
-                },
-                isNearline: {
-                    type: Boolean,
-                    notify: true
-                },
-                isOnline: {
-                    type: Boolean,
-                    notify: true
+                    computed: '_computeQoSValue(currentQos)'
                 }
             },
 
@@ -208,17 +161,17 @@
                 return parentPath + name;
             },
 
-            _computeLocality: function(loc)
+            _computeQoSValue: function(qos)
             {
-                if(loc == "NEARLINE"){
-                    this.isNearline = true;
-                    this.isOnline = false;
-                } else if ( loc == "ONLINE") {
-                    this.isNearline = false;
-                    this.isOnline = true;
-                } else {
-                    this.isNearline = false;
-                    this.isOnline = false;
+                switch (qos) {
+                    case "disk":
+                        return "Disk";
+                    case "tape":
+                        return "Tape";
+                    case "disk+tape":
+                        return "Disk & Tape";
+                    case "unavailable":
+                        return "unavailable";
                 }
             },
 
