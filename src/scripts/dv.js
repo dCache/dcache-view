@@ -20,6 +20,11 @@
         app.$.dfDrawerPanel.togglePanel();
     };
 
+    window.addEventListener('paper-responsive-change', function (event) {
+        var narrow = event.detail.narrow;
+        app.$.mainMenu.hidden = !narrow;
+    });
+
     //Ensure that paper-input in the dialog box is always focused
     window.addEventListener('iron-overlay-opened', function(event) {
         var input = event.target.querySelector('[autofocus]');
