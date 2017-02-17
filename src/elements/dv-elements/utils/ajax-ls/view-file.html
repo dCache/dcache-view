@@ -69,7 +69,8 @@
         <paper-material id="content" elevation="1">
             <iron-list id="feList" items="[]"
                        selected-item="{{selectedItem}}"
-                       selected-items="{{selectedItems}}" selection-enabled>
+                       selected-items="{{selectedItems}}"
+                       selection-enabled multi-selection="{{multiSelection}}">
                 <template>
                     <div>
                         <list-row class$="[[_computedClass(selected)]]" tabindex$="[[tabIndex]]"
@@ -154,6 +155,7 @@
                     type:String,
                     notify: true
                 },
+
                 target: {
                     type: Object,
                     value: function() {
@@ -166,16 +168,29 @@
                     value: 0,
                     notify: true
                 },
+
                 loading: {
                     type: Boolean,
                     value: true,
+                    notify: true
+                },
+
+                multiSelection: {
+                    type: Boolean,
+                    value: function () {
+                        if (app.$.selectedTitle.querySelector('paper-toggle-button') != null) {
+                            return app.$.selectedTitle.querySelector('paper-toggle-button').active;
+                        } else {
+                            return false;
+                        }
+                    },
                     notify: true
                 }
             },
 
             observers: [
                 'changedItems(items.*)',
-                'selectedItemsChanged(selectedItems)'
+                'selectedItemsChanged(selectedItems.*)'
             ],
 
             factoryImpl: function(path)
@@ -314,13 +329,9 @@
 
             selectedItemsChanged: function (selectedItems)
             {
-                /**
-                 * FIXME:
-                 * This is a temp solution, readjust when the
-                 * multiple selection is enable
-                 */
                 if (document.getElementById('selectedTitle') != null) {
-                    document.getElementById('selectedTitle').isSelected = selectedItems != null;
+                    document.getElementById('selectedTitle').isSelected =
+                        !(selectedItems.base == null || selectedItems.base.length == 0);
                 }
             },
 
