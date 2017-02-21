@@ -76,7 +76,7 @@
                         <list-row class$="[[_computedClass(selected)]]" tabindex$="[[tabIndex]]"
                                   name="{{item.fileName}}" file-type="{{item.fileType}}"
                                   ctime="{{item.creationTime}}" mtime="{{item.mtime}}"
-                                  size="{{item.size}}" loc="{{item.fileLocality}}"
+                                  size="{{item.size}}" current-qos="{{item.currentQos}}"
                                   file-mime-type="{{item.fileMimeType}}"
                                   parent-path="[[parent]]">
                         </list-row>
@@ -148,7 +148,7 @@
                 url: {
                     type: Object,
                     notify: true,
-                    computed: '_url(path)'
+                    computed: '_url(upw,path)'
                 },
 
                 name: {
@@ -226,14 +226,18 @@
                 return classes;
             },
 
-            _url: function(path)
+            _url: function(upw, path)
             {
-                if ( this.path==null || this.path == "" || this.path == "/") {
-                    return window.CONFIG.webapiEndpoint + "namespace/?children=true&locality=true";
+                if ( path==null || path == "" || path == "/") {
+                    return upw == "anonymous:nopassword" ?
+                        window.CONFIG.webapiEndpoint + "namespace/?children=true" :
+                        window.CONFIG.webapiEndpoint + "namespace/?children=true&qos=true";
                 } else {
-                    path = decodeURIComponent(this.path);
+                    path = decodeURIComponent(path);
                     path = path.replace(/=/g, "/");
-                    return window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&locality=true";
+                    return upw == "anonymous:nopassword" ?
+                        window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true" :
+                        window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&qos=true";
                 }
             },
 
