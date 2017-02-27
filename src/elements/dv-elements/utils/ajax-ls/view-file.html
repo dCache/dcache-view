@@ -386,10 +386,12 @@
                 var namespace = document.createElement('dcache-namespace');
                 namespace.auth = window.btoa(this.upw);
                 var path = this.path.endsWith("/") ? this.path : this.path + "/";
-                var source = window.CONFIG.webapiEndpoint + "namespace" + path + this._previousName;
+                var url = window.CONFIG.webapiEndpoint + "namespace";
+                var source = path + this._previousName;
                 var target = path + this.name;
                 namespace.mv({
-                    url: source,
+                    url: url,
+                    path: source,
                     destination: target
                 });
 
@@ -404,7 +406,7 @@
                     }
                 ).catch(
                     function (err) {
-                        app.$.toast.text = err.toString() + ". ";
+                        app.$.toast.text = err.message;
                         app.$.toast.show();
                         dialog.close();
                     }
