@@ -359,6 +359,8 @@
             {
                 var vf = document.getElementById('homedir').querySelector('view-file');
                 vf.multiSelection = this.querySelector('paper-toggle-button').active;
+                app.$.listTableHeader.querySelector('list-row-header').checkboxDisplay =
+                    this.querySelector('paper-toggle-button').active;
             }
         });
     </script>
