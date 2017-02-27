@@ -3,6 +3,7 @@
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../bower_components/paper-checkbox/paper-checkbox.html">
 
 <link rel="import" href="../../../bower_components/file-icon/file-icon.html">
 
@@ -39,7 +40,13 @@
         .fit {
             @apply(--layout-fit);
         }
-        #filename {
+        @keyframes blink-animation {
+            to {visibility: hidden;}
+        }
+        @-webkit-keyframes blink-animation {
+            to {visibility: hidden;}
+        }
+        #fileName {
             min-width:10px;
             white-space: nowrap;
             overflow: hidden;
@@ -54,18 +61,25 @@
             flex-grow:1;
         }
         paper-icon-button {
+            width: 34px !important;
+            height: 34px !important;
             color: rgba(0, 0, 0, 0.54);
             --paper-icon-button-hover: {
-                color: #f09300;
+                color: #f09300 !important;
             };
         }
-        paper-icon-button > iron-icon {
-            width: 18px !important;
-            height: 18px !important;
+        .checkbox {
+            padding-left: 24px;
+            --paper-checkbox-unchecked-color: rgba(0, 0, 0, 0.54);
+            --paper-checkbox-unchecked-ink-color: rgba(0, 0, 0, 0.54);
+        }
+        .none {
+            display: none;
         }
     </style>
     <template>
         <div id="row" class="row">
+            <paper-checkbox class$="[[_computedClass(checkboxDisplay)]]" id="checkbox"></paper-checkbox>
             <file-icon mime-type="{{fileMimeType}}" style="padding-left: 15px; padding-right: 10px"></file-icon>
             <div class="cell name">
                 <div id="nameContainer">
@@ -147,6 +161,11 @@
                     type: String,
                     notify: true,
                     computed: '_computeQoSValue(currentQos)'
+                },
+
+                checkboxDisplay: {
+                    type: Boolean,
+                    notify: true
                 }
             },
 
@@ -197,6 +216,17 @@
 
                     return parseFloat((size / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
                 }
+            },
+
+            _computedClass: function (isDisplay)
+            {
+                this.$.checkbox.checked = false;
+                let classes = 'checkbox';
+                if (!isDisplay) {
+                    classes += ' none';
+                }
+                this.updateStyles();
+                return classes;
             },
 
             _openFileLoc: function()
