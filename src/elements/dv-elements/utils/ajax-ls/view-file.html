@@ -37,13 +37,14 @@
                 @apply(--layout-flex);
                 cursor:pointer;
             }
+            .item:focus {
+                outline: 0 solid transparent !important;
+            }
             .item:hover {
-                background-color: #e9e9e9;
+                background-color: #eee;
             }
             .item.selected {
-                background-color: #2196F3;
-                color: #fafafa;
-                outline: 0;
+                background-color: #f5f5f5;
             }
             iron-list {
                 flex: 1 1 auto;
@@ -78,7 +79,7 @@
                                   ctime="{{item.creationTime}}" mtime="{{item.mtime}}"
                                   size="{{item.size}}" current-qos="{{item.currentQos}}"
                                   file-mime-type="{{item.fileMimeType}}"
-                                  parent-path="[[parent]]">
+                                  parent-path="[[parent]]" checkbox-display="{{multiSelection}}">
                         </list-row>
                     </div>
                 </template>
@@ -132,11 +133,6 @@
 
                 selectedItem: {
                     type: Object
-                },
-
-                isSel: {
-                    type: Boolean,
-                    notify: true
                 },
 
                 upw: {
@@ -216,14 +212,32 @@
 
             _computedClass: function(isSelected)
             {
-                var classes = 'item';
+                let classes = 'item';
                 if (isSelected) {
                     classes += ' selected';
+                }
+
+                if (this.multiSelection && isSelected){
+                    this._checkCheckbox(event, true)
+                } else if (this.multiSelection && !isSelected){
+                    this._checkCheckbox(event, false)
                 }
 
                 this.updateStyles();
 
                 return classes;
+            },
+
+            _checkCheckbox: function(e, state)
+            {
+                let i;
+                const len = e.path.length;
+                for (i=0; i<len; i++){
+                    if (e.path[i].nodeName=="LIST-ROW"){
+                        e.path[i].querySelector('paper-checkbox').checked = state;
+                        break;
+                    }
+                }
             },
 
             _url: function(upw, path)
@@ -336,6 +350,23 @@
                 if (document.getElementById('selectedTitle') != null) {
                     document.getElementById('selectedTitle').isSelected =
                         !(selectedItems.base == null || selectedItems.base.length == 0);
+                }
+                if (this.multiSelection) {
+                    let items = this.$.feList.items;
+                    let selectedLength = selectedItems.base == null ? 0 : selectedItems.base.length;
+                    switch (selectedLength) {
+                        case 0:
+                            //nothing is selected
+                            app.$.listTableHeader.querySelector('list-row-header').selection = 0;
+                            break;
+                        case items.length:
+                            // all items in current view have been selected
+                            app.$.listTableHeader.querySelector('list-row-header').selection = 2;
+                            break;
+                        default:
+                            // some part of the items have been selected
+                            app.$.listTableHeader.querySelector('list-row-header').selection = 1;
+                    }
                 }
             },
 
