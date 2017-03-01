@@ -239,7 +239,7 @@
                 mkdir.dirFullPath = path;
                 mkdir.addEventListener('create',function(e) {
                     var name = e.detail.newFolderName;
-                    var url = window.CONFIG.webapiEndpoint + "namespace" + path;
+                    var url = window.CONFIG.webapiEndpoint + "namespace";
                     var namespace = document.createElement('dcache-namespace');
 
                     if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
@@ -247,7 +247,7 @@
                     }
 
                     namespace.promise.then(
-                        function(req) {
+                        function() {
                             dialogBox.close();
                             dialogBox.removeChild(mkdir);
 
@@ -273,18 +273,19 @@
                                 );
                                 vf.querySelector('iron-list').fire('iron-resize');
                             }
-                            app.$.toast.text = req.response.status + ". ";
+                            app.$.toast.text = "Done! New directory created. ";
                             app.$.toast.show();
                         }
                     ).catch(
                         function(err) {
-                            app.$.toast.text = err.toString() + ". ";
+                            app.$.toast.text = err.message + " ";
                             app.$.toast.show();
                         }
                     );
 
                     namespace.mkdir({
                         url: url,
+                        path: path,
                         name: name
                     });
                 });
@@ -301,6 +302,8 @@
                 var home = document.getElementById('homedir');
                 var vf = home.querySelector('view-file');
                 var currentPath = vf.path;
+                let noOfMovedItems = 1;
+                let fileType = "item";
                 var dialogBox = document.getElementById('centralDialogBox');
                 dialogBox.innerHTML = "";
                 var mv = document.createElement('move-file');
@@ -308,6 +311,8 @@
 
                 if (vf.selectedItems.constructor === Array) {
                     mv.mvFiles = vf.selectedItems;
+                    noOfMovedItems = mv.mvFiles.length;
+                    fileType = "items";
                 } else {
                     mv.mvFiles = [vf.selectedItems];
                 }
@@ -325,12 +330,12 @@
                         }
                     });
                     dialogBox.close();
-                    app.$.toast.text = e.detail.response.status + ". ";
+                    app.$.toast.text = noOfMovedItems + " " + fileType + " have been moved from " +
+                        e.detail.response.sourceDirName + " to " + e.detail.response.targetDirName + ". ";
                     app.$.toast.show();
                 });
                 mv.addEventListener('error', function (e) {
-                    var err = e.detail.error;
-                    app.$.toast.text = err.toString() + ". ";
+                    app.$.toast.text = e.detail.error+ " ";
                     app.$.toast.show();
                 });
                 mv.addEventListener('dismiss', function (e) {
