@@ -54,14 +54,26 @@
         path: {
           type: String,
           notify: true
+        },
+
+        currentQos: {
+            type: String,
+            notify: true
+        },
+
+        index: {
+            type: Number,
+            notify: true
         }
       },
 
-      factoryImpl: function(name, fileType, path)
+      factoryImpl: function(name, fileType, path, qos, index)
       {
         this.name = name;
         this.fileType = fileType;
         this.path = path;
+        this.currentQos = qos;
+        this.index = index;
 
         switch (fileType) {
           case "DIR":
@@ -101,7 +113,7 @@
       {
         e.stopPropagation();
         //TODO: Factor this function below out. Simply create an element for this sole purpose.
-        var el1 = new FileMetadata(this.name, this.path, this.fileType);
+        var el1 = new FileMetadata(this.name, this.path, this.fileType, this.currentQos, this.index);
         app.$.metadataDrawer.innerHTML = "";
         app.$.metadataDrawer.appendChild(el1);
         Polymer.dom.flush();
