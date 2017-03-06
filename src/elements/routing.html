@@ -16,7 +16,10 @@
         }
 
         // Middleware
+        window.CONFIG.isSomebody = sessionStorage.upauth != undefined;
+        window.CONFIG.homeDirectory = sessionStorage.homeDirectory;
         app.config = window.CONFIG;
+
 
         // Routes
         page('*', function(ctx, next) {
