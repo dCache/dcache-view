@@ -20,6 +20,49 @@
         app.$.dfDrawerPanel.togglePanel();
     };
 
+    app.lsHomeDir = function()
+    {
+        const path = window.CONFIG.homeDirectory;
+
+        app.$.homedir.innerHTML = "";
+        app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
+
+        const elRoot = new PaginationButton("Root", "/");
+        if ( path == "/") {
+            elRoot.querySelector('a').classList.add("active");
+            app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+        } else {
+            elRoot.querySelector('a').classList.remove("active");
+            app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+            const dirNames = path.split("/");
+            let pt =  "";
+            for (let i = 1; i < dirNames.length; i++) {
+                pt += "/" + dirNames[i];
+                const el = new PaginationButton(dirNames[i], pt);
+                el.querySelector('a').classList.remove("active");
+                if ( i == (dirNames.length-1) ) {
+                    el.querySelector('a').classList.add("active");
+                }
+                app.$.selectedTitle.querySelector("#pagination").appendChild(el);
+            }
+        }
+
+        const el1 = new ViewFile(path);
+        app.$.homedir.appendChild(el1);
+    };
+
+    app.lsRootDir = function()
+    {
+        app.$.homedir.innerHTML = "";
+        app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
+
+        const elRoot = new PaginationButton("Root", "/");
+        elRoot.querySelector('a').classList.add("active");
+        app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+        const el1 = new ViewFile('/');
+        app.$.homedir.appendChild(el1);
+    };
+
     window.addEventListener('paper-responsive-change', function (event) {
         var narrow = event.detail.narrow;
         app.$.mainMenu.hidden = !narrow;
