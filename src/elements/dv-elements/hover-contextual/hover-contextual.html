@@ -86,46 +86,12 @@
       _view: function(e)
       {
         e.stopPropagation();
-        var x = this.fileType;
-        var path;
-        /**
-         * TODO: Factor-out this code.
-         * This code is similar to the function for the
-         * on-tap event in the Pagination Button element.
-         */
-        if ( x == "DIR" ) {
-          path = this.path;
-
-          app.$.homedir.innerHTML = "";
-          app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
-
-          var elRoot = new PaginationButton("Root", "/");
-          if ( path == "/") {
-            elRoot.querySelector('a').classList.add("active");
-            app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-          } else {
-            elRoot.querySelector('a').classList.remove("active");
-            app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-            var dirNames = path.split("/");
-            var pt =  "";
-            for (var i = 1; i < dirNames.length; i++) {
-              pt += "/" + dirNames[i];
-              var el = new PaginationButton(dirNames[i], pt);
-              el.querySelector('a').classList.remove("active");
-              if ( i == (dirNames.length-1) ) {
-                el.querySelector('a').classList.add("active");
-              }
-              app.$.selectedTitle.querySelector("#pagination").appendChild(el);
-            }
-          }
-
-          var el1 = new ViewFile(path);
-          app.$.homedir.appendChild(el1);
-
+        if ( this.fileType == "DIR" ) {
+          app.ls(this.path);
           Polymer.dom.flush();
         } else {
           //Download a file
-          path = this._fileUrl("webdav");
+          const path = this._fileUrl("webdav");
           window.open(path);
         }
         e.stopPropagation();

@@ -73,37 +73,7 @@
 
             _ref: function()
             {
-                /**
-                 * TODO: Factor-out this code.
-                 * This code is similar to the _openFileLoc function in the
-                 * list-row event element.
-                 */
-                p = this.canonicalPath;
-                app.$.homedir.innerHTML = "";
-                app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
-
-                var elRoot = new PaginationButton("Root", "/");
-                if ( p == "/") {
-                    elRoot.querySelector('a').classList.add("active");
-                    app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-                } else {
-                    elRoot.querySelector('a').classList.remove("active");
-                    app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-                    var dirNames = p.split("/");
-                    var pt =  "";
-                    for (var i = 1; i < dirNames.length; i++) {
-                        pt += "/" + dirNames[i];
-                        var el = new PaginationButton(dirNames[i], pt);
-                        el.querySelector('a').classList.remove("active");
-                        if ( i == (dirNames.length-1) ) {
-                            el.querySelector('a').classList.add("active");
-                        }
-                        app.$.selectedTitle.querySelector("#pagination").appendChild(el);
-                    }
-                }
-
-                el1 = new ViewFile(p);
-                app.$.homedir.appendChild(el1);
+                app.ls(this.canonicalPath);
             },
 
             _activeChanged: function ()

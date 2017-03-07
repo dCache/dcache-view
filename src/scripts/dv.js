@@ -20,17 +20,19 @@
         app.$.dfDrawerPanel.togglePanel();
     };
 
-    app.lsHomeDir = function()
+    /**
+     * List directory -> use by other elements like:
+     * list-row, pagination-button, hover-contextual
+     */
+    app.ls = function(path)
     {
-        const path = window.CONFIG.homeDirectory;
-
         app.$.homedir.innerHTML = "";
         app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
-
         const elRoot = new PaginationButton("Root", "/");
-        if ( path == "/") {
+        if ( path == "/" || path == null || path == undefined || path.type == 'tap') {
             elRoot.querySelector('a').classList.add("active");
             app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+            path = '/';
         } else {
             elRoot.querySelector('a').classList.remove("active");
             app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
@@ -51,16 +53,9 @@
         app.$.homedir.appendChild(el1);
     };
 
-    app.lsRootDir = function()
+    app.lsHomeDir = function()
     {
-        app.$.homedir.innerHTML = "";
-        app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
-
-        const elRoot = new PaginationButton("Root", "/");
-        elRoot.querySelector('a').classList.add("active");
-        app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-        const el1 = new ViewFile('/');
-        app.$.homedir.appendChild(el1);
+        app.ls(window.CONFIG.homeDirectory);
     };
 
     window.addEventListener('paper-responsive-change', function (event) {
