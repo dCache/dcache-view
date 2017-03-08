@@ -309,7 +309,7 @@
                     switch (code) {
                         case 401:
                             var moreMessage = "If you have an account, enter your User Name and Password.";
-                            var ulp = new UserLoginPage(moreMessage);
+                            const ulp = new UserLoginPage(moreMessage, this.path);
                             content.appendChild(ulp);
                             Polymer.dom.flush();
                             this.updateStyles();

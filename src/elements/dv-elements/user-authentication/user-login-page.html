@@ -118,15 +118,16 @@
                     value: "Please login to continue",
                     notify: true
                 },
-                whoAmI: {
-                    type: Object,
+                path: {
+                    type: String,
                     notify: true
-                }
+                },
             },
 
-            factoryImpl: function(message)
+            factoryImpl: function(message, path)
             {
                 this.loginInformation = message;
+                this.path = path;
             },
 
             attached: function ()
@@ -183,7 +184,10 @@
                     sessionStorage.setItem("uid", request.xhr.response.uid);
                     sessionStorage.setItem("gids", (request.xhr.response.gids).toString());
                     sessionStorage.setItem("homeDirectory", request.xhr.response.homeDirectory);
-                    window.location.reload();
+                    app.$.WhoAmI.querySelector('user-loginout-button').upauth = this.auth;
+                    window.CONFIG.isSomebody = true;
+                    app.notifyPath('config.isSomebody');
+                    app.ls(this.path);
                 } else if ( request.xhr.response.status == "ANONYMOUS" ) {
                     app.$.toast.text =  'Please check that you have supplied ' +
                             'the correct username and password. ';

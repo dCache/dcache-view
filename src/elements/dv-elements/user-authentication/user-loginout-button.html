@@ -185,30 +185,18 @@
                 },
                 username: {
                     type: String,
-                    value: function () {
-                        return this._returnSessionValues("name");
-                    },
                     notify: true
                 },
                 uid: {
                     type: String,
-                    value: function () {
-                        return this._returnSessionValues("uid");
-                    },
                     notify: true
                 },
                 gids: {
                     type: String,
-                    value: function () {
-                        return this._returnSessionValues("gids");
-                    },
                     notify: true
                 },
                 homeDir: {
                     type: String,
-                    value: function () {
-                        return this._returnSessionValues("homeDirectory");
-                    },
                     notify: true
                 }
             },
@@ -233,10 +221,12 @@
 
             _login: function()
             {
+                const path = app.$.homedir.querySelector('view-file').path;
+
                 var content = app.$.homedir.querySelector('#content');
                 var moreMessage = "If you have an account, enter your User Name and Password.";
                 content.innerHTML = "";
-                var ulp = new UserLoginPage(moreMessage);
+                var ulp = new UserLoginPage(moreMessage, path);
                 content.appendChild(ulp);
                 Polymer.dom.flush();
                 this.updateStyles();
@@ -282,6 +272,10 @@
                 } else {
                     this.$.login.hidden = true;
                     this.$.logout.hidden = false;
+                    this.username = this._returnSessionValues("name");
+                    this.uid = this._returnSessionValues("uid");
+                    this.gids = this._returnSessionValues("gids");
+                    this.homeDir = this._returnSessionValues("homeDirectory");
                 }
             },
 
