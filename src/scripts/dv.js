@@ -14,6 +14,14 @@
     // See https://github.com/Polymer/polymer/issues/1381
     window.addEventListener('WebComponentsReady', function() {
         // imports are loaded and elements have been registered
+        if (window.CONFIG.qos === undefined && window.CONFIG.isSomebody) {
+            const apiEndPoint = window.CONFIG.webapiEndpoint;
+
+            const qos = new QosBackendInformation(apiEndPoint);
+            qos.addEventListener('qos-backend-response', (e) => {
+                window.CONFIG.qos = e.detail.response;
+            });
+        }
     });
 
     app.menuAction = function(){
@@ -58,26 +66,58 @@
         app.ls(window.CONFIG.homeDirectory);
     };
 
-    window.addEventListener('paper-responsive-change', function (event) {
-        var narrow = event.detail.narrow;
-        app.$.mainMenu.hidden = !narrow;
-    });
-
-    //Ensure that paper-input in the dialog box is always focused
-    window.addEventListener('iron-overlay-opened', function(event) {
-        var input = event.target.querySelector('[autofocus]');
-        if (input != null) {
-            switch(input.tagName.toLowerCase()) {
-                case 'input':
-                    input.focus();
-                    break;
-                case 'paper-textarea':
-                case 'paper-input':
-                    input.$.input.focus();
-                    break;
-            }
+    app.currentDirContext = function(e)
+    {
+        if (app.$.centralContextMenu.opened) {
+            app.$.centralContextMenu.close();
         }
-    });
+        app.$.centralContextMenu.innerHTML = "";
+
+        let path = app.$.homedir.querySelector('view-file').path;
+        let name;
+        if (path === "/") {
+            name = 'ROOT';
+        } else {
+            name = path.slice(path.lastIndexOf("/"));
+        }
+        let fm = {"name":name,"filePath":path, "fileType":"DIR"};
+        let cc = new NamespaceContextualContent(fm, 2);
+        app.$.centralContextMenu.appendChild(cc);
+        let x = 0, y = 0;
+
+        if (e.pageX || e.pageY) {
+            x = e.pageX;
+            y = e.pageY;
+        } else if (e.clientX || e.clientY) {
+            x = e.clientX + document.body.scrollLeft +
+                document.documentElement.scrollLeft;
+            y = e.clientY + document.body.scrollTop +
+                document.documentElement.scrollTop;
+        }
+
+        const vx = window.innerWidth;
+        const vy = window.innerHeight;
+        const w = 250;
+        const h = 176;
+
+        if (vx - x < w && vy - y >= h) {
+            app.x = x-w;
+            app.y = y;
+        } else if (vx - x < w && vy - y < h) {
+            app.x = x-w;
+            app.y = y-h;
+        } else if (vx - x >= w && vy - y < h) {
+            app.x = x;
+            app.y = y-h;
+        } else {
+            app.x = x;
+            app.y = y;
+        }
+        app.notifyPath('x');
+        app.notifyPath('y');
+        app.$.centralContextMenu.resetFit();
+        app.$.centralContextMenu.open();
+    };
 
     function updateFeListAndMetaDataDrawer(status, itemIndex)
     {
@@ -125,5 +165,36 @@
     window.addEventListener('qos-in-transition', function(event) {
         //make request after 0.1 seconds
         setTimeout(periodicalCurrentQosRequest(event.detail.options), 100);
+    });
+
+    window.addEventListener('paper-responsive-change', function (event) {
+        var narrow = event.detail.narrow;
+        app.$.mainMenu.hidden = !narrow;
+    });
+
+    //Ensure that paper-input in the dialog box is always focused
+    window.addEventListener('iron-overlay-opened', function(event) {
+        var input = event.target.querySelector('[autofocus]');
+        if (input != null) {
+            switch(input.tagName.toLowerCase()) {
+                case 'input':
+                    input.focus();
+                    break;
+                case 'paper-textarea':
+                case 'paper-input':
+                    input.$.input.focus();
+                    break;
+            }
+        }
+    });
+
+    // Prevent the default context menu display from right click
+    window.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    });
+
+    window.addEventListener('iron-overlay-canceled', ()=> {
+        app.$.homedir.querySelector('iron-list').selectionEnabled = false;
+        setTimeout(()=>{app.$.homedir.querySelector('iron-list').selectionEnabled = true;},10)
     });
 })(document);

@@ -1,0 +1,125 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../bower_components/paper-dialog/paper-dialog.html">
+
+<dom-module id="change-qos-contextual-menu">
+    <template>
+        <style>
+            :host paper-menu {
+                margin-top: -20px;
+                margin-bottom: -20px;
+            }
+            .menuItem:hover{
+                background: #0e5aff;
+                color: #fff !important;
+            }
+            .menuItem {
+                font-size: 0.8em;
+                min-height: 30px !important;
+                max-height: 30px !important;
+            }
+            .menuItem:nth-child(1) {
+                border-top: 1px solid #cacaca;
+            }
+        </style>
+        <paper-menu class="menu-content">
+            <template is="dom-repeat" items="[[possibleTransition]]">
+                <paper-item on-tap="_changeQos" class="menuItem"
+                            disabled$="[[_computedDisabled(item.backendCapability.name,currentQos)]]"
+                            data-transition-name$="[[item.backendCapability.name]]">
+                    [[item.backendCapability.name]]
+                </paper-item>
+            </template>
+        </paper-menu>
+    </template>
+    <script>
+        let ChangeQosContextualMenu = Polymer({
+            is: 'change-qos-contextual-menu',
+
+            properties: {
+                path: {
+                    type: String,
+                    notify: true
+                },
+                index: {
+                    type: Number,
+                    notify: true
+                },
+                currentQos: {
+                    type: String,
+                    notify: true
+                },
+                possibleTransition: {
+                    type: Array,
+                    value: function () {
+                        return window.CONFIG.qos;
+                    },
+                    notify: true
+                }
+            },
+
+            factoryImpl: function(t)
+            {
+                this.path = t.filePath;
+                this.currentQos = t.currentQos;
+                this.targetNode = t;
+                this.index = app.$.homeDir.querySelector('#feList').items.indexOf(t.fileMData);
+            },
+
+            _changeQos: function (e)
+            {
+                app.$.centralSubContextMenu.close();
+                app.$.centralContextMenu.close();
+                const target = e.target.getAttribute('data-transition-name');
+                const namespace = document.createElement('dcache-namespace');
+                namespace.auth = sessionStorage.upauth;
+                const path = this.path;
+
+                namespace.promise.then(
+                    () => {
+                        const currentQos = this.currentQos;
+                        app.$.toast.text = "Request successful! File in transition. ";
+                        app.$.toast.show();
+                        this.fire('qos-in-transition', {options: {
+                            currentQos: currentQos,
+                            targetQos: target,
+                            itemIndex: this.index,
+                            path: path
+                        }});
+                    }
+                ).catch(
+                    function(err) {
+                        app.$.toast.text = err.message + " ";
+                        app.$.toast.show();
+                    }
+                );
+
+                namespace.qos({
+                    url: window.CONFIG.webapiEndpoint +'namespace',
+                    path: path,
+                    target: target
+                });
+            },
+
+            _computedDisabled: function (buttonName,currentQos)
+            {
+                if (buttonName == currentQos) {
+                    return true;
+                } else {
+                    for (let i=0; i<window.CONFIG.qos.length; i++){
+                        if (window.CONFIG.qos[i].backendCapability.name == currentQos) {
+                            if (window.CONFIG.qos[i].backendCapability.transition.length > 0) {
+                                for (let j=0; j < window.CONFIG.qos[i].backendCapability.transition.length; j++) {
+                                    return window.CONFIG.qos[i].backendCapability.transition[j] != buttonName;
+                                }
+                            } else {
+                                return true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        })
+    </script>
+</dom-module>

@@ -7,7 +7,7 @@
 
 <link rel="import" href="../../../bower_components/file-icon/file-icon.html">
 
-<link rel="import" href="../hover-contextual/hover-contextual.html">
+<link rel="import" href="../contextual-content/namespace-contextual-content.html">
 <link rel="import" href="../utils/ajax-ls/view-file.html">
 <link rel="import" href="../pagination-button/pagination-button.html">
 
@@ -57,9 +57,7 @@
             align-items: center;
             padding-right: 24px;
         }
-        .flex {
-            flex-grow:1;
-        }
+
         paper-icon-button {
             width: 34px !important;
             height: 34px !important;
@@ -79,15 +77,12 @@
     </style>
     <template>
         <div id="row" class="row">
-            <paper-checkbox class$="[[_computedClass(checkboxDisplay)]]" id="checkbox"></paper-checkbox>
+            <paper-checkbox id="checkbox"
+                            class$="[[_computedClass(checkboxDisplay)]]"></paper-checkbox>
             <file-icon mime-type="{{fileMimeType}}" style="padding-left: 15px; padding-right: 10px"></file-icon>
             <div class="cell name">
                 <div id="nameContainer">
                     <span id="fileName" style="padding-left:5px;">{{name}}</span>
-                    <span class="flex"></span>
-                    <paper-icon-button icon="icons:create"
-                                       title="click to edit file name"
-                                       on-tap="_editFileName"></paper-icon-button>
                 </div>
             </div>
             <div class="cell ctime">{{computedCTime}}</div>
@@ -167,16 +162,23 @@
                     type: Boolean,
                     notify: true
                 },
+
                 fileMData: {
                     type: Object,
                     notify: true
                 }
             },
 
-            listeners: {
-                'row.dblclick': '_openFileLoc',
-                'row.mouseover': '_mouseOver',
-                'row.mouseleave': '_mouseLeave'
+            attached: function ()
+            {
+                this.listen(this.$.row, 'dblclick', '_openFileLoc');
+                this.listen(this.$.row, 'contextmenu', '_openContextMenu');
+            },
+
+            detached: function ()
+            {
+                this.unlisten(this.$.row, 'dblclick', '_openFileLoc');
+                this.unlisten(this.$.row, 'contextmenu', '_openContextMenu');
             },
 
             _computeFilePath: function(parentPath, name)
@@ -255,38 +257,63 @@
                 }
             },
 
-            _mouseOver: function(e)
+            _openContextMenu: function (e)
             {
                 e.stopPropagation();
-                var b = Polymer.dom(this.$.row).lastElementChild;
-                var a = '<span class="style-scope list-row">'+this.computedSize+'</span>';
-                if ( ((b.innerHTML).toString()).trim() == a.trim() ) {
-                    b.querySelector('span').innerHTML = "";
-                    const index = app.$.homeDir.querySelector('#feList').items.indexOf(this.fileMData);
-                    const el1 = new HoverContextual(this.name, this.fileType,
-                        this.filePath, this.fileMData.currentQos, index);
-                    b.querySelector('span').appendChild(el1);
+                if (app.$.centralContextMenu.opened) {
+                    app.$.centralContextMenu.close();
                 }
-                Polymer.dom.flush();
-                e.stopPropagation();
-            },
+                app.$.centralContextMenu.innerHTML = "";
+                let cc;
 
-            _mouseLeave: function(e)
-            {
-                e.stopPropagation();
-                var b = this.$.hovering.querySelector('span');
-                b.removeChild(b.lastChild);
-                b.textContent = this.computedSize;
-                Polymer.dom.flush();
-                e.stopPropagation();
-            },
+                if (this.classList.contains('selected') &&
+                    document.querySelector('view-file').selectedItems.length>1) {
+                    cc = new NamespaceContextualContent(
+                        {
+                            files: document.querySelector('view-file').selectedItems,
+                            parentPath: this.parentPath
+                        }, 1);
+                } else {
+                    cc = new NamespaceContextualContent(this, 0);
+                }
 
-            _editFileName: function (e)
-            {
-                e.stopPropagation();
-                var vf = document.querySelector('view-file');
-                var targetNode = this;
-                vf.openDialog(targetNode, this.name);
+                app.$.centralContextMenu.appendChild(cc);
+                let x = 0, y = 0;
+
+                if (e.pageX || e.pageY) {
+                    x = e.pageX;
+                    y = e.pageY;
+                } else if (e.clientX || e.clientY) {
+                    x = e.clientX + document.body.scrollLeft +
+                        document.documentElement.scrollLeft;
+                    y = e.clientY + document.body.scrollTop +
+                        document.documentElement.scrollTop;
+                }
+
+                const vx = window.innerWidth;
+                const vy = window.innerHeight;
+                const w = 250;
+                const h = 340;
+
+                if (vx - x < w && vy - y >= h) {
+                    app.x = x-w;
+                    app.y = y;
+                } else if (vx - x < w && vy - y < h) {
+                    app.x = x-w;
+                    app.y = y-h;
+                } else if (vx - x >= w && vy - y < h) {
+                    app.x = x;
+                    app.y = y-h;
+                } else {
+                    app.x = x;
+                    app.y = y;
+                }
+                app.notifyPath('x');
+                app.notifyPath('y');
+                app.$.centralContextMenu.resetFit();
+                app.$.centralContextMenu.open();
+
+                e.preventDefault();
                 e.stopPropagation();
             }
         });

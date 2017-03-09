@@ -26,7 +26,7 @@
     "page": "visionmedia/page.js#1.6.4",
     "polymer": "Polymer/polymer#1.7.1",
     "polymer-iron-elements": "dcache-elements/polymer-iron-elements#0.0.3",
-    "polymer-paper-elements": "dcache-elements/polymer-paper-elements#0.0.3",
+    "polymer-paper-elements": "dcache-elements/polymer-paper-elements#0.0.4",
     "qos-backend-information": "dcache-elements/qos-backend-information#0.0.4"
   }
 }

@@ -106,7 +106,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 <paper-toolbar id="listTableHeader">
                                                     <list-row-header></list-row-header>
                                                 </paper-toolbar>
-                                                <div class="fit" id="homedir">
+                                                <div class="fit" id="homedir" on-contextmenu="currentDirContext">
                                                     <view-file id="homeDir"></view-file>
                                                 </div>
                                             </paper-header-panel>
@@ -188,6 +188,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <!-- HERE IS A CENTRAL DIALOG BOX -->
             <central-dialog-box id="centralDialogBox" modal role="alertdialog">
             </central-dialog-box>
+
+            <!-- HERE IS A CUSTOM CONTEXT MENU BOX -->
+            <paper-dialog id="centralContextMenu" vertical-align="top"
+                          horizontal-align="left" dynamic-align
+                          vertical-offset="[[y]]" horizontal-offset="[[x]]"
+                          style="margin:0; width:250px;">
+            </paper-dialog>
+
+            <!-- HERE IS A CUSTOM SUB-CONTEXT MENU BOX -->
+            <paper-dialog id="centralSubContextMenu" vertical-align="top"
+                          horizontal-align="left" dynamic-align
+                          vertical-offset="[[b]]" horizontal-offset="[[a]]"
+                          style="margin:0; width:250px;">
+            </paper-dialog>
 
             <!-- HERE IS A CENTRAL TOAST -->
             <paper-toast id="toast">

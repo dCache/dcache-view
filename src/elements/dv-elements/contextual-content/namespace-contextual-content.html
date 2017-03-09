@@ -1,0 +1,576 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../../bower_components/paper-menu/paper-submenu.html">
+<link rel="import" href="../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../bower_components/paper-item/paper-icon-item.html">
+
+<link rel="import" href="../qbi-dialog-content/qbi-dialog-content.html">
+<link rel="import" href="change-qos-context-menu.html">
+<dom-module id="namespace-contextual-content">
+    <template>
+        <style>
+            :host paper-menu {
+                margin-top: -20px;
+                margin-bottom: -20px;
+            }
+            paper-icon-item:hover{
+                background: #0e5aff;
+                color: #fff !important;
+            }
+            paper-icon-item {
+                font-size: 0.8em;
+                min-height: 40px !important;
+                font-weight: normal !important;
+            }
+            .none {
+                display: none;
+            }
+            #open {
+                border-bottom: 1px solid #cacaca;
+            }
+            #delete, #download {
+                border-top: 1px solid #cacaca;
+            }
+        </style>
+        <paper-menu>
+            <paper-icon-item  id="open"
+                              class$="[[_computedClass('open', singleSelection,
+                              multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="visibility" item-icon></iron-icon>
+                Open
+            </paper-icon-item>
+
+            <paper-icon-item id="changeQos"
+                             class$="[[_computedClass('changeQos' , singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="settings-input-composite" item-icon></iron-icon>
+                Change QoS to ...
+            </paper-icon-item>
+            <paper-icon-item id="qosInfo"
+                             class$="[[_computedClass('qosInfo', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="settings-remote" item-icon></iron-icon>
+                Get QoS backend info
+            </paper-icon-item>
+            <paper-icon-item id="move"
+                             class$="[[_computedClass('move', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="move-icons:movefolder" item-icon></iron-icon>
+                Move to ...
+            </paper-icon-item>
+            <paper-icon-item id="rename"
+                             class$="[[_computedClass('rename', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="editor:border-color" item-icon></iron-icon>
+                Rename
+            </paper-icon-item>
+
+            <paper-icon-item id="download"
+                             class$="[[_computedClass('download', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="cloud-download" item-icon></iron-icon>
+                Download
+            </paper-icon-item>
+
+            <paper-icon-item id="create"
+                             class$="[[_computedClass('create', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="create-new-folder" item-icon></iron-icon>
+                Create new folder
+            </paper-icon-item>
+            <paper-icon-item id="upload"
+                             class$="[[_computedClass('upload', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="cloud-upload" item-icon></iron-icon>
+                Upload file(s)
+            </paper-icon-item>
+
+            <paper-icon-item id="metadata"
+                             class$="[[_computedClass('metadata', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="info" item-icon></iron-icon>
+                View details
+            </paper-icon-item>
+
+            <paper-icon-item id="delete"
+                             class$="[[_computedClass('delete', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="delete" item-icon></iron-icon>
+                Delete
+            </paper-icon-item>
+        </paper-menu>
+    </template>
+    <script>
+        let NamespaceContextualContent = Polymer({
+            is: 'namespace-contextual-content',
+
+            properties: {
+                currentDir: {
+                    type: Boolean,
+                    notify: true
+                },
+                multipleSelection: {
+                    type: Boolean,
+                    notify: true
+                },
+                singleSelection: {
+                    type: Boolean,
+                    notify: true
+                },
+                targetNode: {
+                    type: Object
+                }
+            },
+
+            factoryImpl: function(t,n)
+            {
+                this.singleSelection = n === 0;
+                this.multipleSelection = n === 1;
+                this.currentDir = n === 2;
+                this.targetNode = t;
+                this._cqcm = new ChangeQosContextualMenu(t);
+            },
+            ready: function ()
+            {
+                if (app.$.centralSubContextMenu.opened) {
+                    app.$.centralSubContextMenu.close();
+                }
+                app.$.centralSubContextMenu.innerHTML = "";
+            },
+
+            attached: function ()
+            {
+                if (this.singleSelection) {
+                    this.listen(this.$.delete, 'tap', '_delete');
+                    this.listen(this.$.metadata, 'tap', '_metadata');
+                    this.listen(this.$.move, 'tap', '_move');
+                    this.listen(this.$.qosInfo, 'tap', '_qosInfo');
+                    this.listen(this.$.rename, 'tap', '_rename');
+
+                    switch (this.targetNode.fileType) {
+                        case "DIR":
+                            this.listen(this.$.open, 'tap', '_open');
+                            break;
+                        case "REGULAR":
+                            this.listen(this.$.download, 'tap', '_download');
+                            break;
+                    }
+
+                } else if (this.multipleSelection) {
+                    this.listen(this.$.delete, 'tap', '_delete');
+                    this.listen(this.$.move, 'tap', '_move');
+                } else if (this.currentDir) {
+                    this.listen(this.$.create, 'tap', '_create');
+                    this.listen(this.$.metadata, 'tap', '_metadata');
+                    this.listen(this.$.qosInfo, 'tap', '_qosInfo');
+                    this.listen(this.$.upload, 'tap', '_upload');
+                }
+
+                this.listen(this, 'mouseover', '_mouseOverLeave');
+                this.listen(this.$.changeQos, 'mouseover', '_mouseOver');
+            },
+
+            detached: function ()
+            {
+                if (this.singleSelection) {
+                    this.unlisten(this.$.delete, 'tap', '_delete');
+                    this.unlisten(this.$.metadata, 'tap', '_metadata');
+                    this.unlisten(this.$.move, 'tap', '_move');
+                    this.unlisten(this.$.qosInfo, 'tap', '_qosInfo');
+                    this.unlisten(this.$.rename, 'tap', '_rename');
+
+                    switch (this.targetNode.fileType) {
+                        case "DIR":
+                            this.unlisten(this.$.open, 'tap', '_open');
+                            break;
+                        case "REGULAR":
+                            this.unlisten(this.$.download, 'tap', '_download');
+                            break;
+                    }
+
+                } else if (this.multipleSelection) {
+                    this.unlisten(this.$.delete, 'tap', '_delete');
+                    this.unlisten(this.$.move, 'tap', '_move');
+                } else if (this.currentDir) {
+                    this.unlisten(this.$.create, 'tap', '_create');
+                    this.unlisten(this.$.metadata, 'tap', '_metadata');
+                    this.unlisten(this.$.qosInfo, 'tap', '_qosInfo');
+                    this.unlisten(this.$.upload, 'tap', '_upload');
+                }
+
+                this.unlisten(this, 'mouseover', '_mouseOverLeave');
+                this.unlisten(this.$.changeQos, 'mouseover', '_mouseOver');
+            },
+
+            _mouseOverLeave: function ()
+            {
+                if (app.$.centralSubContextMenu.opened) {
+                    app.$.centralSubContextMenu.close();
+                }
+            },
+
+            _mouseOver: function (e)
+            {
+                e.stopPropagation();
+                if (!window.CONFIG.isSomebody) {
+                    app.$.toast.text = "You need to login to be able to perform this operation. ";
+                    app.$.toast.show();
+                    return;
+                }
+                if (!app.$.centralSubContextMenu.opened) {
+                    app.$.centralSubContextMenu.appendChild(this._cqcm);
+                    let x = 0, y = 0;
+
+                    if (e.pageX || e.pageY) {
+                        x = e.pageX;
+                        y = e.pageY;
+                    } else if (e.clientX || e.clientY) {
+                        x = e.clientX + document.body.scrollLeft +
+                            document.documentElement.scrollLeft;
+                        y = e.clientY + document.body.scrollTop +
+                            document.documentElement.scrollTop;
+                    }
+
+                    const vx = window.innerWidth;
+                    const vy = window.innerHeight;
+                    const w = 250;
+                    const h = 100;
+
+                    if (vx - app.x < w*2.1) {
+                        app.a = app.x - w;
+                    } else {
+                        app.a = w + app.x;
+
+                    }
+                    app.b = app.y + 15;
+                    app.notifyPath('a');
+                    app.notifyPath('b');
+                    app.$.centralSubContextMenu.resetFit();
+                    app.$.centralSubContextMenu.open();
+                }
+
+                e.stopPropagation();
+            },
+
+            _open: function()
+            {
+                app.$.centralContextMenu.close();
+                app.ls(this.targetNode.filePath);
+                Polymer.dom.flush();
+            },
+
+            _download: function()
+            {
+                app.$.centralContextMenu.close();
+                let path;
+                const webdav = window.CONFIG.webdavEndpoint;
+                if (webdav === "") {
+                    path =
+                        window.location.protocol + "//" + window.location.hostname
+                        + ":2880" + this.targetNode.filePath;
+                } else {
+                    if (webdav.endsWith("/")) {
+                        path = webdav.substring(0, webdav.length-1) + this.targetNode.filePath;
+                    } else {
+                        path = webdav + this.targetNode.filePath;
+                    }
+                }
+                window.open(path);
+            },
+
+            _metadata: function()
+            {
+                app.$.centralContextMenu.close();
+                const fm = new FileMetadata(this.targetNode.name, this.targetNode.filePath,
+                    this.targetNode.fileType);
+                app.$.metadataDrawer.innerHTML = "";
+                app.$.metadataDrawer.appendChild(fm);
+                app.$.metadata.openDrawer();
+            },
+
+            _rename: function ()
+            {
+                app.$.centralContextMenu.close();
+                const vf = document.querySelector('view-file');
+                vf.openDialog(this.targetNode, this.targetNode.name);
+            },
+
+            _move: function ()
+            {
+                app.$.centralContextMenu.close();
+                let home = document.getElementById('homedir');
+                let vf = home.querySelector('view-file');
+                let currentPath = vf.path;
+                let noOfMovedItems = 1;
+                let fileType = "item";
+                let dialogBox = document.getElementById('centralDialogBox');
+                dialogBox.innerHTML = "";
+                let mv = document.createElement('move-file');
+                mv.currentPath = currentPath;
+
+                if (this.multipleSelection) {
+                    if (vf.selectedItems.constructor === Array) {
+                        mv.mvFiles = vf.selectedItems;
+                        noOfMovedItems = mv.mvFiles.length;
+                        fileType = "items";
+                    } else {
+                        mv.mvFiles = [vf.selectedItems];
+                    }
+                } else {
+                    mv.mvFiles = [this.targetNode.fileMData];
+                }
+
+                mv.addEventListener('move', (e) => {
+
+                    let list = vf.querySelector('iron-list');
+                    let arr = list.items;
+                    const len = arr.length;
+                    mv.mvFiles.forEach(function (file) {
+                        for (let i=0; i < len; i++) {
+                            if (arr[i].fileName == file.fileName) {
+                                list.splice('items', i, 1);
+                                break;
+                            }
+                        }
+                    });
+                    if (this.multipleSelection) {
+                        vf.resetMultiSelection();
+                    }
+                    dialogBox.close();
+                    app.$.toast.text = noOfMovedItems + " " + fileType + " have been moved from " +
+                        e.detail.response.sourceDirName + " to " + e.detail.response.targetDirName + ". ";
+                    app.$.toast.show();
+                });
+                mv.addEventListener('error', function (e) {
+                    app.$.toast.text = e.detail.error+ " ";
+                    app.$.toast.show();
+                });
+                mv.addEventListener('dismiss', function (e) {
+                    dialogBox.close();
+                });
+                mv.addEventListener('move-create', function (e) {
+                    let list = vf.querySelector('iron-list');
+                    list.unshift('items',
+                        {
+                            "fileName" : e.detail.name,
+                            "fileMimeType" : "application/vnd.dcache.folder",
+                            "fileLocality" : "",
+                            "size" : "--",
+                            "fileType" : "DIR",
+                            "mtime" : "--",
+                            "creationTime" : Date.now() //Assumption
+                        }
+                    );
+                    vf.querySelector('iron-list').fire('iron-resize');
+                });
+                dialogBox.appendChild(mv);
+                dialogBox.open();
+            },
+
+            _delete: function ()
+            {
+                app.$.centralContextMenu.close();
+                if (sessionStorage.upauth === null || sessionStorage.upauth === undefined) {
+                    app.$.toast.text = 'You need to login to delete file(s). ';
+                    app.$.toast.show();
+                    return;
+                }
+                let url = window.CONFIG.webapiEndpoint + "namespace";
+
+                if (this.multipleSelection) {
+                    let vf = document.getElementById('homedir').querySelector('view-file');
+                    vf.multiSelection = false;
+
+                    for (let i=0; i<this.targetNode.files.length; i++) {
+                        this._deleteSingleEntry(url, this.targetNode.files[i].fileName,
+                            this.targetNode.parentPath + this.targetNode.files[i].fileName);
+                    }
+
+                    vf.multiSelection = true;
+                } else {
+                    if (this.targetNode.checkboxDisplay) {
+                        this.targetNode.querySelector('paper-checkbox').checked = false;
+                    }
+                    this._deleteSingleEntry(url, this.targetNode.name, this.targetNode.filePath);
+                }
+            },
+
+            _deleteSingleEntry: function (url, name, path)
+            {
+                let namespace = document.createElement('dcache-namespace');
+                namespace.auth = sessionStorage.upauth;
+                namespace.promise.then(
+                    ()=>{
+                        let list = document.querySelector('iron-list');
+                        let arr = list.items;
+                        const len = arr.length;
+                        for (let i=0; i<len; i++) {
+                            if (arr[i].fileName == name) {
+                                list.splice('items', i, 1);
+                                break;
+                            }
+                        }
+
+                        if (len === 1) {
+                            const ed = document.createElement('empty-directory');
+                            const vf = document.querySelector('view-file');
+                            vf.querySelector('#content').appendChild(ed);
+                        }
+
+                        const type = this.targetNode.fileType == "DIR" ? "Folder" : "File";
+                        app.$.toast.text = type + " deleted. ";
+                        app.$.toast.show();
+                    }
+                ).catch(
+                    function(err) {
+                        app.$.toast.text = err.message;
+                        app.$.toast.show();
+                    }
+                );
+                namespace.rm({
+                    url: url,
+                    path: path
+                });
+            },
+
+            _create: function ()
+            {
+                app.$.centralContextMenu.close();
+
+                let vf = app.$.homedir.querySelector('view-file');
+                let path = vf.path;
+                let dialogBox = document.getElementById('centralDialogBox');
+                dialogBox.innerHTML = "";
+
+                let mkdir = document.createElement('create-directory');
+                mkdir.dirFullPath = path;
+                mkdir.addEventListener('create',function(e) {
+                    let name = e.detail.newFolderName;
+                    let url = window.CONFIG.webapiEndpoint + "namespace";
+                    let namespace = document.createElement('dcache-namespace');
+
+                    if (!(sessionStorage.upauth === undefined || sessionStorage.upauth === null)) {
+                        namespace.auth = sessionStorage.upauth;
+                    }
+
+                    namespace.promise.then(
+                        function() {
+                            dialogBox.close();
+                            dialogBox.removeChild(mkdir);
+
+                            let ed = vf.querySelector('empty-directory');
+                            if (ed != null) {
+                                vf.querySelector('#content').removeChild(ed);
+                            }
+
+                            let list = vf.querySelector('iron-list');
+
+                            if (list != null) {
+                                list.unshift('items',
+                                    {
+                                        "fileName" : name,
+                                        "fileMimeType" : "application/vnd.dcache.folder",
+                                        "fileLocality" : "",
+                                        "size" : "--",
+                                        "fileType" : "DIR",
+                                        "mtime" : "--",
+                                        "creationTime" : Date.now() //Assumption
+                                        //TODO: add creation time to the return object of the ajax response
+                                    }
+                                );
+                                vf.querySelector('iron-list').fire('iron-resize');
+                            }
+                            app.$.toast.text = "Done! New directory created. ";
+                            app.$.toast.show();
+                        }
+                    ).catch(
+                        function(err) {
+                            app.$.toast.text = err.message + " ";
+                            app.$.toast.show();
+                        }
+                    );
+
+                    namespace.mkdir({
+                        url: url,
+                        path: path,
+                        name: name
+                    });
+                });
+                mkdir.addEventListener('close',function() {
+                    dialogBox.close();
+                    dialogBox.removeChild(mkdir);
+                });
+                dialogBox.appendChild(mkdir);
+                dialogBox.open();
+            },
+
+            _upload: function ()
+            {
+                app.$.centralContextMenu.close();
+
+                let uploadButton = document.createElement('upload-files-button');
+                uploadButton.querySelector('#files').click();
+            },
+
+            _qosInfo: function ()
+            {
+                app.$.centralContextMenu.close();
+
+                let dialogBox = document.getElementById('centralDialogBox');
+                dialogBox.innerHTML = "";
+
+                if (!window.CONFIG.isSomebody) {
+                    app.$.toast.text = "You need to login to view this information. ";
+                    app.$.toast.show();
+                    return;
+                }
+                if (window.CONFIG.qos === undefined) {
+                    app.$.toast.text = "Request have been sent, please check again in a minute or two. ";
+                    app.$.toast.show();
+                    return;
+                }
+
+                let content = document.createElement('qbi-dialog-content');
+
+                dialogBox.appendChild(content);
+                dialogBox.open();
+            },
+
+            /**
+             * NOTE: @id value in this function must be exactly
+             * the same as the element/node id attribute.
+             */
+            _computedClass: function (id, singleSelection, multipleSelection, currentDir, t)
+            {
+                if (currentDir && (id === 'open' || id === 'move' || id === 'rename' || id === 'download'
+                    || id === 'delete' || id === 'changeQos')) {
+                    return ' none';
+                } else {
+                    if (!currentDir && (id === 'upload' || id === 'create')) {
+                        return ' none';
+                    }
+
+                    this._setDisabledAttribute(id, singleSelection, multipleSelection, t);
+                    this.updateStyles();
+                    return '';
+                }
+            },
+
+            _setDisabledAttribute: function (id, singleSelection, multipleSelection, t)
+            {
+                if (multipleSelection && (id === 'open' || id === 'metadata' || id === 'rename' ||
+                    id === 'download' || id === 'changeQos')) {
+                    Polymer.dom(this.root).querySelector('#'+id).setAttribute('disabled', true);
+                }
+
+                if (singleSelection) {
+                    if (t.fileType === 'DIR' && (id === 'download' || id === 'changeQos')) {
+                        Polymer.dom(this.root).querySelector('#'+id).setAttribute('disabled', true);
+                    } else if (id  === 'open' && t.fileType === 'REGULAR') {
+                        Polymer.dom(this.root).querySelector('#'+id).setAttribute('disabled', true);
+                    }
+                }
+            }
+        });
+    </script>
+</dom-module>
