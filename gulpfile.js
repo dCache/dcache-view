@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var vulcanize = require('gulp-vulcanize');
 var bower = require('gulp-bower');
+var gutil = require('gulp-util');
 
 gulp.task('bower', function() {
     return bower();
@@ -67,6 +68,7 @@ gulp.task('vulcanize', function() {
             inlineScripts: true,
             inlineCss: true
         }))
+        .on('error', gutil.log)
         .pipe(gulp.dest('./target/elements'));
 });
 
