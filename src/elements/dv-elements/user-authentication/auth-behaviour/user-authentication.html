@@ -1,0 +1,101 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="user-authentication">
+    <template>
+        <iron-ajax id="ajax"
+                   handle-as="json"
+                   on-response="_handleResponse"
+                   on-error="_handleError"></iron-ajax>
+    </template>
+
+    <script>
+        UserAuthentication = Polymer({
+            is: 'user-authentication',
+
+            properties: {
+                auth: {
+                    type: String,
+                    notify: true
+                },
+                errorMessage: {
+                    type: String,
+                    notify: true
+                },
+                redirectTo: {
+                    type: Object,
+                    notify: true
+                }
+            },
+
+            factoryImpl: function(redirect, auth)
+            {
+                this.redirectTo = redirect;
+                this.auth = auth;
+            },
+
+            attached: function ()
+            {
+                if (sessionStorage.upauth !== null) {
+                    sessionStorage.clear();
+                }
+            },
+
+            send: function(authFramework)
+            {
+                switch (authFramework) {
+                    case "Basic":
+                    case "Bearer":
+                        this.$.ajax.headers = {
+                            "Authorization": authFramework +" "+this.auth,
+                            "X-Requested-With": "XMLHttpRequest"
+                        };
+                        sessionStorage.setItem('authType', authFramework);
+                        break;
+                    default:
+                        this.errorMessage = "Authorization header is not properly set."
+                }
+
+                this.$.ajax.url = window.CONFIG.webapiEndpoint+"user";
+
+                this.$.ajax.generateRequest();
+            },
+
+            _handleError: function (e, request)
+            {
+                this.auth = null;
+                sessionStorage.removeItem("name");
+                let errorXHR = request.request.__data__.xhr.response.errors[0];
+                this.errorMessage = errorXHR.message+ '! Please check that you have supplied ' +
+                    'the correct credentials. ';
+                this.fire('error', {message: this.errorMessage});
+            },
+
+            _handleResponse: function(e, request)
+            {
+                if ( request.xhr.response.status === "AUTHENTICATED" ) {
+                    sessionStorage.setItem("upauth", this.auth);
+                    sessionStorage.setItem("uid", request.xhr.response.uid);
+                    sessionStorage.setItem("gids", (request.xhr.response.gids).toString());
+                    sessionStorage.setItem("homeDirectory", request.xhr.response.homeDirectory);
+                    sessionStorage.setItem("name", request.xhr.response.username);
+                    app.$.WhoAmI.querySelector('user-loginout-button').upauth = this.auth;
+                    window.CONFIG.isSomebody = true;
+                    app.notifyPath('config.isSomebody');
+                    if (this.redirectTo.page === "home") {
+                        page("/");
+                        app.ls(this.redirectTo.path);
+                    } else {
+                        page("/"+this.redirectTo.page);
+                    }
+                } else if ( request.xhr.response.status === "ANONYMOUS" ) {
+                    this.errorMessage = 'Login failed. Please check that you have supplied ' +
+                        'the correct credentials. ';
+                    this.fire('error', {message: this.errorMessage});
+                }
+            }
+        });
+    </script>
+</dom-module>
+

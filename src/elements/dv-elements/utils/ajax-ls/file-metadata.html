@@ -135,13 +135,14 @@
                 <div class="spacer title">Metadata Info</div>
                 <paper-icon-button icon="close" title="close" id="closeFileMetadataPanel"></paper-icon-button>
             </paper-toolbar>
-            <paper-card class="content">
-                <iron-ajax
+
+            <div class="content">
+                <iron-ajax id="ajax"
                         auto
-                        url="{{url}}"
+                        url="[[url]]"
                         method="GET"
                         content-type="application/json"
-                        headers$='[[_computeHeaders(upw)]]'
+                        headers$='[[headers]]'
                         handle-as="json"
                         last-response="{{metadata}}"
                         on-response="handleResponse" on-error="handleError">
@@ -247,7 +248,7 @@
                         </template>
                     </template>
                 </paper-card>
-            </paper-card>
+            </div>
         </paper-scroll-header-panel>
     </template>
     <script>
@@ -291,16 +292,14 @@
                     computed:'_computeParent(path)'
                 },
 
-                upw: {
+                headers: {
                     type: String,
                     notify: true,
-                    computed: '_computedUpw(path)'
                 },
 
                 url: {
-                    type: Object,
+                    type: String,
                     notify: true,
-                    computed: '_url(upw,path)'
                 },
 
                 isSomebody: {
@@ -343,45 +342,37 @@
                 this.currentQos = currentQos;
                 if (window.CONFIG.qos == undefined && window.CONFIG.isSomebody) {
                     const apiEndPoint = window.CONFIG.webapiEndpoint;
-                    const qos = new QosBackendInformation(apiEndPoint);
+                    const qos = new QosBackendInformation(apiEndPoint, app.getAuthValue());
                     qos.addEventListener('qos-backend-response', (e) => {
                         window.CONFIG.qos = e.detail.response;
                         this.possibleTransition = e.detail.response;
                     });
                 }
-            },
 
-            _computedUpw: function(path)
-            {
-                if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
-                    return window.atob(sessionStorage.upauth);
-                } else {
-                    return "anonymous:nopassword";
-                }
+                this.url = this._url(path);
+                let authzValue = app.getAuthValue();
+                this.headers = {
+                    "Authorization": authzValue,
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                };
             },
 
             listeners: {
                 'closeFileMetadataPanel.tap': '_closeFileMetadataPanel'
             },
 
-            _url: function(upw, path)
+            _url: function(path)
             {
-                if ( path==null || path == "" || path == "/") {
-                    return upw == "anonymous:nopassword" ?
-                        window.CONFIG.webapiEndpoint + "namespace/?children=true" :
-                        window.CONFIG.webapiEndpoint + "namespace/?children=true&qos=true";
+                let x;
+                const url  = window.CONFIG.webapiEndpoint + "namespace";
+                const isHome = path===null || path === "" || path === "/";
+                if (sessionStorage.upauth !== undefined) {
+                    x = isHome === true ? "/?children=true&qos=true": path + "/?children=true&qos=true";
                 } else {
-                    path = decodeURIComponent(path);
-                    path = path.replace(/=/g, "/");
-                    return upw == "anonymous:nopassword" ?
-                        window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true" :
-                        window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&qos=true";
+                    x = isHome === true ? "/?children=true": path + "/?children=true";
                 }
-            },
-
-            _computeHeaders: function(upw)
-            {
-                return '{"Authorization":"Basic ' + window.btoa(upw) + '", "Accept":"application/json"}';
+                return url + x;
             },
 
             _computeParent: function(path)

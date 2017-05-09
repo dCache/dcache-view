@@ -28,19 +28,6 @@
     <script>
         UploadFilesButton = Polymer({
             is: 'upload-files-button',
-            properties: {
-                upauth: {
-                    type: String,
-                    notify: true,
-                    value: function () {
-                        if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
-                            return sessionStorage.upauth;
-                        } else {
-                            return window.btoa("anonymous:nopassword");
-                        }
-                    }
-                }
-            },
 
             listeners: {
                 'files.change': 'handleFileSelection'
@@ -82,7 +69,7 @@
                     }
                     var uploader = new UploadHandler({
                         file: f,
-                        upauth: this.upauth,
+                        upauth: app.getAuthValue(),
                         url: uploadURL,
                         onComplete: function (data) {
                             var progressBar = upLs.querySelector('paper-progress');

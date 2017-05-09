@@ -98,13 +98,20 @@
       _view: function(e)
       {
         e.stopPropagation();
-        if ( this.fileType == "DIR" ) {
+        if ( this.fileType === "DIR" ) {
           app.ls(this.path);
           Polymer.dom.flush();
         } else {
           //Download a file
-          const path = this._fileUrl("webdav");
-          window.open(path);
+
+          if (sessionStorage.authType !== "Bearer"){
+              const path = this._fileUrl("webdav");
+              window.open(path);
+          } else {
+              app.$.toast.text = 'You cannot use open id account to download a file at this time. ';
+              app.$.toast.show();
+              return;
+          }
         }
         e.stopPropagation();
       },
@@ -132,7 +139,7 @@
             return;
         }
         var namespace = document.createElement('dcache-namespace');
-        namespace.auth = sessionStorage.upauth;
+        namespace.auth = app.getAuthValue();
         namespace.promise.then(
           function () {
             var list = document.querySelector('iron-list');

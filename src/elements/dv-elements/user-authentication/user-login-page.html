@@ -1,96 +1,98 @@
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
 
-<link rel="import" href="../../../bower_components/iron-ajax/iron-request.html">
-<link rel="import" href="../../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
-<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="../../../bower_components/iron-input/iron-input.html">
-
-<link rel="import" href="../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="login-form.html">
+<link rel="import" href="loginform-with-openid.html">
 
 <dom-module id="user-login-page">
     <style>
         :host {
-            margin-top: 10px;
-            margin-bottom: 20px;
-            @apply(--layout-horizontal);
-            @apply(--layout-center-justified);
-        }
-        #info {
-            @apply(--layout-horizontal);
-            @apply(--layout-center);
-            width: 390px;
-            height: auto;
-            border: 1px dotted rgba(189, 183, 181, 0.5);
-            background-color: #faf8f5;
-            margin-bottom: 3px;
-            color: chocolate;
-            font-size: 0.7em;
-        }
-        #content {
-            @apply(--layout-horizontal);
-            @apply(--layout-center);
-            width: 390px;
-            height: 200px;
-            border:1px solid #c2c2c2;
-            background: #fff;
-        }
-        #innerContent {
-            @apply(--layout-flex);
-            margin-left:3%;
-            margin-right:3%;
-        }
-        #innerContent > div {
-            @apply(--layout-horizontal);
-            width:100%;
-            margin-bottom: 10px;
-        }
-        div > .child {
-            @apply(--layout-flex);
+            background: inherit;
+            min-height: 400px;
         }
 
-        input {
-            line-height: 2.2em;
-            padding: 5px;
-            vertical-align: middle;
+        #topheader{
+            display: block;
+            height: 45px;
+            top: 0;
+            left: 0;
         }
-        paper-button {
-            margin: 0px !important;
-            background: #35b2ff;
-            color:#fff;
-            text-transform: capitalize !important;
+
+        #header {
+            height: 24vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-bottom: 2px solid #ff3a39;
         }
-        #logo {
-            margin-left:10px ;
-            font-size: 0.8em;
-            max-width: 120px !important;
-            text-align: center;
-            margin-top: -12%;
+        #header h1 {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 300;
+            margin: 0 auto 16px;
+            width: 300px;
+        }
+
+        :host #body {
+            width: 100%;
+            display: flex;
+        }
+
+        #loginform {
+            width: 300px;
+            margin: 16px auto;
+        }
+        loginform-with-openid {
+            width:100%;
+        }
+
+        :host #footer {
+            font-size: 14px;
+            background: #3d4446;
+            padding: 14px 26px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            box-sizing: border-box;
+            align-items: center;
+            position: absolute;
+            bottom: 0;
+            color: #fff;
+        }
+        #footer a {
+            text-decoration: none;
+            color: #00b4f0;
+        }
+        .hidden {
+            display: none;
+        }
+        .show {
+            display: block;
         }
     </style>
     <template>
-        <iron-a11y-keys id="a11y" target="[[target]]" keys="enter" on-keys-pressed="_login"></iron-a11y-keys>
-        <iron-ajax id="ajaxUser"
-                   handle-as="json"
-                   on-response="handleResponse" on-error="handleError"></iron-ajax>
-        <div>
-            <div id="info"><p style="padding-left: 5px; padding-right: 5px;">{{loginInformation}}</p></div>
-            <div id="content">
-                <div id="innerContent">
-                    <div>
-                        <input id="username" class="child" is="iron-input" value="{{username::input}}"
-                               placeholder="Username" autofocus>
-                    </div>
-                    <div>
-                        <input class="child" is="iron-input" value="{{password::input}}" placeholder="Password"
-                               type="password">
-                    </div>
-                    <div>
-                        <paper-button class="child" raised on-tap="_login">Log in</paper-button>
-                    </div>
-                </div>
+        <div id="topheader">
+            <paper-icon-button icon="menu" on-tap="showMenu" style="float: right;"></paper-icon-button>
+        </div>
 
-            </div>
+        <div id="header">
+            <h1>[[organisationName]]</h1>
+        </div>
+
+        <div id="body">
+            <login-form id="loginform" redirect-to="[[redirectInformation]]"
+                        class$="[[_computedClass('lf', oicEnable)]]"></login-form>
+            <loginform-with-openid id="loginformwithopenid"
+                                   redirect-to="[[redirectInformation]]"
+                                   class$="[[_computedClass('lfwo', oicEnable)]]"></loginform-with-openid>
+        </div>
+
+        <div id="footer">
+            <span></span>
+            <span>
+                Powered by <a href="https://dcache.org">dCache</a>
+            </span>
         </div>
 
     </template>
@@ -99,100 +101,83 @@
             is: "user-login-page",
 
             properties: {
-                username: {
+                organisationName:{
                     type: String,
+                    value: function () {
+                        return window.CONFIG.orgName;
+                    },
                     notify: true
                 },
-                password: {
-                    type: String,
+
+                oicEnable: {
+                    type: Boolean,
                     notify: true
                 },
-                target: {
+
+                redirectInformation: {
                     type: Object,
-                    value: function() {
-                        return this;
-                    }
-                },
-                loginInformation: {
-                    type: String,
-                    value: "Please login to continue",
-                    notify: true
-                },
-                path: {
-                    type: String,
                     notify: true
                 },
             },
 
-            factoryImpl: function(message, path)
+            factoryImpl: function(obj)
             {
-                this.loginInformation = message;
-                this.path = path;
+                this.redirectInformation = obj;
+            },
+
+            ready: function ()
+            {
+                let a = window.CONFIG.oidcProviderName.trim().split(" ");
+                let b = window.CONFIG.oidcClientId.trim().split(" ");
+                let c = window.CONFIG.oidcAuthorizationEndpoint.trim().split(" ");
+
+                if (a[0] !== "") {
+                    let d,e,f;
+                    if (a.includes(" ")) {
+                        d = a.split(" ");
+                        e = b.split(" ");
+                        f = c.split(" ");
+                    } else {
+                        d = a;
+                        e = b;
+                        f = c;
+                    }
+                    this.oicEnable = d.length === e.length && d.length === f.length;
+                } else {
+                    this.oicEnable = false;
+                }
             },
 
             attached: function ()
             {
-                app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
-                this.$.username.focus();
-                if (sessionStorage.upauth != null) {
-                    sessionStorage.removeItem('upauth');
-                    sessionStorage.removeItem("uid");
-                    sessionStorage.removeItem("gids");
-                    sessionStorage.removeItem("name");
-                    sessionStorage.removeItem("homeDirectory");
+                if (window.CONFIG.isSomebody) {
+                    if (this.redirectInformation.page === "home") {
+                        page("/");
+                        app.ls(this.redirectInformation.path);
+                    } else {
+                        page("/"+this.redirectInformation.page);
+                    }
                 }
             },
-            detached: function ()
-            {
-                app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
-            },
 
-            _login: function()
+            _computedClass: function (name, oicEnable)
             {
-                if (this.username == undefined || this.username == "" ||
-                        this.password == "" || this.password == undefined) {
-                    app.$.toast.text = 'Please enter your username and password to login. ';
-                    app.$.toast.show();
-                    return;
+                let classes = '';
+                switch (name) {
+                    case 'lf':
+                        classes = oicEnable ? ' hidden': ' show';
+                        break;
+                    case 'lfwo':
+                        classes = oicEnable ? ' show': ' hidden';
+                        break;
                 }
-
-                var up = this.username + ":" + this.password;
-                this.auth = window.btoa(up);
-                this.$.ajaxUser.url = window.CONFIG.webapiEndpoint+"user";
-                this.$.ajaxUser.headers = {
-                    "Authorization": "Basic "+this.auth,
-                    "X-Requested-With": "XMLHttpRequest"
-                };
-                sessionStorage.setItem("name", this.username);
-                this.$.ajaxUser.generateRequest();
+                this.updateStyles();
+                return classes;
             },
 
-            handleError: function (e, request)
+            showMenu: function ()
             {
-                this.auth = null;
-                sessionStorage.removeItem("name");
-                var errorXHR = request.request.__data__.xhr.response.errors[0];
-                app.$.toast.text =  errorXHR.message+ '! Please check that you have supplied ' +
-                        'the correct username and password. ';
-                app.$.toast.show();
-            },
-
-            handleResponse: function(e, request)
-            {
-                if ( request.xhr.response.status == "AUTHENTICATED" ) {
-                    sessionStorage.setItem("upauth", this.auth);
-                    sessionStorage.setItem("uid", request.xhr.response.uid);
-                    sessionStorage.setItem("gids", (request.xhr.response.gids).toString());
-                    sessionStorage.setItem("homeDirectory", request.xhr.response.homeDirectory);
-                    app.$.WhoAmI.querySelector('user-loginout-button').upauth = this.auth;
-                    window.CONFIG.isSomebody = true;
-                    app.notifyPath('config.isSomebody');
-                    app.ls(this.path);
-                } else if ( request.xhr.response.status == "ANONYMOUS" ) {
-                    app.$.toast.text =  'Please check that you have supplied ' +
-                            'the correct username and password. ';
-                    app.$.toast.show();
-                }
+                app.$.dfDrawerPanel.openDrawer();
             }
         })
     </script>

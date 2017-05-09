@@ -306,6 +306,7 @@
                 let dialogBox = document.getElementById('centralDialogBox');
                 dialogBox.innerHTML = "";
                 let mv = document.createElement('move-file');
+                mv.auth = app.getAuthValue();
                 mv.currentPath = currentPath;
 
                 if (this.multipleSelection) {
@@ -398,7 +399,7 @@
             _deleteSingleEntry: function (url, name, path)
             {
                 let namespace = document.createElement('dcache-namespace');
-                namespace.auth = sessionStorage.upauth;
+                namespace.auth = app.getAuthValue();
                 namespace.promise.then(
                     ()=>{
                         let list = document.querySelector('iron-list');
@@ -448,10 +449,7 @@
                     let name = e.detail.newFolderName;
                     let url = window.CONFIG.webapiEndpoint + "namespace";
                     let namespace = document.createElement('dcache-namespace');
-
-                    if (!(sessionStorage.upauth === undefined || sessionStorage.upauth === null)) {
-                        namespace.auth = sessionStorage.upauth;
-                    }
+                    namespace.auth = app.getAuthValue();
 
                     namespace.promise.then(
                         function() {

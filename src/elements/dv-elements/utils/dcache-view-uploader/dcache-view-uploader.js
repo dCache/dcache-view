@@ -8,7 +8,7 @@
  *
  * @constructor
  * @param {object} options Hash of options
- * @param {string} options.upauth Encoded Base64 of username:password
+ * @param {string} options.upauth Accept both Basic and Bearer. If it is Basic; Encoded Base64 of username:password
  * @param {blob} options.file Blob-like item to upload
  * @param {string} [options.contentType] Content-type, if overriding the type of the blob.
  * @param {function} [options.onComplete] Callback for when upload is complete
@@ -47,7 +47,7 @@ UploadHandler.prototype.upload = function()
     var xhr = new XMLHttpRequest();
     xhr.open(this.httpMethod, this.url, true);
     xhr.setRequestHeader('Content-Type', this.contentType);
-    xhr.setRequestHeader('Authorization', 'Basic ' + this.upauth);
+    xhr.setRequestHeader('Authorization', this.upauth);
     if (xhr.upload) {
         xhr.upload.addEventListener('progress', this.onProgress);
     }

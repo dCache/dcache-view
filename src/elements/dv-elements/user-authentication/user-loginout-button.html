@@ -198,7 +198,11 @@
                 homeDir: {
                     type: String,
                     notify: true
-                }
+                },
+                pgRoute: {
+                    type: String,
+                    notify: true
+                },
             },
 
             observers: [
@@ -221,15 +225,19 @@
 
             _login: function()
             {
-                const path = app.$.homedir.querySelector('view-file').path;
+                let pathName;
+                if (this.pgRoute === "home") {
+                    const a = '"page":"home","path":"' + app.$.homedir.querySelector('view-file').path + '"';
+                    pathName = '/user-login?r=' + encodeURIComponent(a);
+                } else if (this.pgRoute === "admin-component-page") {
+                    const a = '"page":"' + window.location.hash.substr(3) + '"';
+                    pathName = '/user-login?r=' + encodeURIComponent(a);
+                } else {
+                    const a = '"page":"' + this.pgRoute + '"';
+                    pathName = '/user-login?r=' + encodeURIComponent(a);
+                }
 
-                var content = app.$.homedir.querySelector('#content');
-                var moreMessage = "If you have an account, enter your User Name and Password.";
-                content.innerHTML = "";
-                var ulp = new UserLoginPage(moreMessage, path);
-                content.appendChild(ulp);
-                Polymer.dom.flush();
-                this.updateStyles();
+                page(pathName);
             },
 
             _logout: function()
@@ -242,21 +250,19 @@
 
             _diffuser: function ()
             {
-                this._login();
                 this.__clearSessionStorage();
+                this._login();
             },
 
             __clearSessionStorage: function ()
             {
-                sessionStorage.removeItem("upauth");
-                sessionStorage.removeItem("uid");
-                sessionStorage.removeItem("gids");
-                sessionStorage.removeItem("name");
-                sessionStorage.removeItem("homeDirectory");
+                sessionStorage.clear();
                 this.upauth = null;
                 this.username = null;
                 this.uid = null;
                 this.gids = null;
+                window.CONFIG.isSomebody = false;
+                app.notifyPath('config.isSomebody');
             },
 
             _openDropdown: function ()
@@ -266,7 +272,7 @@
 
             authenticationStatus: function (upauth)
             {
-                if ( upauth == null || upauth == "" || upauth == undefined ) {
+                if ( upauth === null || upauth === "" || upauth === undefined ) {
                     this.$.login.hidden = false;
                     this.$.logout.hidden = true;
                 } else {

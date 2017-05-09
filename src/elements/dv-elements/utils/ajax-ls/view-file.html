@@ -57,10 +57,8 @@
             }
         </style>
         <iron-ajax id="ajax"
-                   url="{{url}}"
                    method="GET"
                    content-type="application/json"
-                   headers$='[[_computeHeaders(upw)]]'
                    handle-as="json" on-response="handleResponse"
                    on-error="handleError" loading="{{loading}}">
         </iron-ajax>
@@ -132,16 +130,10 @@
                     type: Object
                 },
 
-                upw: {
+                url: {
                     type: String,
                     notify: true,
-                    computed: '_computedUpw(path)'
-                },
-
-                url: {
-                    type: Object,
-                    notify: true,
-                    computed: '_url(upw,path)'
+                    computed: '_url(path)'
                 },
 
                 name: {
@@ -237,19 +229,17 @@
                 }
             },
 
-            _url: function(upw, path)
+            _url: function(path)
             {
-                if ( path==null || path == "" || path == "/") {
-                    return upw == "anonymous:nopassword" ?
-                        window.CONFIG.webapiEndpoint + "namespace/?children=true" :
-                        window.CONFIG.webapiEndpoint + "namespace/?children=true&qos=true";
+                let x;
+                const url  = window.CONFIG.webapiEndpoint + "namespace";
+                const isHome = path===null || path === "" || path === "/";
+                if (sessionStorage.upauth !== undefined) {
+                    x = isHome === true ? "/?children=true&qos=true": path + "/?children=true&qos=true";
                 } else {
-                    path = decodeURIComponent(path);
-                    path = path.replace(/=/g, "/");
-                    return upw == "anonymous:nopassword" ?
-                        window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true" :
-                        window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&qos=true";
+                    x = isHome === true ? "/?children=true": path + "/?children=true";
                 }
+                return url + x;
             },
 
             _computeParentPath: function(path)
@@ -262,11 +252,6 @@
                     path = path.replace(/=/g, "/");
                     return path + "/";
                 }
-            },
-
-            _computeHeaders: function(upw)
-            {
-                return '{"Authorization":"Basic ' + window.btoa(upw) + '", "Accept":"application/json"}';
             },
 
             handleResponse: function(e)
@@ -294,27 +279,23 @@
 
             handleError: function (e, request)
             {
-                var x;
-                var msg;
-                var code;
-                var content = this.$.content;
+                let x, msg, code;
+                let content = this.$.content;
 
                 try {
                     x = request.request.__data__.xhr.response.errors[0];
                     msg = x.message;
                     code = x.status;
-                    switch (code) {
+                    switch (parseInt(code)) {
                         case 401:
-                            var moreMessage = "If you have an account, enter your User Name and Password.";
-                            const ulp = new UserLoginPage(moreMessage, this.path);
-                            content.appendChild(ulp);
-                            Polymer.dom.flush();
-                            this.updateStyles();
+                            const a = '"page":"home","path":"' + this.path + '"';
+                            let pathName = '/user-login?r=' + encodeURIComponent(a);
+                            page(pathName);
                             return;
                             break;
                         case 403:
                             app.$.centralDialogBox.innerHTML = "";
-                            var el2 = new SwitchUserCredentialDialogBox();
+                            let el2 = new SwitchUserCredentialDialogBox();
                             app.$.centralDialogBox.appendChild(el2);
                             Polymer.dom.flush();
                             this.updateStyles();
@@ -326,7 +307,7 @@
                     code = 500;
                 }
 
-                var el1 = new DirectoryLsError(msg, code);
+                let el1 = new DirectoryLsError(msg, code);
                 content.appendChild(el1);
 
                 Polymer.dom.flush();
@@ -381,7 +362,7 @@
             {
                 var d = this;
                 var namespace = document.createElement('dcache-namespace');
-                namespace.auth = window.btoa(this.upw);
+                namespace.auth = app.getAuthValue();
                 var path = this.path.endsWith("/") ? this.path : this.path + "/";
                 var url = window.CONFIG.webapiEndpoint + "namespace";
                 var source = path + this._previousName;
@@ -413,7 +394,15 @@
             _loadNamespaceData: function ()
             {
                 const limit = 100;
-                var offset = this.__counter__ * limit;
+                let offset = this.__counter__ * limit;
+                let authzValue = app.getAuthValue();
+
+                this.$.ajax.headers = {
+                    "Authorization": authzValue,
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                };
+                this.$.ajax.url = this.url;
                 this.$.ajax.params = {"limit":limit, "offset": offset};
                 this.$.ajax.generateRequest();
             },

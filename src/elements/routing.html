@@ -16,8 +16,7 @@
         }
 
         // Middleware
-        window.CONFIG.isSomebody = sessionStorage.upauth != undefined;
-        window.CONFIG.homeDirectory = sessionStorage.homeDirectory;
+        window.CONFIG.isSomebody = sessionStorage.upauth !== undefined;
         app.config = window.CONFIG;
 
 
@@ -46,9 +45,49 @@
             app.params = data.params;
         });
 
+        page('/user-login', function(ctx) {
+            let loginSection = app.$.loginSection;
+            loginSection.innerHTML = "";
+            let a = JSON.parse('{'+ ctx.querystring.substr(2) + '}');
+            let ulp = new UserLoginPage(a);
+            loginSection.appendChild(ulp);
+            app.route = 'user-login';
+            app.params = "";
+        });
+
         // 404
         page('*', function() {
-            app.$.toast.text = 'Can\'t find: ' + window.location.href  + '. Redirected you to Home Page';
+            let href = window.location.href;
+            if (href.includes("state") && href.includes("access_token") && href.includes("id_token")
+                && href.includes("token_type")) {
+
+                let arr = href.split("/#!/#");
+                let v = arr[1].split('&');
+                const len = v.length;
+                let oidcProviderResponse = {};
+
+                for (let i=0; i<len; i++) {
+                    let a = v[i].split('=');
+                    oidcProviderResponse[a[0].trim()] = a[1].trim();
+                }
+
+                let redirectInfoObj = JSON.parse(sessionStorage.getItem('redirect'));
+                let userAuth = new UserAuthentication(redirectInfoObj, oidcProviderResponse.access_token);
+
+                userAuth.addEventListener('error', (e) => {
+                    const a = '"page":'+ redirectInfoObj.page + ',"path":"' + redirectInfoObj.path + '"';
+                    let pathName = '/user-login?r=' + encodeURIComponent(a);
+                    page(pathName);
+                    app.$.toast.text = e.detail.message + " ";
+                    app.$.toast.show();
+                });
+
+                userAuth.send("Bearer");
+                sessionStorage.removeItem('redirect');
+                return;
+            }
+
+            app.$.toast.text = 'Can\'t find: ' + href  + '. Redirected you to Home Page';
             app.$.toast.show();
             page.redirect(app.baseUrl);
         });

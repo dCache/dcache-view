@@ -1,0 +1,153 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../bower_components/iron-input/iron-input.html">
+
+<link rel="import" href="../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../bower_components/paper-input/paper-input-container.html">
+
+<link rel="import" href="auth-behaviour/user-authentication.html">
+
+<dom-module id="login-form">
+    <style>
+        :host{
+            display: block;
+        }
+        #container {
+            width: 300px;
+        }
+        #container paper-input-container {
+            width: 100%;
+            --paper-input-container-color: #9c9c9c;
+            --paper-input-container-input-color: #fff;
+            --paper-input-container-focus-color: #00b4f0;
+        }
+        input[is="iron-input"]::placeholder {
+            color: #fff !important;
+        }
+        #container #login-button {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+        }
+        #login-button paper-button {
+            margin: 20px 0 0 0;
+            padding-left: 30px;
+            padding-right: 30px;
+            background: #00b4f0;
+            color: #fff;
+        }
+        #container > .messageContainer {
+            width: 100%;
+            margin-top: 5px;
+            background: rgba(161,48,41,0.9);
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .error-message {
+            color: #fff;
+            font-size: 0.71em;
+        }
+        .hide {
+            display: none;
+        };
+        .show {
+            display: block;
+        }
+    </style>
+    <template>
+        <div id="container">
+            <iron-a11y-keys keys="enter" on-keys-pressed="_login"></iron-a11y-keys>
+            <iron-ajax id="ajaxUser"
+                       handle-as="json"
+                       on-response="handleResponse" on-error="handleError"></iron-ajax>
+            <paper-input-container always-float-label="true">
+                <label is="label">Username</label>
+                <input is="iron-input" slot="input"
+                       name="username" id="username"
+                       value="{{username::input}}" placeholder="username" autofocus>
+            </paper-input-container>
+            <paper-input-container always-float-label="true">
+                <label is="label">Password</label>
+                <input is="iron-input" slot="input"
+                       name="password" id="password"
+                       value="{{password::input}}" placeholder="password" type="password">
+            </paper-input-container>
+            <div class$="[[_computedClass(errorMessage)]]">
+                <span class="error-message">[[errorMessage]]</span>
+            </div>
+            <div id="login-button">
+                <paper-button on-tap="_login" raised>Login</paper-button>
+            </div>
+        </div>
+    </template>
+    <script>
+        LoginForm = Polymer({
+            is: "login-form",
+
+            properties: {
+                username: {
+                    type: String,
+                    notify: true
+                },
+                password: {
+                    type: String,
+                    notify: true
+                },
+                target: {
+                    type: Object,
+                    value: function() {
+                        return this;
+                    }
+                },
+                errorMessage: {
+                    type: String,
+                    notify: true
+                },
+                redirectTo: {
+                    type: Object,
+                    notify: true
+                },
+            },
+
+            factoryImpl: function(redirect)
+            {
+                this.redirectTo = redirect;
+            },
+
+            attached: function ()
+            {
+                this.$.username.focus();
+            },
+
+            _login: function()
+            {
+                if (this.username === undefined || this.username === "" || this.username === "username" ||
+                        this.password === "" || this.password === undefined || this.password === "password") {
+                    this.errorMessage = "Please enter your username and password to login.";
+                    return;
+                }
+
+                let up = this.username + ":" + this.password;
+                this.auth = window.btoa(up);
+                let userAuth = new UserAuthentication(this.redirectTo, this.auth);
+
+                userAuth.addEventListener('error', (e) => {
+                    this.errorMessage = e.detail.message;
+                });
+
+                userAuth.send("Basic");
+            },
+
+            _computedClass: function (errMessage)
+            {
+                let classes;
+                classes = errMessage === undefined || errMessage === "" ? 'hide' : 'messageContainer show';
+                this.updateStyles();
+                return classes;
+            }
+        });
+    </script>
+</dom-module>

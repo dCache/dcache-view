@@ -54,10 +54,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <template is="dom-bind" id="app">
             <paper-header-panel class="flex" mode="standard" shadow id="df-main-header">
 
-                <paper-toolbar class="medium-tall">
+                <paper-toolbar class="medium-tall" id="dvMainTopBar">
                     <paper-icon-button icon="menu" on-tap="menuAction" id="mainMenu" hidden></paper-icon-button>
-                    <span class="title">[[config.orgName]]</span>
-                    <div id="WhoAmI"><user-loginout-button></user-loginout-button></div>
+                    <span class="title" id="mainMenuTitleSpan">[[config.orgName]]</span>
+                    <div id="WhoAmI"><user-loginout-button pg-route="{{route}}"></user-loginout-button></div>
                     <div class="bottom fit" style="height: 70px; background-color: #eee;
                             display: flex; flex-direction: column; justify-content: center;">
                         <selected-title id="selectedTitle" pg-route="{{route}}"></selected-title>
@@ -74,7 +74,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                    title="Home Directory" class="red" mini></paper-fab>
                                     </a>
                                 </template>
-                                <a data-route="home" href$="{{baseUrl}}" on-tap="ls">
+                                <a data-route="home" href$="{{baseUrl}}">
                                     <paper-fab icon="device:storage"
                                                title="Root Directory" class="blue" mini></paper-fab>
                                 </a>
@@ -124,6 +124,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 </paper-toolbar>
                                                 <admin-page></admin-page>
                                             </paper-material>
+                                        </section>
+
+                                        <section data-route="user-login" class="fit" style="background-color:#686868;">
+                                            <div main id="loginSection"></div>
                                         </section>
 
                                         <section data-route="admin-component-page" class="fit"
