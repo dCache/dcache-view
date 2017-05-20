@@ -166,6 +166,10 @@
                 checkboxDisplay: {
                     type: Boolean,
                     notify: true
+                },
+                fileMData: {
+                    type: Object,
+                    notify: true
                 }
             },
 
@@ -291,7 +295,9 @@
                 var a = '<span class="style-scope list-row">'+this.computedSize+'</span>';
                 if ( ((b.innerHTML).toString()).trim() == a.trim() ) {
                     b.querySelector('span').innerHTML = "";
-                    var el1 = new HoverContextual(this.name, this.fileType, this.filePath);
+                    const index = app.$.homeDir.querySelector('#feList').items.indexOf(this.fileMData);
+                    const el1 = new HoverContextual(this.name, this.fileType,
+                        this.filePath, this.fileMData.currentQos, index);
                     b.querySelector('span').appendChild(el1);
                 }
                 Polymer.dom.flush();

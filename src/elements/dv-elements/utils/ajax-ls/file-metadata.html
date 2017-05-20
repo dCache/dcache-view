@@ -1,16 +1,18 @@
 <link rel="import" href="../../../../bower_components/polymer/polymer.html">
 
 <link rel="import" href="../../../../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="../../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../../../../bower_components/iron-icons/iron-icons.html">
 
-
-<link rel="import" href="../../../../bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
-<link rel="import" href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../../bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
+<link rel="import" href="../../../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
 
-
+<link rel="import" href="../../../../bower_components/dcache-namespace/dcache-namespace.html">
 <link rel="import" href="../../../../bower_components/file-icon/file-icon.html">
+<link rel="import" href="../../../../bower_components/qos-backend-information/qos-backend-information.html">
+
 <link rel="import" href="../../directory-ls-message/directory-ls-error.html">
 
 <dom-module id="file-metadata">
@@ -18,12 +20,10 @@
         :host {
             height: 100%;
             margin: 0;
+            width: 100%;
         }
         .dir {
             --iron-icon-fill-color:#4FC3F7;
-        }
-        .flex {
-            @apply(--layout-flex);
         }
         .spacer {
             margin-left: 10px !important;
@@ -38,6 +38,10 @@
         .content {
             padding: 2px 7px;
             background: #eee;
+            width: 100%;
+        }
+        .content #content {
+            width: 100%;
         }
         .cafe-light {
             color: var(--paper-grey-600);
@@ -53,6 +57,76 @@
             font-size: 15px;
             vertical-align: middle;
         }
+        .flex, #qosActionsButtons {
+            display: flex;
+        }
+        #qosActionsButtons > paper-button {
+            text-transform: capitalize;
+            font-size: 0.7em;
+            flex: 1 1 auto;
+        }
+        paper-button[disabled] {
+            color: #a8a8a8;
+        }
+        .collapse-header {
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        .collapse-header > span {
+            flex:1;
+            font-size: 0.7em;
+            margin-left: 7px;
+        }
+        .collapse-content > paper-icon-button {
+            width: 34px;
+            height: 34px;
+            color: #333;
+        }
+        .collapse-content {
+            padding: 5px;
+            border: 1px solid #dedede;
+            font-size: 0.7em;
+            white-space:normal !important;
+            max-width: 350px;
+        }
+        .clicked {
+            background: #efefef;
+            border-top: 1px solid #424242;
+        }
+        .rotate {
+            -webkit-animation-name: rotate;
+            -webkit-animation-duration:3s;
+            -webkit-animation-iteration-count: 1;
+            -webkit-animation-timing-function: ease;
+            -webkit-animation-fill-mode: forwards;
+            animation-name: rotate;
+            animation-duration:0.5s;
+            animation-iteration-count: 1;
+            animation-timing-function: ease;
+            animation-fill-mode: forwards;
+        }
+        .key {
+            text-transform:capitalize;
+        }
+
+        @-webkit-keyframes rotate {
+            from {
+                -webkit-transform: rotate(0deg);
+            }
+            to {
+                -webkit-transform: rotate(180deg);
+            }
+        }
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(180deg);
+            }
+        }
     </style>
     <template>
         <paper-scroll-header-panel class="flex" fixed>
@@ -61,8 +135,7 @@
                 <div class="spacer title">Metadata Info</div>
                 <paper-icon-button icon="close" title="close" id="closeFileMetadataPanel"></paper-icon-button>
             </paper-toolbar>
-
-            <div class="content">
+            <paper-card class="content">
                 <iron-ajax
                         auto
                         url="{{url}}"
@@ -113,17 +186,68 @@
 
                     <template is="dom-if" if="{{isSomebody}}">
                         <div class="card-actions">
-                            <p><b>Quality of Service</b></p>
+                            <p><b>Quality of Service (QoS)</b></p>
                             <div class="horizontal justified">
                                 <div style=" width:220px; word-wrap: break-word;">
                                     <span style="font-size: 0.7em; margin: 5px;">Current File Location: </span>
-                                    <code>{{metadata.currentQos}}</code>
+                                    <code id="currentQos">{{currentQos}}</code>
                                 </div>
                             </div>
                         </div>
+                        <template is="dom-if" if="{{isRegular}}">
+                            <paper-card style="width:90%; margin: 10px; border: solid 1px #ccc;">
+                                <div class="horizontal justified">
+                                    <p style="font-size: 0.8em; margin: 5px; color:#616161;">
+                                        <b>Change file QoS to:</b>
+                                    </p>
+                                    <div id="qosActionsButtons"
+                                         class="card-actions" style="height: 30px !important; padding: 5px 1px;">
+                                        <template is="dom-repeat" items="[[possibleTransition]]">
+                                            <paper-button on-tap="_changeQos"
+                                                          disabled$="[[_computedDisabled(item.backendCapability.name,currentQos)]]"
+                                                          data-transition-name$="[[item.backendCapability.name]]">
+                                                [[item.backendCapability.name]]
+                                            </paper-button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </paper-card>
+                            <div class="card-actions">
+                                <p style="font-size: 0.8em; margin: 5px; color:#dc2222;">
+                                    <b>Backend Capabilities Information</b>
+                                </p>
+                                <div class="horizontal justified">
+                                    <template is="dom-repeat" items="[[possibleTransition]]">
+                                        <div class="card-actions" style="padding: 0;">
+                                            <div on-tap="_details" class="collapse-header">
+                                                <span>[[item.backendCapability.name]]</span>
+                                                <paper-icon-button icon="icons:expand-more"></paper-icon-button>
+                                            </div>
+                                            <iron-collapse>
+                                                <div class="collapse-content">
+                                                    <div>
+                                                        Transition:
+                                                        [[_valueToString(item.backendCapability.transition)]]
+                                                    </div>
+                                                    <template is="dom-repeat"
+                                                              items="[[_getQosBackendMetadata(item.backendCapability.metadata)]]">
+                                                        <div>
+                                                            <span class="key">[[_formatKey(item.key)]]: </span>
+                                                            <label>[[_valueToString(item.value)]]</label>
+                                                        </div>
+                                                    </template>
+                                                    <paper-spinner active="{{_loadingBackendQosInfo}}"
+                                                                   style="left: 45%;"></paper-spinner>
+                                                </div>
+                                            </iron-collapse>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
                     </template>
                 </paper-card>
-            </div>
+            </paper-card>
         </paper-scroll-header-panel>
     </template>
     <script>
@@ -156,6 +280,11 @@
                     notify: true
                 },
 
+                currentQos: {
+                    type: String,
+                    notify: true
+                },
+
                 parentPath: {
                     type: String,
                     notify: true,
@@ -177,15 +306,49 @@
                 isSomebody: {
                     type: Boolean,
                     notify: true
+                },
+
+                isRegular: {
+                    type: Boolean,
+                    notify: true
+                },
+
+                index: {
+                    type: Number,
+                    notify: true
+                },
+
+                _loadingBackendQosInfo: {
+                    type: Boolean,
+                    value: true,
+                    notify: true
+                },
+                possibleTransition: {
+                    type: Array,
+                    value: function () {
+                        return window.CONFIG.qos;
+                    },
+                    notify: true
                 }
             },
 
-            factoryImpl: function(fileName, path, fileType)
+            factoryImpl: function(fileName, path, fileType, currentQos, index)
             {
                 this.fileName = fileName;
                 this.path = path;
                 this.fileType = fileType;
+                this.index = index;
                 this.isSomebody = !(sessionStorage.upauth === undefined || sessionStorage.upauth == null);
+                this.isRegular = fileType == 'REGULAR';
+                this.currentQos = currentQos;
+                if (window.CONFIG.qos == undefined && window.CONFIG.isSomebody) {
+                    const apiEndPoint = window.CONFIG.webapiEndpoint;
+                    const qos = new QosBackendInformation(apiEndPoint);
+                    qos.addEventListener('qos-backend-response', (e) => {
+                        window.CONFIG.qos = e.detail.response;
+                        this.possibleTransition = e.detail.response;
+                    });
+                }
             },
 
             _computedUpw: function(path)
@@ -250,6 +413,9 @@
                 if (x != null || x != undefined || x != "" ) {
                     this.cTime = new Date(x.creationTime);
                     this.mTime = new Date(x.mtime);
+                    if (this.currentQos == null && this.isSomebody){
+                        this.currentQos = x.currentQos;
+                    }
                 }
             },
 
@@ -289,7 +455,116 @@
                 this.updateStyles();
 
                 e.stopPropagation();
+            },
+
+            _changeQos: function (e)
+            {
+                const target = e.target.getAttribute('data-transition-name');
+                const namespace = document.createElement('dcache-namespace');
+                namespace.auth = sessionStorage.upauth;
+                const path = this.path;
+
+                namespace.promise.then(
+                    () => {
+                        const currentQos = this.currentQos;
+                        app.$.toast.text = "Request successful! File in transition. ";
+                        app.$.toast.show();
+                        this.fire('qos-in-transition', {options: {
+                            currentQos: currentQos,
+                            targetQos: target,
+                            itemIndex: this.index,
+                            path: path
+                        }});
+                    }
+                ).catch(
+                    function(err) {
+                        app.$.toast.text = err.message + " ";
+                        app.$.toast.show();
+                    }
+                );
+
+                namespace.qos({
+                    url: window.CONFIG.webapiEndpoint +'namespace',
+                    path: path,
+                    target: target
+                });
+            },
+
+            _details: function (e)
+            {
+                for (let i = 0; i < e.path.length; i++) {
+                    if (e.path[i].classList.contains("collapse-header")) {
+                        this._showMore(e.path[i].nextElementSibling,e.path[i].children[1]);
+                        break;
+                    }
+                }
+
+            },
+
+            _valueToString: function (arr)
+            {
+                if (arr.toString() == "") {
+                    return 'null';
+                }
+                return arr.toString();
+            },
+
+            _showMore: function (feCollapseNode, btn)
+            {
+                feCollapseNode.toggle();
+                btn.parentNode.classList.toggle("clicked");
+                btn.classList.toggle("rotate");
+                this._loadingBackendQosInfo = window.CONFIG.qos == undefined;
+            },
+
+            _computedDisabled: function (buttonName,currentQos)
+            {
+                if (buttonName == currentQos){
+                    return true;
+                } else {
+                    for (let i=0; i<window.CONFIG.qos.length; i++){
+                        if (window.CONFIG.qos[i].backendCapability.name == currentQos) {
+                            if (window.CONFIG.qos[i].backendCapability.transition.length > 0) {
+                                for (let j=0; j < window.CONFIG.qos[i].backendCapability.transition.length; j++) {
+                                    return window.CONFIG.qos[i].backendCapability.transition[j] != buttonName;
+                                }
+                            } else {
+                                return true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            },
+
+            _getQosBackendMetadata: function (i)
+            {
+                let a = JSON.stringify(i);
+                a = a.slice(1, -1);
+                let b = a.split(",");
+                const len = b.length;
+                let arr = [];
+                for (let j=0; j<len; j++) {
+                    let z = b[j].split(":");
+                    let jsonString = '{"key": ' + z[0] + ', "value": ' + z[1] +'}';
+                    arr.push(JSON.parse(jsonString));
+                }
+                return arr;
+            },
+
+            _formatKey: function (str)
+            {
+                if (str.includes("cdmi_")) {
+                    str = str.replace("cdmi_", "");
+                } else if (str.includes("_provided")) {
+                    str = str.replace("_provided", "");
+                } else if (str.includes("_")) {
+                    str.replace("_", " ");
+                }
+
+                return str
             }
+
         });
     </script>
 </dom-module>

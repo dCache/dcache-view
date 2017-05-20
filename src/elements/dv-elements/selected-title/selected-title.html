@@ -190,32 +190,37 @@
             {
                 e.stopPropagation();
 
-                var el1;
-                var z = app.$.homedir.querySelector('view-file');
-                var x = app.$.homedir.querySelector("#feList");
+                let el1;
+                let z = app.$.homedir.querySelector('view-file');
+                let x = app.$.homedir.querySelector("#feList");
 
-                var path = z.path;
+                let path = z.path;
+
+                //-10 denote current view i.e. current view path
+                const currentViewIndex = -10;
 
                 app.$.metadataDrawer.innerHTML = "";
 
-                if (path == "/") {
+                if (path === "/") {
                     y = x.selectedItem;
 
-                    if ( y == null ) {
-                        el1 = new FileMetadata("Root", "/", "DIR");
+                    if ( y === null ) {
+                        el1 = new FileMetadata("Root", "/", "DIR", null, currentViewIndex);
                     } else {
-                        el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType);
+                        const index = x.items.indexOf(y);
+                        el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType, y.currentQos, index);
                     }
                     app.$.metadataDrawer.appendChild(el1);
 
                 } else {
-                    if ( x == null || x.selectedItem == null ) {
-                        var n = path.lastIndexOf("/");
-                        var name = path.slice(n+1);
-                        el1 = new FileMetadata(name, path, "DIR");
+                    if ( x === null || x.selectedItem === null ) {
+                        let n = path.lastIndexOf("/");
+                        let name = path.slice(n+1);
+                        el1 = new FileMetadata(name, path, "DIR", null, currentViewIndex);
                     } else {
-                        var y = x.selectedItem;
-                        el1 = new FileMetadata(y.fileName, path + "/" + y.fileName, y.fileType);
+                        let y = x.selectedItem;
+                        const index = x.items.indexOf(y);
+                        el1 = new FileMetadata(y.fileName, path + "/" + y.fileName, y.fileType, y.currentQos, index);
                     }
                     app.$.metadataDrawer.appendChild(el1);
                 }
