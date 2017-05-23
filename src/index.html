@@ -106,7 +106,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 <paper-toolbar id="listTableHeader">
                                                     <list-row-header></list-row-header>
                                                 </paper-toolbar>
-                                                <div class="fit" id="homedir" on-contextmenu="currentDirContext">
+                                                <div class="fit" id="homedir"
+                                                     on-contextmenu="currentDirContext" on-drop="drop"
+                                                     on-dragenter="dragenter" on-dragleave="dragleave"
+                                                     on-dragend="dragend" on-dragexit="dragexit">
                                                     <view-file id="homeDir"></view-file>
                                                 </div>
                                             </paper-header-panel>
@@ -214,6 +217,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </paper-button>
                 <div id="uploadList"
                      style="max-height:500px; max-width:460px; overflow-y: auto; overflow-x: hidden"></div>
+            </paper-toast>
+
+            <paper-toast id="dropZoneToast" duration="[[closingTime]]"
+                         class="fit-bottom" on-iron-overlay-closed="dndToastClosed">
+                <div id="dropZoneContent" style="width:100%; display:flex;">
+                    <drag-enter-toast></drag-enter-toast>
+                </div>
             </paper-toast>
         </template>
 

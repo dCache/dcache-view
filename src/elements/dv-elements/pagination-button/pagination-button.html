@@ -1,6 +1,7 @@
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
 
 <link rel="import" href="../utils/ajax-ls/view-file.html">
+<link rel="import" href="../drag-and-drop/dnd-upload.html">
 
 <dom-module id="pagination-button">
     <style>
@@ -38,21 +39,31 @@
             border: 1px solid #f44336;
         }
 
+        .dragEnter {
+            border: 1px solid #0e5aff;
+        }
+
     </style>
     <template>
-        <div><a on-tap="_ref">{{dirName}}</a></div>
+        <div><a on-tap="_ref">{{name}}</a></div>
     </template>
     <script>
         PaginationButton = Polymer({
             is: 'pagination-button',
 
             properties: {
-                dirName: {
+                /**
+                 * Directory Name
+                 */
+                name: {
                     type: String,
                     notify: true
                 },
 
-                canonicalPath: {
+                /**
+                 * Full path to the directory
+                 */
+                filePath: {
                     type: String,
                     notify: true
                 },
@@ -62,23 +73,82 @@
                     notify: true,
                     value: false,
                     observer: '_activeChanged'
+                },
+
+                counter: {
+                    type: Number,
+                    value: 0,
+                    notify: true
                 }
             },
 
             factoryImpl: function(dirName, canonicalPath)
             {
-                this.dirName = dirName;
-                this.canonicalPath = canonicalPath;
+                this.name = dirName;
+                this.filePath = canonicalPath;
+            },
+
+            attached: function ()
+            {
+                this.listen(this, 'drop', '_drop');
+                this.listen(this, 'dragenter', '_dragenter');
+                this.listen(this, 'dragleave', '_dragleave');
+            },
+
+            detached: function ()
+            {
+                this.unlisten(this, 'drop', '_drop');
+                this.unlisten(this, 'dragenter', '_dragenter');
+                this.unlisten(this, 'dragleave', '_dragleave');
             },
 
             _ref: function()
             {
-                app.ls(this.canonicalPath);
+                app.ls(this.filePath);
             },
 
             _activeChanged: function ()
             {
                 this.querySelector('a').classList.add("active");
+            },
+
+            _drop: function (e)
+            {
+                event.stopPropagation();
+                event.preventDefault && event.preventDefault();
+                    this.counter = 0;
+                    app.clearDelayedLs();
+                    let upload = new DndUpload(this.filePath);
+                    upload.isCurrentView = this.filePath === app.$.homedir.querySelector('view-file').path;
+                    upload.start(event);
+                e.stopPropagation();
+            },
+
+            _dragenter: function (e)
+            {
+                e.stopPropagation();
+                event.preventDefault && event.preventDefault();
+                    this.counter++;
+                    app.$.dropZoneContent.querySelector('drag-enter-toast').directoryName = this.name;
+                    if (!app.$.dropZoneToast.opened){
+                        app.$.dropZoneToast.open();
+                    }
+                    Polymer.dom(this.root).querySelector('a').classList.add('dragEnter');
+                    app.delayTact(this);
+                e.stopPropagation();
+            },
+
+            _dragleave: function (e)
+            {
+                e.stopPropagation();
+                event.preventDefault && event.preventDefault();
+                    this.counter--;
+                    if (this.counter === 0) {
+                        //app.$.dropZoneToast.close();
+                        Polymer.dom(this.root).querySelector('a').classList.remove('dragEnter');
+                        app.clearDelayedLs();
+                    }
+                e.stopPropagation();
             }
         });
     </script>

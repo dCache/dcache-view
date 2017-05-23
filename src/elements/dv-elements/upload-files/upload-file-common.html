@@ -1,0 +1,128 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<dom-module id="upload-file-common">
+    <script>
+        `use-strict`;
+        UploadFileCommon = Polymer({
+            is: 'upload-file-common',
+            properties: {
+                message: {
+                    type: String,
+                    notify: true
+                },
+                progressValue: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                isComplete: {
+                    type: Boolean,
+                    notify: true
+                },
+                hasError: {
+                    type: Boolean,
+                    notify: true
+                },
+                inProgress: {
+                    type: Boolean,
+                    notify: true
+                },
+                progressStatus: {
+                    type: Boolean,
+                    value: true,
+                    notify: true
+                },
+                url: {
+                    type: String,
+                    value: function () {
+                        if (window.CONFIG.webdavEndpoint == "") {
+                            return window.location.protocol + "//" + window.location.hostname
+                                + ":2880";
+                        } else {
+                            return window.CONFIG.webdavEndpoint;
+                        }
+                    }
+                },
+                path: {
+                    type: String,
+                    notify: true
+                },
+                data: {
+                    type: Object,
+                    notify: true
+                },
+                browser: {
+                    type: Object,
+                    notify: true
+                }
+            },
+
+            factoryImpl: function (path, browser)
+            {
+                 this.path = (path.endsWith("/")) ? path : path + "/";
+                 this.browser = browser;
+            },
+
+            upload: function (file)
+            {
+                const uploadUrl = this.url + this.path + file.name;
+
+                new UploadHandler({
+                    file: file,
+                    upauth: sessionStorage.upauth,
+                    url: uploadUrl,
+                    onComplete: (data)=>
+                    {
+                        this.progressStatus = false;
+                        this.progressValue = 100;
+                        this.inProgress = false;
+                        this.hasError = false;
+                        this.isComplete = true;
+                        this.message = "Uploaded";
+                        let item = {
+                            "fileName" : data.name,
+                            "fileMimeType" : data.type,
+                            "fileLocality" : "",
+                            "size" : data.size,
+                            "fileType" : "REGULAR",
+                            "mtime" : data.lastModified,
+                            "creationTime" : Date.now()
+                        };
+                        this.fire('complete', {item: item});
+                    },
+
+                    onProgress: (evt)=>
+                    {
+                        this.message = "Uploading ...";
+                        this.inProgress = true;
+                        this.isComplete = false;
+                        this.hasError = false;
+                        if (evt.lengthComputable) {
+                            this.progressStatus = false;
+                            this.progressValue = ((evt.loaded/evt.total) * 100).toFixed(2);
+                        }
+                        this.fire('uploading', {value: this.progressValue});
+                    },
+
+                    onError: (evt)=>
+                    {
+                        this.progressStatus = false;
+                        this.progressValue = 100;
+                        if (evt.statusText === "" && evt.status === 0) {
+                            if (!((this.browser.name === "Firefox" && this.browser.version >= 50) ||
+                                (this.browser.name === "Chrome" && this.browser.version >= 13))) {
+                                this.message = "No support for uploading a folder in this web browser."
+                            }
+                        } else {
+                            this.message = evt.statusText;
+                        }
+                        this.inProgress = false;
+                        this.isComplete = false;
+                        this.hasError = true;
+                        this.fire('error', {message: this.message});
+                    }
+                }).upload();
+            }
+        });
+    </script>
+</dom-module>
