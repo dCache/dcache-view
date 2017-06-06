@@ -7,6 +7,7 @@
     let dndCounter = 0;
     let timeoutID, dndArr = [];
     app.closingTime = 3000;
+    app.mvObj = {};
 
     // Sets app default base URL
     app.baseUrl = '/';
@@ -177,11 +178,14 @@
     {
         let event = e || event;
         event.preventDefault && event.preventDefault();
-
-        app.$.dropZoneToast.close();
-
-        let upload = new DndUpload(app.$.homedir.querySelector('view-file').path);
-        upload.start(event);
+        let path = app.$.homedir.querySelector('view-file').path;
+        if (event.dataTransfer.types.includes('text/plain')) {
+            app.dragNdropMoveFiles(path, false);
+        } else {
+            app.$.dropZoneToast.close();
+            let upload = new DndUpload(path);
+            upload.start(event);
+        }
 
         dndCounter = 0;
     };
@@ -190,11 +194,12 @@
         let event = e || event;
         event.preventDefault && event.preventDefault();
         dndCounter++;
-
-        app.$.dropZoneContent.querySelector('drag-enter-toast').directoryName =
-            app.getfileName(app.$.homedir.querySelector('view-file').path);
-        if (!app.$.dropZoneToast.opened){
-            app.$.dropZoneToast.open();
+        if (!event.dataTransfer.types.includes('text/plain')) {
+            app.$.dropZoneContent.querySelector('drag-enter-toast').directoryName =
+                app.getfileName(app.$.homedir.querySelector('view-file').path);
+            if (!app.$.dropZoneToast.opened){
+                app.$.dropZoneToast.open();
+            }
         }
     };
     app.dragleave = function()
@@ -263,6 +268,76 @@
         } else {
             return "Basic " + window.btoa('anonymous:nopassword');
         }
+    };
+
+    app.dragNdropMoveFiles = function (destinationPath, dropFlag)
+    {
+        const currentViewPath = app.$.homedir.querySelector('view-file').path;
+        const sourcePath = app.mvObj.source;
+        app.mvObj.files.forEach((file) => {
+            let namespace = document.createElement('dcache-namespace');
+            namespace.auth = app.getAuthValue();
+
+            namespace.mv({
+                url: "/api/v1/namespace",
+                path: sourcePath + "/" + file.fileName,
+                destination: destinationPath + "/" + file.fileName
+            });
+
+            namespace.promise.then( () => {
+                if (currentViewPath === sourcePath) {
+                    let vf = app.$.homedir.querySelector('view-file');
+                    let list = vf.querySelector('iron-list');
+                    let arr = list.items;
+                    const len = arr.length;
+
+                    /**
+                     * TODO: use associate-array or map or just the index number to
+                     * remove the file from the list.
+                     */
+                    for (let i=0; i<len; i++) {
+                        if (arr[i].fileName === file.fileName) {
+                            list.splice('items', i, 1);
+                            break;
+                        }
+                    }
+                } else {
+                    if (!dropFlag) {
+                        let vf = app.$.homedir.querySelector('view-file');
+                        let list = vf.querySelector('iron-list');
+
+                        let ed = vf.querySelector('empty-directory');
+                        if (!(ed === null || ed === undefined)) {
+                            vf.querySelector('#content').removeChild(ed);
+                        }
+
+                        if (list !== null || list !== undefined) {
+                            list.unshift('items',
+                                {
+                                    "fileName" : file.fileName,
+                                    "fileMimeType" : file.fileMimeType,
+                                    "currentQos" : file.currentQos,
+                                    "size" : file.fileType === "DIR"? "--": file.size,
+                                    "fileType" : file.fileType,
+                                    "mtime" : file.mtime,
+                                    "creationTime" : file.creationTime
+                                }
+                            );
+                            vf.querySelector('iron-list').fire('iron-resize');
+                        }
+                    }
+                }
+            }).catch((err)=>{
+                app.$.toast.text = err.message + " ";
+                app.$.toast.show();
+            });
+        });
+
+        app.$.toast.text = app.mvObj.files.length + " files have been moved from " +
+            sourcePath + " to " + destinationPath + ". ";
+        app.$.toast.show();
+        app.mvObj = {};
+        app.$.homedir.querySelector('view-file').resetMultiSelection();
     };
 
     function updateFeListAndMetaDataDrawer(status, itemIndex)

@@ -74,7 +74,8 @@
                                   ctime="{{item.creationTime}}" mtime="{{item.mtime}}"
                                   size="{{item.size}}" current-qos="{{item.currentQos}}"
                                   file-mime-type="{{item.fileMimeType}}" file-m-data="{{item}}"
-                                  parent-path="[[parent]]" checkbox-display="{{multiSelection}}">
+                                  parent-path="[[parent]]" checkbox-display="{{multiSelection}}"
+                                  draggable="[[_computedDraggable(selected)]]">
                         </list-row>
                     </div>
                 </template>
@@ -197,6 +198,11 @@
                 } else {
                     return "anonymous:nopassword";
                 }
+            },
+
+            _computedDraggable: function (isSelected)
+            {
+                return !!isSelected;
             },
 
             _computedClass: function(isSelected)
