@@ -283,43 +283,33 @@
                 e.stopPropagation();
             },
 
-            handleError: function (e, request)
+            handleError: function (request)
             {
-                let x, msg, code;
+                let msg = request.detail.error.message;
+                let code = request.detail.request.__data__.status;
                 let content = this.$.content;
 
-                try {
-                    x = request.request.__data__.xhr.response.errors[0];
-                    msg = x.message;
-                    code = x.status;
-                    switch (parseInt(code)) {
-                        case 401:
-                            const a = '"page":"home","path":"' + this.path + '"';
-                            let pathName = '/user-login?r=' + encodeURIComponent(a);
-                            page(pathName);
-                            return;
-                            break;
-                        case 403:
-                            app.$.centralDialogBox.innerHTML = "";
-                            let el2 = new SwitchUserCredentialDialogBox();
-                            app.$.centralDialogBox.appendChild(el2);
-                            Polymer.dom.flush();
-                            this.updateStyles();
-                            app.$.centralDialogBox.toggle();
-                            break;
-                    }
-                } catch (err) {
-                    msg = "Something is terribly wrong! Please contact your admin";
-                    code = 500;
+                switch (parseInt(code)) {
+                    case 401:
+                        const a = '"page":"home","path":"' + this.path + '"';
+                        let pathName = '/user-login?r=' + encodeURIComponent(a);
+                        page.redirect(pathName);
+                        return;
+                    case 403:
+                        msg = "Access Denied! Please login using a credentials with the right permission.";
+                        break;
+                    default:
+                        code = code===undefined?"500":code;
+                        msg = msg ===undefined?
+                            "Something is terribly wrong! Please contact your admin.":msg;
+
                 }
 
-                let el1 = new DirectoryLsError(msg, code);
-                content.appendChild(el1);
+                let dle = new DirectoryLsError(msg, code);
+                content.appendChild(dle);
 
                 Polymer.dom.flush();
                 this.updateStyles();
-
-                e.stopPropagation();
             },
 
             changedItems: function (changedRecord)
