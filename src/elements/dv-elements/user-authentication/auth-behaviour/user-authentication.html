@@ -49,7 +49,7 @@
                     case "Bearer":
                         this.$.ajax.headers = {
                             "Authorization": authFramework +" "+this.auth,
-                            "X-Requested-With": "XMLHttpRequest"
+                            "Suppress-WWW-Authenticate": "Suppress"
                         };
                         sessionStorage.setItem('authType', authFramework);
                         break;

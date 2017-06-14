@@ -406,7 +406,7 @@
                 this.$.ajax.headers = {
                     "Authorization": authzValue,
                     "Accept": "application/json",
-                    "X-Requested-With": "XMLHttpRequest"
+                    "Suppress-WWW-Authenticate": "Suppress"
                 };
                 this.$.ajax.url = this.url;
                 this.$.ajax.params = {"limit":limit, "offset": offset};
