@@ -20,13 +20,13 @@
   "dependencies": {
     "admin-page": "dcache-elements/admin-page#0.0.5",
     "create-directory": "dcache-elements/create-directory#0.0.3",
-    "dcache-namespace": "dcache-elements/dcache-namespace#0.0.5",
+    "dcache-namespace": "dcache-elements/dcache-namespace#0.0.6",
     "file-icon": "dcache-elements/file-icon#0.0.3",
-    "move-file": "dcache-elements/move-file#0.0.4",
+    "move-file": "dcache-elements/move-file#0.0.6",
     "page": "visionmedia/page.js#1.6.4",
     "polymer": "Polymer/polymer#1.7.1",
     "polymer-iron-elements": "dcache-elements/polymer-iron-elements#0.0.3",
     "polymer-paper-elements": "dcache-elements/polymer-paper-elements#0.0.3",
-    "qos-backend-information": "dcache-elements/qos-backend-information#0.0.4"
+    "qos-backend-information": "dcache-elements/qos-backend-information#0.0.6"
   }
 }
