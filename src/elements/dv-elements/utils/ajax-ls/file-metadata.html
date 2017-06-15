@@ -343,7 +343,7 @@
                 this.currentQos = currentQos;
                 if (window.CONFIG.qos == undefined && window.CONFIG.isSomebody) {
                     const apiEndPoint = window.CONFIG.webapiEndpoint;
-                    const qos = new QosBackendInformation(apiEndPoint);
+                    const qos = new QosBackendInformation(apiEndPoint, "Basic "+ sessionStorage.upauth);
                     qos.addEventListener('qos-backend-response', (e) => {
                         window.CONFIG.qos = e.detail.response;
                         this.possibleTransition = e.detail.response;
