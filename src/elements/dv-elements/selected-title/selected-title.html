@@ -313,7 +313,7 @@
                 dialogBox.innerHTML = "";
                 var mv = document.createElement('move-file');
                 mv.auth = sessionStorage.upauth === undefined ?
-                    "Basic " + window.atob("nousername:nopassword"): "Basic "+ sessionStorage.upauth;
+                    "Basic " + window.btoa("nousername:nopassword"): "Basic "+ sessionStorage.upauth;
                 mv.currentPath = currentPath;
 
                 if (vf.selectedItems.constructor === Array) {
