@@ -278,6 +278,7 @@
                                 );
                                 vf.querySelector('iron-list').fire('iron-resize');
                             }
+                            vf.resetMultiSelection();
                             app.$.toast.text = "Done! New directory created. ";
                             app.$.toast.show();
                         }
@@ -337,6 +338,7 @@
                         }
                     });
                     dialogBox.close();
+                    vf.resetMultiSelection();
                     app.$.toast.text = noOfMovedItems + " " + fileType + " have been moved from " +
                         e.detail.response.sourceDirName + " to " + e.detail.response.targetDirName + ". ";
                     app.$.toast.show();

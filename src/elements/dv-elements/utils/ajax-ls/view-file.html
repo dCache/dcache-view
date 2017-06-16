@@ -420,6 +420,18 @@
                 var offset = this.__counter__ * limit;
                 this.$.ajax.params = {"limit":limit, "offset": offset};
                 this.$.ajax.generateRequest();
+            },
+
+            /**
+             * FIXME: This is a workaround to reset the checkbox.
+             * This bug that should be fix.
+             */
+            resetMultiSelection: function ()
+            {
+                if (this.multiSelection) {
+                    this.multiSelection = false;
+                    this.multiSelection = true;
+                }
             }
         });
     </script>
