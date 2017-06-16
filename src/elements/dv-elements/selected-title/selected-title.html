@@ -217,7 +217,7 @@
                 mkdir.dirFullPath = path;
                 mkdir.addEventListener('create',function(e) {
                     var name = e.detail.newFolderName;
-                    var url = window.CONFIG.webapiEndpoint + "namespace" + path;
+                    var url = window.CONFIG.webapiEndpoint + "namespace";
                     var namespace = document.createElement('dcache-namespace');
 
                     if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
@@ -263,6 +263,7 @@
 
                     namespace.mkdir({
                         url: url,
+                        path: path,
                         name: name
                     });
                 });
