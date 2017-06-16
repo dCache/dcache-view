@@ -160,7 +160,7 @@
                 this.$.ajaxUser.url = window.CONFIG.webapiEndpoint+"user";
                 this.$.ajaxUser.headers = {
                     "Authorization": "Basic "+this.auth,
-                    "X-Requested-With": "XMLHttpRequest"
+                    "Suppress-WWW-Authenticate": "Suppress"
                 };
                 sessionStorage.setItem("name", this.username);
                 this.$.ajaxUser.generateRequest();

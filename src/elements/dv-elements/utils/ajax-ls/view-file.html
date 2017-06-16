@@ -269,7 +269,8 @@
 
             _computeHeaders: function(upw)
             {
-                return '{"Authorization":"Basic ' + window.btoa(upw) + '", "Accept":"application/json"}';
+                return '{"Authorization":"Basic ' + window.btoa(upw)
+                    + '", "Accept":"application/json", "Suppress-WWW-Authenticate": "Suppress"}';
             },
 
             handleResponse: function(e)
