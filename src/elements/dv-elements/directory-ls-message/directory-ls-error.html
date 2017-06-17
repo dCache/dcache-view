@@ -70,9 +70,12 @@
             },
             detached: function ()
             {
-                if (this.parentNode == (app.$.homedir.querySelector('view-file')).querySelector('#content')) {
-                    app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
-                }
+                setTimeout(()=>{
+                    if (this.parentNode.id === (app.$.homedir.querySelector('view-file')).querySelector('#content').id) {
+                        app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
+                    }
+                },10);
+
             }
         });
     </script>
