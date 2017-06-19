@@ -293,7 +293,7 @@
                         const a = '"page":"home","path":"' + this.path + '"';
                         let pathName = '/user-login?r=' + encodeURIComponent(a);
                         page.redirect(pathName);
-                        return;
+                        break;
                     case 403:
                         msg = "Access Denied! Please login using a credentials with the right permission.";
                         break;
