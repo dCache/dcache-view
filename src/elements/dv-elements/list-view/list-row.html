@@ -107,7 +107,8 @@
 
                 fileMimeType: {
                     type: String,
-                    notify: true
+                    notify: true,
+                    computed:'_computedFileMimeType(fileType)'
                 },
 
                 ctime: {
@@ -291,6 +292,14 @@
                 b.textContent = this.computedSize;
                 Polymer.dom.flush();
                 e.stopPropagation();
+            },
+
+            _computedFileMimeType: function (fileType)
+            {
+                if (fileType === "DIR") {
+                    return "application/vnd.dcache.folder";
+                }
+                return "application/octet-stream";
             }
         });
     </script>
