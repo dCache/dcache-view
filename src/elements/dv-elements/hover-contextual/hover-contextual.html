@@ -20,7 +20,6 @@
       }
     </style>
     <div>
-      <paper-icon-button icon="delete" title="delete" id="delete"></paper-icon-button>
       <paper-icon-button icon="{{icon}}" title="{{tip}}" id="view"></paper-icon-button>
       <paper-icon-button icon="info" title="metadata information" id="info"></paper-icon-button>
     </div>
@@ -79,8 +78,7 @@
       listeners:
       {
         'view.tap': '_view',
-        'info.tap': '_info',
-        'delete.tap': '_delete'
+        'info.tap': '_info'
       },
 
       _view: function(e)
@@ -141,47 +139,6 @@
         Polymer.dom.flush();
         app.$.metadata.openDrawer();
         e.stopPropagation();
-      },
-      _delete: function ()
-      {
-        var url = this._fileUrl("rest");
-        var name = this.name;
-
-        if (sessionStorage.upauth == null || sessionStorage.upauth === undefined){
-            app.$.toast.text = 'You need to login to delete a file.';
-            app.$.toast.show();
-            return;
-        }
-        var namespace = document.createElement('dcache-namespace');
-        namespace.auth = sessionStorage.upauth;
-        namespace.promise.then(
-          function () {
-            var list = document.querySelector('iron-list');
-            var arr = list.items;
-            const len = arr.length;
-            var i;
-            for (i=0; i<len; i++) {
-                if (arr[i].fileName == name) {
-                    list.splice('items', i, 1);
-                    break;
-                }
-            }
-
-            if (len == 1) {
-                var ed = document.createElement('empty-directory');
-                var vf = document.querySelector('view-file');
-                vf.querySelector('#content').appendChild(ed);
-            }
-          }
-        ).catch(
-          function(err) {
-            app.$.toast.text = err;
-            app.$.toast.show();
-          }
-        );
-        namespace.delete({
-            url: url
-        });
       },
 
       _fileUrl: function (serviceEndpoint)
