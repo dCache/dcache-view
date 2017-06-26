@@ -35,11 +35,11 @@
                 url: {
                     type: String,
                     value: function () {
-                        if (window.CONFIG.webdavEndpoint == "") {
+                        if (window.CONFIG["dcache-view.endpoints.webdav"] == "") {
                             return window.location.protocol + "//" + window.location.hostname
                                 + ":2880";
                         } else {
-                            return window.CONFIG.webdavEndpoint;
+                            return window.CONFIG["dcache-view.endpoints.webdav"];
                         }
                     }
                 },

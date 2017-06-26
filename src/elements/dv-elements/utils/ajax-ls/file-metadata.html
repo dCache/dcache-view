@@ -341,7 +341,7 @@
                 this.isRegular = fileType == 'REGULAR';
                 this.currentQos = currentQos;
                 if (window.CONFIG.qos == undefined && window.CONFIG.isSomebody) {
-                    const apiEndPoint = window.CONFIG.webapiEndpoint;
+                    const apiEndPoint = window.CONFIG["dcache-view.endpoints.webapi"];
                     const qos = new QosBackendInformation(apiEndPoint, app.getAuthValue());
                     qos.addEventListener('qos-backend-response', (e) => {
                         window.CONFIG.qos = e.detail.response;
@@ -365,7 +365,7 @@
             _url: function(path)
             {
                 let x;
-                const url  = window.CONFIG.webapiEndpoint + "namespace";
+                const url  = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
                 const isHome = path===null || path === "" || path === "/";
                 if (sessionStorage.upauth !== undefined) {
                     x = isHome === true ? "/?children=true&qos=true": path + "/?children=true&qos=true";
@@ -475,7 +475,7 @@
                 );
 
                 namespace.qos({
-                    url: window.CONFIG.webapiEndpoint +'namespace',
+                    url: window.CONFIG["dcache-view.endpoints.webapi"] +'namespace',
                     path: path,
                     target: target
                 });

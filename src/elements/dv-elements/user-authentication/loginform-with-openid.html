@@ -223,9 +223,9 @@
 
             ready: function()
             {
-                let a = window.CONFIG.oidcProviderName.trim().split(" ");
-                let b = window.CONFIG.oidcClientId.trim().split(" ");
-                let c = window.CONFIG.oidcAuthorizationEndpoint.trim().split(" ");
+                let a = window.CONFIG["dcache-view.oidc-provider-name-list"].trim().split(" ");
+                let b = window.CONFIG["dcache-view.oidc-client-id-list"].trim().split(" ");
+                let c = window.CONFIG["dcache-view.oidc-authz-endpoint-list"].trim().split(" ");
                 const len = a.length;
                 let jsonString = '';
                 for (let i=0; i<len; i++) {

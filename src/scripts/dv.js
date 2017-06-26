@@ -21,7 +21,7 @@
     window.addEventListener('WebComponentsReady', function() {
         // imports are loaded and elements have been registered
         if (window.CONFIG.qos === undefined && window.CONFIG.isSomebody) {
-            const apiEndPoint = window.CONFIG.webapiEndpoint;
+            const apiEndPoint = window.CONFIG["dcache-view.endpoints.webapi"];
 
             const qos = new QosBackendInformation(apiEndPoint, app.getAuthValue());
             qos.addEventListener('qos-backend-response', (e) => {
@@ -378,7 +378,7 @@
             }
         );
         namespace.getqos({
-            url: window.CONFIG.webapiEndpoint + 'namespace',
+            url: window.CONFIG["dcache-view.endpoints.webapi"] + 'namespace',
             path: options.path
         });
     }

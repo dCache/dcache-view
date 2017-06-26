@@ -263,7 +263,7 @@
             {
                 app.$.centralContextMenu.close();
                 let path;
-                const webdav = window.CONFIG.webdavEndpoint;
+                const webdav = window.CONFIG["dcache-view.endpoints.webdav"];
                 if (webdav === "") {
                     path =
                         window.location.protocol + "//" + window.location.hostname
@@ -376,7 +376,7 @@
                     app.$.toast.show();
                     return;
                 }
-                let url = window.CONFIG.webapiEndpoint + "namespace";
+                let url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
 
                 if (this.multipleSelection) {
                     let vf = document.getElementById('homedir').querySelector('view-file');
@@ -447,7 +447,7 @@
                 mkdir.dirFullPath = path;
                 mkdir.addEventListener('create',function(e) {
                     let name = e.detail.newFolderName;
-                    let url = window.CONFIG.webapiEndpoint + "namespace";
+                    let url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
                     let namespace = document.createElement('dcache-namespace');
                     namespace.auth = app.getAuthValue();
 

@@ -18,6 +18,7 @@
         // Middleware
         window.CONFIG.isSomebody = sessionStorage.upauth !== undefined;
         app.config = window.CONFIG;
+        app.organisationName = window.CONFIG["dcache-view.org-name"];
 
 
         // Routes
