@@ -157,7 +157,7 @@
 
                 var up = this.username + ":" + this.password;
                 this.auth = window.btoa(up);
-                this.$.ajaxUser.url = window.CONFIG.webapiEndpoint+"user";
+                this.$.ajaxUser.url = window.CONFIG["dcache-view.endpoints.webapi"]+"user";
                 this.$.ajaxUser.headers = {
                     "Authorization": "Basic "+this.auth,
                     "Suppress-WWW-Authenticate": "Suppress"
