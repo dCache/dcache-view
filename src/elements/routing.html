@@ -17,6 +17,7 @@
 
         // Middleware
         app.config = window.CONFIG;
+        app.organisationName = window.CONFIG["dcache-view.org-name"];
 
         // Routes
         page('*', function(ctx, next) {
