@@ -74,11 +74,11 @@
                     uploadList.appendChild(el);
                     const upLs = el;
                     var uploadURL;
-                    if (window.CONFIG.webdavEndpoint == "") {
+                    if (window.CONFIG["dcache-view.endpoints.webdav"] == "") {
                         uploadURL = window.location.protocol + "//" + window.location.hostname
                                 + ":2880" + path + f.name;
                     } else {
-                        uploadURL = window.CONFIG.webdavEndpoint + path + f.name;
+                        uploadURL = window.CONFIG["dcache-view.endpoints.webdav"] + path + f.name;
                     }
                     var uploader = new UploadHandler({
                         file: f,

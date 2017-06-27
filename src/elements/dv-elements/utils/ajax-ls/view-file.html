@@ -197,11 +197,11 @@
             _url: function(path)
             {
                 if ( this.path==null || this.path == "" || this.path == "/") {
-                    return window.CONFIG.webapiEndpoint + "namespace/?children=true&locality=true";
+                    return window.CONFIG["dcache-view.endpoints.webapi"] + "namespace/?children=true&locality=true";
                 } else {
                     path = decodeURIComponent(this.path);
                     path = path.replace(/=/g, "/");
-                    return window.CONFIG.webapiEndpoint + "namespace"+ path +"/?children=true&locality=true";
+                    return window.CONFIG["dcache-view.endpoints.webapi"] + "namespace"+ path +"/?children=true&locality=true";
                 }
             },
 
