@@ -19,6 +19,7 @@
         window.CONFIG.isSomebody = sessionStorage.upauth != undefined;
         window.CONFIG.homeDirectory = sessionStorage.homeDirectory;
         app.config = window.CONFIG;
+        app.organisationName = window.CONFIG["dcache-view.org-name"];
 
 
         // Routes
