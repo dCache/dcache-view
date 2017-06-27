@@ -274,7 +274,7 @@
                     Polymer.dom.flush();
                 } else {
                     //Download a file
-                    var webdav = window.CONFIG.webdavEndpoint;
+                    var webdav = window.CONFIG["dcache-view.endpoints.webdav"];
                     if (webdav == "") {
                         path = window.location.protocol + "//" + window.location.hostname + ":2880" + this.filePath;
                     } else {

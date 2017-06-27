@@ -206,7 +206,7 @@
       {
           switch (serviceEndpoint) {
               case "webdav":
-                  var webdav = window.CONFIG.webdavEndpoint;
+                  var webdav = window.CONFIG["dcache-view.endpoints.webdav"];
                   if (webdav == "") {
                       return window.location.protocol + "//" + window.location.hostname + ":2880" + this.path;
                   } else {
@@ -217,7 +217,7 @@
                       }
                   }
               case "rest":
-                  return window.CONFIG.webapiEndpoint + "namespace";
+                  return window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
           }
       }
     });

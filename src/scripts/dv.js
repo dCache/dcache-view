@@ -122,7 +122,7 @@
             }
         );
         namespace.getqos({
-            url: window.CONFIG.webapiEndpoint + 'namespace',
+            url: window.CONFIG["dcache-view.endpoints.webapi"] + 'namespace',
             path: options.path
         });
     }
