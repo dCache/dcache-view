@@ -29,6 +29,10 @@
                 }
             },
 
+            observers: [
+                '_broadcastError(errorMessage)'
+            ],
+
             factoryImpl: function(redirect, auth)
             {
                 this.redirectTo = redirect;
@@ -54,7 +58,8 @@
                         sessionStorage.setItem('authType', authFramework);
                         break;
                     default:
-                        this.errorMessage = "Authorization header is not properly set."
+                        this.errorMessage = "Authorization header is not properly set.";
+                        return;
                 }
 
                 this.$.ajax.url = window.CONFIG["dcache-view.endpoints.webapi"]+"user";
@@ -69,7 +74,6 @@
                 let errorXHR = request.request.__data__.xhr.response.errors[0];
                 this.errorMessage = errorXHR.message+ '! Please check that you have supplied ' +
                     'the correct credentials. ';
-                this.fire('error', {message: this.errorMessage});
             },
 
             _handleResponse: function(e, request)
@@ -92,7 +96,13 @@
                 } else if ( request.xhr.response.status === "ANONYMOUS" ) {
                     this.errorMessage = 'Login failed. Please check that you have supplied ' +
                         'the correct credentials. ';
-                    this.fire('error', {message: this.errorMessage});
+                }
+            },
+
+            _broadcastError: function (errMsg)
+            {
+                if (errMsg !== undefined || errMsg !==null) {
+                    this.fire('error', {message: errMsg});
                 }
             }
         });
