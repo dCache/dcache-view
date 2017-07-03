@@ -83,6 +83,7 @@
                     sessionStorage.setItem("uid", request.xhr.response.uid);
                     sessionStorage.setItem("gids", (request.xhr.response.gids).toString());
                     sessionStorage.setItem("homeDirectory", request.xhr.response.homeDirectory);
+                    sessionStorage.setItem("rootDirectory", request.xhr.response.rootDirectory);
                     sessionStorage.setItem("name", request.xhr.response.username);
                     app.$.WhoAmI.querySelector('user-loginout-button').upauth = this.auth;
                     window.CONFIG.isSomebody = true;

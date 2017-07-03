@@ -22,6 +22,8 @@
     "create-directory": "dcache-elements/create-directory#0.0.3",
     "dcache-namespace": "dcache-elements/dcache-namespace#0.0.6",
     "file-icon": "dcache-elements/file-icon#0.0.3",
+    "identicon.js": "stewartlord/identicon.js#2.3.0",
+    "JavaScript-MD5": "blueimp/JavaScript-MD5#2.7.0",
     "move-file": "dcache-elements/move-file#0.0.6",
     "neon-animation": "PolymerElements/neon-animation#1.2.5",
     "page": "visionmedia/page.js#1.6.4",

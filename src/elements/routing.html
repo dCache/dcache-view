@@ -56,6 +56,21 @@
             app.params = "";
         });
 
+        page('/user-profile', function() {
+            if (!window.CONFIG.isSomebody) {
+                const a = '"page":"user-profile","path":""';
+                let pathName = '/user-login?r=' + encodeURIComponent(a);
+                page.redirect(pathName);
+                return;
+            }
+
+            let up = new UserProfile();
+            app.$.userProfileContainer.innerHTML = "";
+            app.$.userProfileContainer.appendChild(up);
+            app.route = 'user-profile';
+            app.params = "";
+        });
+
         // 404
         page('*', function() {
             let href = window.location.href;

@@ -82,6 +82,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
                                     <paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
                                 </a>
+
+                                <template is="dom-if" if="[[config.isSomebody]]">
+                                    <a data-route="user-profile" href$="{{baseUrl}}user-profile">
+                                        <paper-fab icon="account-circle" title="profile" class="teal" mini></paper-fab>
+                                    </a>
+                                </template>
                             </paper-menu>
                         </div>
 
@@ -183,7 +189,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             </div>
                                         </section>
 
-
+                                        <section data-route="user-profile" class="fit" style="background-color:#ECECEC;">
+                                            <div main id="userProfileContainer"></div>
+                                        </section>
                                     </iron-pages>
                                 </div>
                             </paper-drawer-panel>
