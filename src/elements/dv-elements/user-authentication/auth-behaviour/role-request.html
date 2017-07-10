@@ -1,0 +1,70 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer.html">
+
+<script>
+    RoleRequest = Polymer({
+        is: 'role-request',
+
+        hostAttributes: {
+            hidden: true
+        },
+
+        properties: {
+            promise: {
+                type: Object,
+                readOnly: true,
+                notify: true,
+                value: function() {
+                    return new Promise(function (resolve, reject) {
+                        this.resolveAssertion = resolve;
+                        this.rejectAssertion = reject;
+                    }.bind(this));
+                },
+            }
+        },
+
+        factoryImpl: function(){},
+
+        assert: function (listOfRolesToAssert, redirectTo)
+        {
+            // remove all asserted role by supplying listOfRolesToAssert = ""
+            try {
+                if (sessionStorage.upauth === undefined || sessionStorage.upauth === "") {
+                    this.rejectAssertion("You need to authenticate before asserting roles.");
+                    return;
+                }
+
+                if (sessionStorage.authType !== "Basic") {
+                    this.rejectAssertion("Login with username and password. You cannot assert" +
+                        " role(s) with" +  sessionStorage.authType + "authentication method.");
+                    return;
+                }
+
+                let newUnencodedAuth;
+                const oldAuth = window.atob(sessionStorage.upauth);
+                if (!oldAuth.startsWith(sessionStorage.name+"#")) {
+                    //first time of asserting roles
+                    window.CONFIG.salt = oldAuth.replace(sessionStorage.name,"");
+                    newUnencodedAuth = oldAuth.replace(sessionStorage.name, sessionStorage.name+"#" +
+                        listOfRolesToAssert);
+                } else {
+                    newUnencodedAuth = listOfRolesToAssert === "" ? sessionStorage.name + window.CONFIG.salt :
+                        sessionStorage.name + "#" + listOfRolesToAssert + window.CONFIG.salt;
+                }
+                const auth = window.btoa(newUnencodedAuth);
+
+                let userAuth = new UserAuthentication(redirectTo, auth, sessionStorage.listOfPossibleRoles, "");
+
+                userAuth.addEventListener('error', (e) => {
+                    this.rejectAssertion(e.detail.message);
+                });
+                userAuth.addEventListener('successful', (e) => {
+                    this.resolveAssertion(listOfRolesToAssert);
+                });
+                userAuth.send("Basic");
+
+            } catch(err) {
+                this.rejectAssertion(err);
+            }
+        }
+    })
+</script>

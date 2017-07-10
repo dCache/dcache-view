@@ -1,6 +1,7 @@
 <link rel="import" href="../../../../bower_components/polymer/polymer.html">
 
 <link rel="import" href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="role-request.html">
 
 <dom-module id="user-authentication">
     <template>
@@ -26,6 +27,14 @@
                 redirectTo: {
                     type: Object,
                     notify: true
+                },
+                listOfPossibleRoles: {
+                    type: String,
+                    notify: true
+                },
+                listOfRolesToAssert: {
+                    type: String,
+                    notify: true
                 }
             },
 
@@ -33,10 +42,12 @@
                 '_broadcastError(errorMessage)'
             ],
 
-            factoryImpl: function(redirect, auth)
+            factoryImpl: function(redirect, auth, listOfPossibleRoles, listOfRolesToAssert)
             {
                 this.redirectTo = redirect;
                 this.auth = auth;
+                this.listOfPossibleRoles = listOfPossibleRoles;
+                this.listOfRolesToAssert = listOfRolesToAssert;
             },
 
             attached: function ()
@@ -79,21 +90,64 @@
             _handleResponse: function(e, request)
             {
                 if ( request.xhr.response.status === "AUTHENTICATED" ) {
+                    let roles = request.xhr.response.roles===undefined? [] :request.xhr.response.roles;
+                    this.listOfPossibleRoles = request.xhr.response.unassertedRoles===undefined ? this.listOfPossibleRoles :
+                        (request.xhr.response.unassertedRoles).toString();
+
                     sessionStorage.setItem("upauth", this.auth);
                     sessionStorage.setItem("uid", request.xhr.response.uid);
                     sessionStorage.setItem("gids", (request.xhr.response.gids).toString());
                     sessionStorage.setItem("homeDirectory", request.xhr.response.homeDirectory);
                     sessionStorage.setItem("rootDirectory", request.xhr.response.rootDirectory);
                     sessionStorage.setItem("name", request.xhr.response.username);
+                    sessionStorage.setItem("roles", roles);
+                    sessionStorage.setItem("listOfPossibleRoles", this.listOfPossibleRoles);
+
                     app.$.WhoAmI.querySelector('user-loginout-button').upauth = this.auth;
                     window.CONFIG.isSomebody = true;
                     app.notifyPath('config.isSomebody');
+
+                    if (!(this.listOfRolesToAssert === "" || this.listOfRolesToAssert === undefined)) {
+
+                        if (sessionStorage.authType !== "Basic") {
+                            app.$.toast.text = 'Unsupported operation: You cannot assert a role with' +
+                                sessionStorage.authType +
+                                ' authentication method. Please login with username and password to assert a role. ';
+                            app.$.toast.show();
+                            return
+                        }
+
+                        if (this.listOfPossibleRoles === "") {
+                            app.$.toast.text = "Login successful! No roles to assert.";
+                            app.$.toast.show();
+                        } else {
+                            app.$.toast.text = "Login successful! Request for role(s) assertion is in progress.";
+                            app.$.toast.show();
+
+                            const roles = this.listOfRolesToAssert === "*"? this.listOfPossibleRoles:
+                                this.listOfRolesToAssert;
+
+                            let rr = new RoleRequest();
+
+                            rr.promise.then((msg) => {
+                                this._delayNotification("Role(s): " + msg + " asserted. ");
+                            }).catch((err)=>{
+                                this._delayNotification(err + " ");
+                            });
+
+                            rr.assert(roles, this.redirectTo);
+                        }
+                    }
+
                     if (this.redirectTo.page === "home") {
                         page("/");
                         app.ls(this.redirectTo.path);
+                    } else if (this.redirectTo.page === "stay") {
+                        // do nothing
                     } else {
                         page("/"+this.redirectTo.page);
                     }
+                    this.fire('successful', {message: 'login successful'});
                 } else if ( request.xhr.response.status === "ANONYMOUS" ) {
                     this.errorMessage = 'Login failed. Please check that you have supplied ' +
                         'the correct credentials. ';
@@ -105,6 +159,16 @@
                 if (errMsg !== undefined || errMsg !==null) {
                     this.fire('error', {message: errMsg});
                 }
+            },
+
+            _delayNotification: function (message)
+            {
+                const x = app.$.toast.duration + 200;
+                setTimeout(()=>{
+                    app.$.toast.close();
+                    app.$.toast.text = message;
+                    app.$.toast.show();
+                }, x);
             }
         });
     </script>

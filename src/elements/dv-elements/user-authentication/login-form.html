@@ -41,7 +41,7 @@
         }
         #container > .messageContainer {
             width: 100%;
-            margin-top: 5px;
+            margin-top: 10px;
             background: rgba(161,48,41,0.9);
             padding: 10px;
             box-sizing: border-box;
@@ -55,6 +55,18 @@
         };
         .show {
             display: block;
+        }
+        paper-checkbox {
+            --paper-checkbox-checked-color: #ff625d;
+            --paper-checkbox-checked-ink-color: #fff;
+            --paper-checkbox-unchecked-color: #e0e0e0;
+            --paper-checkbox-unchecked-ink-color: #e0e0e0;
+            --paper-checkbox-label-color: #fff;
+            --paper-checkbox-label-checked-color: #e0e0e0;
+            --paper-checkbox-checkmark-color: #fff;
+            --paper-checkbox-label: {
+                font-size: 0.71em;
+            }
         }
     </style>
     <template>
@@ -75,6 +87,9 @@
                        name="password" id="password"
                        value="{{password::input}}" placeholder="password" type="password">
             </paper-input-container>
+            <div>
+                <paper-checkbox checked="{{assertionStatus}}">Assert all roles</paper-checkbox>
+            </div>
             <div class$="[[_computedClass(errorMessage)]]">
                 <span class="error-message">[[errorMessage]]</span>
             </div>
@@ -110,6 +125,11 @@
                     type: Object,
                     notify: true
                 },
+                assertionStatus: {
+                    type: Boolean,
+                    value: false,
+                    notify: true
+                }
             },
 
             factoryImpl: function(redirect)
@@ -125,14 +145,15 @@
             _login: function()
             {
                 if (this.username === undefined || this.username === "" || this.username === "username" ||
-                        this.password === "" || this.password === undefined || this.password === "password") {
+                    this.password === "" || this.password === undefined || this.password === "password") {
                     this.errorMessage = "Please enter your username and password to login.";
                     return;
                 }
 
                 let up = this.username + ":" + this.password;
                 this.auth = window.btoa(up);
-                let userAuth = new UserAuthentication(this.redirectTo, this.auth);
+                const listOfRolesToAssert = this.assertionStatus?"*":"";
+                let userAuth = new UserAuthentication(this.redirectTo, this.auth, "", listOfRolesToAssert);
 
                 userAuth.addEventListener('error', (e) => {
                     this.errorMessage = e.detail.message;

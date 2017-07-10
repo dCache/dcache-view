@@ -1,6 +1,7 @@
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
 
 <link rel="import" href="user-identicon.html">
+<link rel="import" href="../user-authentication/auth-behaviour/role-request.html">
 <dom-module id="user-profile">
     <style>
         :host {
@@ -93,6 +94,29 @@
         .vertically-align {
             align-items: center;
         }
+        .toggleBtn {
+            --paper-toggle-button-checked-bar-color:  #0f9d58;
+            --paper-toggle-button-checked-button-color:  #0f9d58;
+            --paper-toggle-button-checked-ink-color: #0f9d58;
+            --paper-toggle-button-unchecked-bar-color:  rgb(221, 44, 0);
+            --paper-toggle-button-unchecked-button-color:  rgb(221, 44, 0);
+            --paper-toggle-button-unchecked-ink-color: rgb(221, 44, 0);
+        }
+        .hide {
+            display: none;
+        }
+        .label-addPadding {
+            padding-left:20px !important;
+        }
+        .header {
+            padding-top: 15px;
+            font-family: 'Roboto', 'Noto', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            font-size: 20px;
+            font-weight: 400;
+            letter-spacing: -.012em;
+            line-height: 20px;
+        }
     </style>
     <template>
         <div class="display-flex column">
@@ -136,6 +160,46 @@
                         <div class="label">Group identifier (GID)</div>
                         <div class="value">[[gids]]</div>
                     </div>
+                </div>
+            </paper-material>
+
+            <paper-material>
+                <div style="padding-left: 10px;">
+                    <div class="header">
+                        Roles
+                    </div>
+                    <small style="color: #1c7cf1; font-size: 0.67em;">
+                        These are optional switch that affect how dCache behaves
+                    </small>
+                </div>
+                <div class="paper-material-inner display-flex column">
+                    <div class="display-flex row vertically-align">
+                        <div class="value flex">
+                            Available role(s):
+                        </div>
+                        <paper-toggle-button on-change="_roleAssertion"
+                                             data-roles="*"
+                                             checked="[[_allCurrentStatus()]]"
+                                             class$="[[_computedClass('all-roles')]]">Assert all roles
+                        </paper-toggle-button>
+                    </div>
+
+                    <div class$="[[_computedClass('no-roles')]]" style="justify-content: center">
+                        <div style="color: rgb(221, 44, 0);">
+                            <iron-icon icon="visibility-off"></iron-icon>
+                            <span> No roles to assert</span>
+                        </div>
+                    </div>
+                    <template is="dom-repeat" items="[[listOfPossibleRoles]]">
+                        <div class="display-flex row vertically-align">
+                            <div class="label label-addPadding">[[item]]</div>
+                            <div class="value flex"></div>
+                            <paper-toggle-button on-change="_roleAssertion"
+                                                 data-roles="[[item]]"
+                                                 checked="[[_currentStatus(item)]]"
+                                                 class="toggleBtn"></paper-toggle-button>
+                        </div>
+                    </template>
                 </div>
             </paper-material>
         </div>
@@ -186,12 +250,105 @@
                         return sessionStorage.homeDirectory;
                     }
                 },
+                listOfPossibleRoles: {
+                    type: Array,
+                    notify: true,
+                    value: function () {
+                        let x = sessionStorage.listOfPossibleRoles;
+                        return x === undefined || x === "" ? [] : x.split(",");
+                    }
+                }
             },
             _view: function (e)
             {
                 const path = e.target.getAttribute('data-path');
                 page.redirect("/");
                 app.ls(path);
+            },
+
+            _computedClass: function (str)
+            {
+                const listOfPossibleRoles = sessionStorage.listOfPossibleRoles;
+
+                if (listOfPossibleRoles === "" || listOfPossibleRoles === null ||
+                    listOfPossibleRoles === undefined) {
+                    return str === "no-roles" ? ' display-flex row vertically-align' :
+                        ' hide row';
+                } else {
+                    if (str === "no-roles") {
+                        return ' hide row';
+                    } else if (str === "all-roles") {
+                        if (listOfPossibleRoles.split(",").length === 1) {
+                            return ' hide';
+                        } else {
+                            return ' toggleBtn';
+                        }
+                    } else {
+                        return ' paper-material-inner display-flex column';
+                    }
+                }
+            },
+
+            _currentStatus: function (item)
+            {
+                const roles = (sessionStorage.roles).split(",");
+                const len = roles.length;
+                if (len === 0) {
+                    return false;
+                } else if (len === 1) {
+                    return roles[0] === "" ? false : roles[0] === item;
+                } else {
+                    for (let i=0; i<len; i++) {
+                        return roles[i] === item;
+                    }
+                }
+            },
+
+            _allCurrentStatus: function ()
+            {
+                const roles = (sessionStorage.roles).split(",");
+                const listOfPossibleRoles = (sessionStorage.listOfPossibleRoles).split(",");
+
+                return roles.length === listOfPossibleRoles.length;
+            },
+
+            _roleAssertion: function (e)
+            {
+                const roleNames = e.target.dataRoles === undefined ? e.target.getAttribute('data-roles'):
+                    e.target.dataRoles;
+                const isAssert =  e.target.__data__.checked;
+                let roles;
+                let msg;
+                if (isAssert) {
+                    roles = roleNames === "*"? sessionStorage.listOfPossibleRoles: roleNames;
+                    msg = "Role(s): " + roleNames + " asserted. "
+                } else {
+                    if (roleNames === "*") {
+                        roles = "";
+                    } else {
+                        const a = ((sessionStorage.roles).split(",")).map(str => {
+                            if (str.trim() !== roleNames.trim()) {
+                                return str.trim()
+                            }
+                        });
+                        roles = a.toString();
+                    }
+                    const rmsg = roleNames === "*" ? "all" : roleNames;
+                    msg = "Role(s): " + rmsg + " un-asserted. ";
+                }
+
+                const redirectTo = {"page":"stay","path":""};
+                let rr = new RoleRequest();
+
+                rr.promise.then(() => {
+                    app.$.toast.text = msg;
+                    app.$.toast.show();
+                }).catch((err)=>{
+                    app.$.toast.text = err + " ";
+                    app.$.toast.show();
+                });
+
+                rr.assert(roles, redirectTo);
             }
         });
     </script>
