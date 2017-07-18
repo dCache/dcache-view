@@ -93,8 +93,10 @@
                     let roles = request.xhr.response.roles===undefined? [] :request.xhr.response.roles;
                     this.listOfPossibleRoles = request.xhr.response.unassertedRoles===undefined ? this.listOfPossibleRoles :
                         (request.xhr.response.unassertedRoles).toString();
+                    let email = request.xhr.response.email===undefined? "" : (request.xhr.response.email).toString();
 
                     sessionStorage.setItem("upauth", this.auth);
+                    sessionStorage.setItem("email", email);
                     sessionStorage.setItem("uid", request.xhr.response.uid);
                     sessionStorage.setItem("gids", (request.xhr.response.gids).toString());
                     sessionStorage.setItem("homeDirectory", request.xhr.response.homeDirectory);

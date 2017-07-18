@@ -1,0 +1,122 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-jsonp-library/iron-jsonp-library.html">
+
+<dom-module id="gravatar-request">
+    <template>
+        <iron-jsonp-library
+                id="jsonp"
+                library-url="[[libraryUrl]]"
+                library-loaded="{{loaded}}"
+                library-error-message="{{errorMessage}}"></iron-jsonp-library>
+    </template>
+    <script>
+        GravatarRequest = Polymer({
+            is: 'gravatar-request',
+            properties: {
+                size: {
+                    type: Number,
+                    value: 60,
+                    notify: true
+                },
+                hash: {
+                    type: Array,
+                    notify: true,
+                },
+                libraryUrl: {
+                    type: String,
+                    notify: true,
+                    computed: '_computeUrl(hash)'
+                },
+                errorMessage: {
+                    type: String,
+                    observer: '_errorOccurred'
+                },
+                loaded: {
+                    type: Boolean,
+                    observer: '_generateGravatarSrc'
+                },
+                message: {
+                    type: String,
+                    notify: true,
+                    observer: '_notifyParent'
+                },
+                link: {
+                    type: String,
+                    notify: true,
+                    observer: '_getGeneratedLink'
+                },
+                _counter: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                }
+            },
+
+            factoryImpl: function(opt)
+            {
+                const email = opt.email;
+                let hash = opt.hash;
+
+                if ((email === undefined || email[0] === "" || email[0] === "not available") &&
+                    (hash === undefined || hash[0] === "")) {
+                    throw new Error("Unable to create the element.");
+                }
+
+                if (hash === undefined && email !== undefined) {
+                    let sortedEmail = email.sort();
+                    const len = sortedEmail.length;
+                    hash = [];
+                    for (let i=0; i<len; i++) {
+                        hash[i] = md5((sortedEmail[i].trim()).toLowerCase());
+                    }
+                }
+
+                this.hash = hash;
+            },
+
+            _computeUrl: function (hash)
+            {
+                if (hash !== undefined) {
+                    const i = this._counter;
+                    if (i < hash.length) {
+                        this._counter++;
+                        return "https://en.gravatar.com/"+hash[i]+".json?callback=%%callback%%";
+                    }
+                    return "";
+                }
+            },
+
+            _errorOccurred: function (err)
+            {
+                if (err !== null) {
+                    const next = this._computeUrl(this.hash);
+                    if (next === "") {
+                        this.message = err;
+                    } else {
+                        this.$.jsonp.libraryUrl = next;
+                    }
+                }
+            },
+
+            _generateGravatarSrc: function (isSuccessful)
+            {
+                if (isSuccessful) {
+                    const i = this._counter - 1;
+                    window.CONFIG.avatarSrc =
+                        'https:\/\/secure.gravatar.com\/avatar\/'+this.hash[i]+"?s="+this.size;
+                    this.link = 'https:\/\/secure.gravatar.com\/avatar\/'+this.hash[i]+"?s="+this.size;
+                }
+            },
+
+            _getGeneratedLink: function (n)
+            {
+                this.fire('gravatar-generated-link', {link: n});
+            },
+
+            _notifyParent: function (n)
+            {
+                this.fire('error', {message:n});
+            }
+        });
+    </script>
+</dom-module>
