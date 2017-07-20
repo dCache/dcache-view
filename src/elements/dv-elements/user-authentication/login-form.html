@@ -144,8 +144,8 @@
 
             _login: function()
             {
-                if (this.username === undefined || this.username === "" || this.username === "username" ||
-                    this.password === "" || this.password === undefined || this.password === "password") {
+                if (this.username === undefined || this.username === "" ||
+                    this.password === "" || this.password === undefined) {
                     this.errorMessage = "Please enter your username and password to login.";
                     return;
                 }
