@@ -1,0 +1,111 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="gravatar-request.html">
+<link rel="import" href="identicon-request.html">
+
+<dom-module id="user-image">
+    <template>
+        <style>
+            .container{
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+
+            }
+            paper-spinner {
+                position:absolute;
+                left: 8%;
+                top: 35%;
+                margin:auto;
+                width: 20px;
+                height: 20px;
+            }
+        </style>
+        <div class="container">
+            <img id="avatar" width="{{size}}" height="{{size}}">
+            <paper-spinner active="[[loading]]"></paper-spinner>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'user-image',
+            properties: {
+                email: {
+                    type: String,
+                    notify: true,
+                },
+                fallbackValue: {
+                    type: String,
+                    value: 'dv',
+                    notify: true,
+                },
+                size: {
+                    type: Number,
+                    Value: 60,
+                    notify: true
+                },
+                loading: {
+                    type: Boolean,
+                    value: function () {
+                        return window.CONFIG.avatarSrc === undefined || window.CONFIG.avatarSrc === "";
+                    },
+                    notify: true
+                },
+                src: {
+                    type: String,
+                    notify: true,
+                },
+                link: {
+                    type: String,
+                    notify: true,
+                },
+
+            },
+            observers: [
+                '_srcChanged(src)'
+            ],
+            ready: function ()
+            {
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    if (window.CONFIG.avatarSrc === undefined || window.CONFIG.avatarSrc === "") {
+                        if (this.email===undefined) {
+                            link = this._fallbackCall(this.fallbackValue);
+                        }
+
+                        let emailArr = this.email.split(',');
+                        try {
+                            let gravatar = new GravatarRequest({email:emailArr});
+                            gravatar.size = this.size;
+
+                            gravatar.addEventListener('error', (e)=> {
+                                this.src = this._fallbackCall(this.fallbackValue);
+                            });
+                            gravatar.addEventListener('gravatar-generated-link', (e)=> {
+                                this.src = e.detail.link;
+                            });
+                        } catch (err) {
+                            this.src = this._fallbackCall(this.fallbackValue);
+                        }
+                    } else {
+                        this.src = window.CONFIG.avatarSrc;
+                    }
+                });
+            },
+            _srcChanged: function (n)
+            {
+                if (!(n === undefined || n === "")) {
+                    this.loading = false;
+                    this.$.avatar.src = n;
+                    this.updateStyles();
+                }
+            },
+
+            _fallbackCall: function (value) {
+                let uIcon = new IdenticonRequest(value);
+                uIcon.size = this.size;
+                window.CONFIG.avatarSrc = uIcon.get('src');
+                return uIcon.get('src');
+            }
+        });
+    </script>
+</dom-module>
