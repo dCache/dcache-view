@@ -70,13 +70,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <paper-menu attr-for-selected="data-route" id="df-page-navigator" selected="[[route]]">
                                 <template is="dom-if" if="[[config.isSomebody]]">
                                     <a data-route="home" href$="{{baseUrl}}" on-tap="lsHomeDir">
-                                        <paper-fab icon="icons:home"
-                                                   title="Home Directory" class="red" mini></paper-fab>
+                                        <paper-fab icon="home"
+                                                   title="Your home directory" class="red" mini></paper-fab>
                                     </a>
                                 </template>
                                 <a data-route="home" href$="{{baseUrl}}">
                                     <paper-fab icon="device:storage"
-                                               title="Root Directory" class="blue" mini></paper-fab>
+                                               title="Namespace view" class="blue" mini></paper-fab>
                                 </a>
 
                                 <a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
@@ -85,7 +85,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                                 <template is="dom-if" if="[[config.isSomebody]]">
                                     <a data-route="user-profile" href$="{{baseUrl}}user-profile">
-                                        <paper-fab icon="account-circle" title="profile" class="teal" mini></paper-fab>
+                                        <paper-fab icon="account-circle" title="Your profile"
+                                                   class="teal" mini></paper-fab>
                                     </a>
                                 </template>
                             </paper-menu>
