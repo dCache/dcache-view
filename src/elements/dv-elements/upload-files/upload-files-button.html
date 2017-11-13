@@ -1,22 +1,22 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 <script src="../utils/dcache-view-uploader/dcache-view-uploader.js"></script>
 
 <link rel="import" href="upload-toast-file.html">
 <dom-module id="upload-files-button">
-    <style>
-        :host{
-            display: inline-block;
-        }
-        #files {
-            width: 0.1px;
-            height: 0.1px;
-            opacity: 0;
-            overflow: hidden;
-            position: absolute;
-            z-index: -1;
-        }
-    </style>
     <template>
+        <style>
+            :host{
+                display: inline-block;
+            }
+            #files {
+                width: 0.1px;
+                height: 0.1px;
+                opacity: 0;
+                overflow: hidden;
+                position: absolute;
+                z-index: -1;
+            }
+        </style>
         <div>
             <input id="files" type="file" multiple>
             <label for="files">
@@ -26,28 +26,39 @@
         </div>
     </template>
     <script>
-        UploadFilesButton = Polymer({
-            is: 'upload-files-button',
+        class UploadFilesButton extends Polymer.Element
+        {
+            static get is()
+            {
+                return 'upload-files-button';
+            }
 
-            listeners: {
-                'files.change': 'handleFileSelection'
-            },
+            connectedCallback()
+            {
+                super.connectedCallback();
+                this.$.files.addEventListener('change', this.handleFileSelection.bind(this));
+            }
+            disconnectedCallback()
+            {
+                super.disconnectedCallback();
+                this.$.files.removeEventListener('change', this.handleFileSelection);
+            }
 
-            handleFileSelection: function (e)
+            handleFileSelection(e)
             {
                 e.stopPropagation();
                 e.preventDefault();
                 app.$.uploadToast.close();
-                if (typeof files !== "undefined") {
+                if (window.File && window.FileReader && window.FileList && window.Blob) {
                     app.$.uploadToast.open();
                     this.uploadFile(e.target.files);
                 } else {
                     app.$.toast.text = 'No support for the File API in this web browser. ';
                     app.$.toast.show();
                 }
-            },
+            }
 
-            uploadFile: function (files)
+            uploadFile(files)
             {
                 var uploadList = app.$.uploadToast.querySelector("#uploadList");
                 uploadList.innerHTML ="";
@@ -72,7 +83,7 @@
                         upauth: app.getAuthValue(),
                         url: uploadURL,
                         onComplete: function (data) {
-                            var progressBar = upLs.querySelector('paper-progress');
+                            var progressBar = upLs.shadowRoot.querySelector('paper-progress');
                             progressBar.indeterminate = false;
                             progressBar.value = 100;
                             progressBar.classList.remove("error", "progress");
@@ -83,11 +94,11 @@
                             upLs.isComplete = true;
                             upLs.message = "Uploaded";
                             var vf = document.querySelector('view-file');
-                            var ed = vf.querySelector('empty-directory');
+                            var ed = vf.shadowRoot.querySelector('empty-directory');
                             if (ed != null) {
-                                vf.querySelector('#content').removeChild(ed);
+                                vf.shadowRoot.querySelector('#content').removeChild(ed);
                             }
-                            var list = vf.querySelector('iron-list');
+                            var list = vf.shadowRoot.querySelector('iron-list');
                             list.unshift('items',
                                     {
                                         "fileName" : data.name,
@@ -103,7 +114,7 @@
 
                         onProgress: function (evt) {
                             if (evt.lengthComputable) {
-                                var progressBar = upLs.querySelector('paper-progress');
+                                var progressBar = upLs.shadowRoot.querySelector('paper-progress');
                                 progressBar.classList.remove("error", "complete");
                                 progressBar.classList.add("progress");
                                 progressBar.indeterminate = false;
@@ -116,7 +127,7 @@
                         }.bind(this),
 
                         onError: function (evt) {
-                            var progressBar = upLs.querySelector('paper-progress');
+                            var progressBar = upLs.shadowRoot.querySelector('paper-progress');
                             progressBar.classList.remove("progress", "complete");
                             progressBar.classList.add("error");
                             progressBar.indeterminate = false;
@@ -132,6 +143,7 @@
                 }
                 Polymer.dom.flush();
             }
-        });
+        }
+        window.customElements.define(UploadFilesButton.is, UploadFilesButton);
     </script>
 </dom-module>

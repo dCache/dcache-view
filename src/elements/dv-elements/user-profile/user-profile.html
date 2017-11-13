@@ -1,127 +1,127 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="user-image.html">
 <link rel="import" href="../user-authentication/auth-behaviour/role-request.html">
 <dom-module id="user-profile">
-    <style>
-        :host {
-            display: flex;
-            justify-content: center;
-            min-width: 500px;
-        }
-        paper-material {
-            margin-top: 20px;
-            width: 500px;
-            background:#fff;
-        }
-        paper-material + paper-material {
-            margin-top: 5px;
-        }
-
-        paper-material .paper-material-inner {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .border-top {
-            border-top: 5px solid #333;
-        }
-
-        .display-flex {
-            display: flex;
-        }
-        .column {
-            flex-direction: column;
-        }
-        .username-header {
-            font-family: 'Roboto', 'Noto', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            font-size: 48px;
-            font-weight: 400;
-            letter-spacing: -.012em;
-            line-height: 48px;
-        }
-        .image-holder {
-            width: 100px;
-            justify-content: center;
-        }
-        .btn{
-            background-color: #4285f4;
-            color: white;
-            --paper-button-raised-keyboard-focus: {
-                background-color: #4285f4 !important;
-                color: white !important;
-            };
-            border: none !important;
-            text-transform: none;
-            border-radius: 0 !important;
-            margin: 0 !important;
-            float: right;
-        }
-        .flex {
-            flex: 1 1 auto;
-        }
-        .label {
-            min-width: 150px;
-            max-width: 150px;
-            font-weight: bold;
-        }
-        .value {
-            color: #757575;
-            max-width: calc(452px - 150px + 68px);
-            max-height: calc(70px - 24px);
-            overflow-y: scroll;
-            word-wrap: break-word;
-            margin-right: 10px;
-        }
-        .org {
-            margin-top: 5px;
-            margin-bottom: 5px;
-            color: #ff625d;
-            font-size: 0.8em;
-        }
-        .row {
-            height: 70px;
-            margin: 0 24px;
-            padding: 24px 0;
-            line-height: 1.4em;
-            font-size: 12px;
-            box-sizing: border-box;
-        }
-        .row + .row {
-            border-top: 1px solid #eee;
-        }
-        .vertically-align {
-            align-items: center;
-        }
-        .toggleBtn {
-            --paper-toggle-button-checked-bar-color:  #0f9d58;
-            --paper-toggle-button-checked-button-color:  #0f9d58;
-            --paper-toggle-button-checked-ink-color: #0f9d58;
-            --paper-toggle-button-unchecked-bar-color:  rgb(221, 44, 0);
-            --paper-toggle-button-unchecked-button-color:  rgb(221, 44, 0);
-            --paper-toggle-button-unchecked-ink-color: rgb(221, 44, 0);
-        }
-        .hide {
-            display: none;
-        }
-        .label-addPadding {
-            padding-left:20px !important;
-        }
-        .header {
-            padding-top: 15px;
-            font-family: 'Roboto', 'Noto', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            font-size: 20px;
-            font-weight: 400;
-            letter-spacing: -.012em;
-            line-height: 20px;
-        }
-        .warning {
-            color: rgb(221, 44, 0) !important;
-        }
-    </style>
     <template>
+        <style>
+            :host {
+                display: flex;
+                justify-content: center;
+                min-width: 500px;
+            }
+            paper-material {
+                margin-top: 20px;
+                width: 500px;
+                background:#fff;
+            }
+            paper-material + paper-material {
+                margin-top: 5px;
+            }
+
+            paper-material .paper-material-inner {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .border-top {
+                border-top: 5px solid #333;
+            }
+
+            .display-flex {
+                display: flex;
+            }
+            .column {
+                flex-direction: column;
+            }
+            .username-header {
+                font-family: 'Roboto', 'Noto', sans-serif;
+                -webkit-font-smoothing: antialiased;
+                font-size: 48px;
+                font-weight: 400;
+                letter-spacing: -.012em;
+                line-height: 48px;
+            }
+            .image-holder {
+                width: 100px;
+                justify-content: center;
+            }
+            .btn{
+                background-color: #4285f4;
+                color: white;
+                --paper-button-raised-keyboard-focus: {
+                    background-color: #4285f4 !important;
+                    color: white !important;
+                };
+                border: none !important;
+                text-transform: none;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                float: right;
+            }
+            .flex {
+                flex: 1 1 auto;
+            }
+            .label {
+                min-width: 150px;
+                max-width: 150px;
+                font-weight: bold;
+            }
+            .value {
+                color: #757575;
+                max-width: calc(452px - 150px + 68px);
+                max-height: calc(70px - 24px);
+                overflow-y: scroll;
+                word-wrap: break-word;
+                margin-right: 10px;
+            }
+            .org {
+                margin-top: 5px;
+                margin-bottom: 5px;
+                color: #ff625d;
+                font-size: 0.8em;
+            }
+            .row {
+                height: 70px;
+                margin: 0 24px;
+                padding: 24px 0;
+                line-height: 1.4em;
+                font-size: 12px;
+                box-sizing: border-box;
+            }
+            .row + .row {
+                border-top: 1px solid #eee;
+            }
+            .vertically-align {
+                align-items: center;
+            }
+            .toggleBtn {
+                --paper-toggle-button-checked-bar-color:  #0f9d58;
+                --paper-toggle-button-checked-button-color:  #0f9d58;
+                --paper-toggle-button-checked-ink-color: #0f9d58;
+                --paper-toggle-button-unchecked-bar-color:  rgb(221, 44, 0);
+                --paper-toggle-button-unchecked-button-color:  rgb(221, 44, 0);
+                --paper-toggle-button-unchecked-ink-color: rgb(221, 44, 0);
+            }
+            .hide {
+                display: none;
+            }
+            .label-addPadding {
+                padding-left:20px !important;
+            }
+            .header {
+                padding-top: 15px;
+                font-family: 'Roboto', 'Noto', sans-serif;
+                -webkit-font-smoothing: antialiased;
+                font-size: 20px;
+                font-weight: 400;
+                letter-spacing: -.012em;
+                line-height: 20px;
+            }
+            .warning {
+                color: rgb(221, 44, 0) !important;
+            }
+        </style>
         <div class="display-flex column">
             <paper-material elevation="2">
                 <div class="paper-material-inner display-flex border-top" style="background: #f5f5f5">
@@ -212,78 +212,85 @@
         </div>
     </template>
     <script>
-        UserProfile = Polymer({
-            is: 'user-profile',
-            properties: {
-                username: {
-                    type: String,
-                    notify: true,
-                    value: function () {
-                        return sessionStorage.getItem("name");
-                    }
-                },
-                email: {
-                    type: String,
-                    notify: true,
-                    value: function () {
-                        if (sessionStorage.getItem("email") === "") {
-                            return "not available";
+        class UserProfile extends Polymer.Element
+        {
+            static get is()
+            {
+                return 'user-profile';
+            }
+            static get properties()
+            {
+                return {
+                    username: {
+                        type: String,
+                        notify: true,
+                        value: function () {
+                            return sessionStorage.getItem("name");
                         }
-                        return sessionStorage.getItem("email");
-                    }
-                },
-                uid: {
-                    type: String,
-                    notify: true,
-                    value: function () {
-                        return sessionStorage.uid;
-                    }
-                },
-                gids: {
-                    type: String,
-                    notify: true,
-                    value: function () {
-                        return sessionStorage.gids;
-                    }
-                },
-                organisationName: {
-                    type: String,
-                    value: function () {
-                        return window.CONFIG["dcache-view.org-name"];
                     },
-                    notify: true
-                },
-                rootDir: {
-                    type: String,
-                    notify: true,
-                    value: function () {
-                        return sessionStorage.rootDirectory;
-                    }
-                },
-                homeDir: {
-                    type: String,
-                    notify: true,
-                    value: function () {
-                        return sessionStorage.homeDirectory;
-                    }
-                },
-                listOfPossibleRoles: {
-                    type: Array,
-                    notify: true,
-                    value: function () {
-                        let x = sessionStorage.listOfPossibleRoles;
-                        return x === undefined || x === "" ? [] : x.split(",");
+                    email: {
+                        type: String,
+                        notify: true,
+                        value: function () {
+                            if (sessionStorage.getItem("email") === "") {
+                                return "not available";
+                            }
+                            return sessionStorage.getItem("email");
+                        }
+                    },
+                    uid: {
+                        type: String,
+                        notify: true,
+                        value: function () {
+                            return sessionStorage.uid;
+                        }
+                    },
+                    gids: {
+                        type: String,
+                        notify: true,
+                        value: function () {
+                            return sessionStorage.gids;
+                        }
+                    },
+                    organisationName: {
+                        type: String,
+                        value: function () {
+                            return window.CONFIG["dcache-view.org-name"];
+                        },
+                        notify: true
+                    },
+                    rootDir: {
+                        type: String,
+                        notify: true,
+                        value: function () {
+                            return sessionStorage.rootDirectory;
+                        }
+                    },
+                    homeDir: {
+                        type: String,
+                        notify: true,
+                        value: function () {
+                            return sessionStorage.homeDirectory;
+                        }
+                    },
+                    listOfPossibleRoles: {
+                        type: Array,
+                        notify: true,
+                        value: function () {
+                            let x = sessionStorage.listOfPossibleRoles;
+                            return x === undefined || x === "" ? [] : x.split(",");
+                        }
                     }
                 }
-            },
-            _view: function (e)
+            }
+            _view(e)
             {
                 const path = e.target.getAttribute('data-path');
                 page.redirect("/");
                 app.ls(path);
-            },
+            }
 
-            _computedClass: function (str)
+            _computedClass(str)
             {
                 const listOfPossibleRoles = sessionStorage.listOfPossibleRoles;
 
@@ -304,18 +311,18 @@
                         return ' paper-material-inner display-flex column';
                     }
                 }
-            },
+            }
 
-            _computedEmailCss: function (email)
+            _computedEmailCss(email)
             {
                 let classes = 'value flex';
                 if (email === "not available") {
                     classes += ' warning';
                 }
                 return classes;
-            },
+            }
 
-            _currentStatus: function (item)
+            _currentStatus(item)
             {
                 const roles = (sessionStorage.roles).split(",");
                 const len = roles.length;
@@ -328,21 +335,21 @@
                         return roles[i] === item;
                     }
                 }
-            },
+            }
 
-            _allCurrentStatus: function ()
+            _allCurrentStatus()
             {
                 const roles = (sessionStorage.roles).split(",");
                 const listOfPossibleRoles = (sessionStorage.listOfPossibleRoles).split(",");
 
                 return roles.length === listOfPossibleRoles.length;
-            },
+            }
 
-            _roleAssertion: function (e)
+            _roleAssertion(e)
             {
                 const roleNames = e.target.dataRoles === undefined ? e.target.getAttribute('data-roles'):
                     e.target.dataRoles;
-                const isAssert =  e.target.__data__.checked;
+                const isAssert =  e.target.__data.checked;
                 let roles;
                 let msg;
                 if (isAssert) {
@@ -373,9 +380,9 @@
                     app.$.toast.text = err + " ";
                     app.$.toast.show();
                 });
-
                 rr.assert(roles, redirectTo);
             }
-        });
+        }
+        window.customElements.define(UserProfile.is, UserProfile);
     </script>
 </dom-module>

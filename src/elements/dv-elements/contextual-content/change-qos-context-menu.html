@@ -1,4 +1,4 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../bower_components/paper-dialog/paper-dialog.html">
 
@@ -33,40 +33,48 @@
         </paper-menu>
     </template>
     <script>
-        let ChangeQosContextualMenu = Polymer({
-            is: 'change-qos-contextual-menu',
-
-            properties: {
-                path: {
-                    type: String,
-                    notify: true
-                },
-                index: {
-                    type: Number,
-                    notify: true
-                },
-                currentQos: {
-                    type: String,
-                    notify: true
-                },
-                possibleTransition: {
-                    type: Array,
-                    value: function () {
-                        return window.CONFIG.qos;
-                    },
-                    notify: true
-                }
-            },
-
-            factoryImpl: function(t)
+        class ChangeQosContextualMenu extends Polymer.Element
+        {
+            constructor(t)
             {
+                super();
                 this.path = t.filePath;
                 this.currentQos = t.currentQos;
                 this.targetNode = t;
-                this.index = app.$.homeDir.querySelector('#feList').items.indexOf(t.fileMData);
-            },
+                this.index = app.$.homeDir.$.feList.items.indexOf(t.fileMData);
+            }
 
-            _changeQos: function (e)
+            static get is()
+            {
+                return 'change-qos-contextual-menu';
+            }
+
+            static get properties()
+            {
+                return {
+                    path: {
+                        type: String,
+                        notify: true
+                    },
+                    index: {
+                        type: Number,
+                        notify: true
+                    },
+                    currentQos: {
+                        type: String,
+                        notify: true
+                    },
+                    possibleTransition: {
+                        type: Array,
+                        value: function () {
+                            return window.CONFIG.qos;
+                        },
+                        notify: true
+                    }
+                }
+            }
+
+            _changeQos(e)
             {
                 app.$.centralSubContextMenu.close();
                 app.$.centralContextMenu.close();
@@ -80,12 +88,12 @@
                         const currentQos = this.currentQos;
                         app.$.toast.text = "Request successful! File in transition. ";
                         app.$.toast.show();
-                        this.fire('qos-in-transition', {options: {
+                        this.dispatchEvent(new CustomEvent('qos-in-transition', {detail: {options: {
                             currentQos: currentQos,
                             targetQos: target,
                             itemIndex: this.index,
                             path: path
-                        }});
+                        }}}));
                     }
                 ).catch(
                     function(err) {
@@ -99,14 +107,14 @@
                     path: path,
                     target: target
                 });
-            },
+            }
 
-            _computedDisabled: function (buttonName,currentQos)
+            _computedDisabled(buttonName,currentQos)
             {
                 if (buttonName == currentQos) {
                     return true;
                 } else {
-                    for (let i=0; i<window.CONFIG.qos.length; i++){
+                    for (let i=0; i<window.CONFIG.qos.length; i++) {
                         if (window.CONFIG.qos[i].backendCapability.name == currentQos) {
                             if (window.CONFIG.qos[i].backendCapability.transition.length > 0) {
                                 for (let j=0; j < window.CONFIG.qos[i].backendCapability.transition.length; j++) {
@@ -120,6 +128,7 @@
                     }
                 }
             }
-        })
+        }
+        window.customElements.define(ChangeQosContextualMenu.is, ChangeQosContextualMenu);
     </script>
 </dom-module>

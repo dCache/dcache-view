@@ -1,12 +1,11 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/polymer/lib/elements/dom-if.html">
 
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../../bower_components/paper-tooltip/paper-tooltip.html">
-<link rel="import" href="../../../bower_components/paper-menu/paper-menu.html">
-<link rel="import" href="../../../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../../../bower_components/paper-item/paper-item.html">
 
 <link rel="import" href="../utils/ajax-ls/file-metadata.html">
@@ -19,81 +18,81 @@
 <link rel="import" href="../../../bower_components/move-file/move-file.html">
 
 <dom-module id="selected-title">
-    <style>
-        :host {
-            display: block;
-            color: #333;
-            padding-left: 7px;
-        }
-        .row {
-            @apply(--layout-horizontal);
-            @apply(--layout-center);
-        }
-        .flex {
-            @apply(--layout-flex);
-        }
-        .flex2 {
-            @apply(--layout-flex-2);
-        }
-        .flex3 {
-            @apply(--layout-flex-3);
-        }
-        .standardTools {
-            padding-right: 20px;
-            @apply(--layout-horizontal);
-            @apply(--layout-end-justified);
-        }
-        .standardTools > paper-toggle-button {
-            display:inline-flex;
-            height:40px;
-            --paper-toggle-button-checked-bar-color: red;
-            --paper-toggle-button-checked-button-color:  red;
-            --paper-toggle-button-checked-ink-color: red;
-        }
-        .standardTools > div {
-            display:inline-flex;
-            max-height: 40px;
-            max-width: 40px;
-            @apply(--layout-center);
-        }
-        .standardTools > div + div {
-            margin-left: 10px;
-        }
-        .pagination > div {
-            display:inline-flex;
-        }
-        #pagination {
-            display: inline-block;
-            padding: 0;
-            margin: 0;
-            @apply(--layout-horizontal);
-        }
-        #pagination pagination-button {
-            display: inline;
-        }
-        paper-tooltip {
-            --paper-tooltip-background: #5cb5ec;
-        }
-        .info {
-            border: solid 1px #dedede;
-            border-radius: 20px;
-            background: #f7f7f7;
-        }
-        .home {
-            border-top-right-radius:20%;
-            border-bottom-right-radius:20%;
-            border-top-left-radius:70%;
-            border-bottom-left-radius:70%;
-            color: #616161;
-        }
-        .create {
-            color: #2196F3;
-        }
-        #move {
-            visibility: hidden;
-        }
-    </style>
     <template>
+        <style>
+            :host {
+                display: block;
+                color: #333;
+                padding-left: 7px;
+            }
+            .row {
+                @apply(--layout-horizontal);
+                @apply(--layout-center);
+            }
+            .flex {
+                @apply(--layout-flex);
+            }
+            .flex2 {
+                @apply(--layout-flex-2);
+            }
+            .flex3 {
+                @apply(--layout-flex-3);
+            }
+            .standardTools {
+                padding-right: 20px;
+                @apply(--layout-horizontal);
+                @apply(--layout-end-justified);
+            }
+            .standardTools > paper-toggle-button {
+                display:inline-flex;
+                height:40px;
+                --paper-toggle-button-checked-bar-color: red;
+                --paper-toggle-button-checked-button-color:  red;
+                --paper-toggle-button-checked-ink-color: red;
+            }
+            .standardTools > div {
+                display:inline-flex;
+                max-height: 40px;
+                max-width: 40px;
+                @apply(--layout-center);
+            }
+            .standardTools > div + div {
+                margin-left: 10px;
+            }
+            .pagination > div {
+                display:inline-flex;
+            }
+            #pagination {
+                display: inline-block;
+                padding: 0;
+                margin: 0;
+                @apply(--layout-horizontal);
+            }
+            #pagination pagination-button {
+                display: inline;
+            }
+            paper-tooltip {
+                --paper-tooltip-background: #5cb5ec;
+            }
+            .info {
+                border: solid 1px #dedede;
+                border-radius: 20px;
+                background: #f7f7f7;
+            }
+            .home {
+                border-top-right-radius:20%;
+                border-bottom-right-radius:20%;
+                border-top-left-radius:70%;
+                border-bottom-left-radius:70%;
+                color: #616161;
+            }
+            .create {
+                color: #2196F3;
+            }
+            #move {
+                visibility: hidden;
+            }
+        </style>
         <template is="dom-if" if="{{isHome}}">
             <div class="row">
                 <div style="color:#b8b8b8; margin-right:8px; font-size:0.7em;">dCache.org</div>
@@ -146,43 +145,52 @@
 
     </template>
     <script>
-        Polymer
-        ({
-            is: 'selected-title',
+        class SelectedTitle extends Polymer.Element
+        {
+            static get is()
+            {
+                return 'selected-title';
+            }
 
-            properties: {
-                pgRoute: {
-                    type: String,
-                    notify: true
-                },
+            static get properties()
+            {
+                return {
+                    pgRoute: {
+                        type: String,
+                        notify: true
+                    },
 
-                isHome: {
-                    type: Boolean,
-                    notify: true
-                },
+                    isHome: {
+                        type: Boolean,
+                        notify: true
+                    },
 
-                isAdmin: {
-                    type: Boolean,
-                    notify: true
-                },
+                    isAdmin: {
+                        type: Boolean,
+                        notify: true
+                    },
 
-                isUserLogin: {
-                    type: Boolean,
-                    notify: true
-                },
+                    isUserLogin: {
+                        type: Boolean,
+                        notify: true
+                    },
 
-                isSelected: {
-                    type: Boolean,
-                    value: false,
-                    notify: true
+                    isSelected: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
                 }
-            },
+            }
 
-            observers: [
-                'changedSection(pgRoute)'
-            ],
+            static get observers()
+            {
+                return [
+                    'changedSection(pgRoute)'
+                ];
+            }
 
-            changedSection: function (pgRoute)
+            changedSection(pgRoute)
             {
                 switch (pgRoute) {
                     case "home":
@@ -191,6 +199,7 @@
                         this.isHome = true;
                         break;
                     case "admin":
+                    case "user-profile":
                         this.isUserLogin = false;
                         this.isHome = false;
                         this.isAdmin = true;
@@ -203,21 +212,21 @@
                 }
 
                 if (pgRoute === "user-login") {
-                    app.$.dfDrawerPanel.forceNarrow = true;
+                    app.$.dvDrawerPanel.forceNarrow = true;
                     app.$.dvMainTopBar.style.display = 'none';
                 } else {
-                    app.$.dfDrawerPanel.forceNarrow = false;
+                    app.$.dvDrawerPanel.forceNarrow = false;
                     app.$.dvMainTopBar.style.display = '';
                 }
-            },
+            }
 
-            _metadataInfo: function(e)
+            _metadataInfo(e)
             {
                 e.stopPropagation();
 
                 let el1;
                 let z = app.$.homedir.querySelector('view-file');
-                let x = app.$.homedir.querySelector("#feList");
+                let x = z.shadowRoot.querySelector("#feList");
 
                 let path = z.path;
 
@@ -227,7 +236,7 @@
                 app.$.metadataDrawer.innerHTML = "";
 
                 if (path === "/") {
-                    y = x.selectedItem;
+                    const y = x.selectedItem;
 
                     if ( y === null ) {
                         el1 = new FileMetadata("Root", "/", "DIR", null, currentViewIndex);
@@ -254,9 +263,9 @@
 
                 app.$.metadata.togglePanel();
                 e.stopPropagation();
-            },
+            }
 
-            _create: function (e)
+            _create(e)
             {
                 var home = document.getElementById('homedir');
                 var vf = home.querySelector('view-file');
@@ -267,6 +276,7 @@
                 //TODO: Lazy load create-directory and dcache-namespace
                 var mkdir = document.createElement('create-directory');
                 mkdir.dirFullPath = path;
+                mkdir.header = false;
                 mkdir.addEventListener('create',function(e) {
                     var name = e.detail.newFolderName;
                     var url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
@@ -279,12 +289,12 @@
                             dialogBox.close();
                             dialogBox.removeChild(mkdir);
 
-                            var ed = vf.querySelector('empty-directory');
+                            var ed = vf.shadowRoot.querySelector('empty-directory');
                             if (ed != null) {
-                                vf.querySelector('#content').removeChild(ed);
+                                vf.shadowRoot.querySelector('#content').removeChild(ed);
                             }
 
-                            var list = vf.querySelector('iron-list');
+                            var list = vf.shadowRoot.querySelector('iron-list');
                             //TODO: CODE-DUPLICATION - make this a utility: shared-behaviour
                             if (list != null) {
                                 list.unshift('items',
@@ -299,7 +309,7 @@
                                         //TODO: add creation time to the return object of the ajax response
                                     }
                                 );
-                                vf.querySelector('iron-list').fire('iron-resize');
+                                vf.shadowRoot.querySelector('iron-list').fire('iron-resize');
                             }
                             vf.resetMultiSelection();
                             app.$.toast.text = "Done! New directory created. ";
@@ -324,9 +334,9 @@
                 });
                 dialogBox.appendChild(mkdir);
                 dialogBox.open();
-            },
+            }
 
-            _move: function ()
+            _move()
             {
                 var home = document.getElementById('homedir');
                 var vf = home.querySelector('view-file');
@@ -347,7 +357,7 @@
                     mv.mvFiles = [vf.selectedItems];
                 }
                 mv.addEventListener('move', function (e) {
-                    var list = vf.querySelector('iron-list');
+                    var list = vf.shadowRoot.querySelector('iron-list');
                     var arr = list.items;
                     const len = arr.length;
                     var i;
@@ -373,7 +383,7 @@
                     dialogBox.close();
                 });
                 mv.addEventListener('move-create', function (e) {
-                    var list = vf.querySelector('iron-list');
+                    var list = vf.shadowRoot.querySelector('iron-list');
                     list.unshift('items',
                         {
                             "fileName" : e.detail.name,
@@ -385,19 +395,20 @@
                             "creationTime" : Date.now() //Assumption
                         }
                     );
-                    vf.querySelector('iron-list').fire('iron-resize');
+                    vf.shadowRoot.querySelector('iron-list').fire('iron-resize');
                 });
                 dialogBox.appendChild(mv);
                 dialogBox.open();
-            },
+            }
 
-            _multiselection: function ()
+            _multiselection()
             {
                 var vf = document.getElementById('homedir').querySelector('view-file');
-                vf.multiSelection = this.querySelector('paper-toggle-button').active;
+                vf.multiSelection = this.shadowRoot.querySelector('paper-toggle-button').active;
                 app.$.listTableHeader.querySelector('list-row-header').checkboxDisplay =
-                    this.querySelector('paper-toggle-button').active;
+                    this.shadowRoot.querySelector('paper-toggle-button').active;
             }
-        });
+        }
+        window.customElements.define(SelectedTitle.is, SelectedTitle);
     </script>
 </dom-module>

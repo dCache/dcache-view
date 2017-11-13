@@ -1,4 +1,4 @@
-<link rel="import" href="../../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../../../bower_components/iron-list/iron-list.html">
@@ -74,7 +74,8 @@
                                   size="{{item.size}}" current-qos="{{item.currentQos}}"
                                   file-mime-type="{{item.fileMimeType}}" file-m-data="{{item}}"
                                   parent-path="[[parent]]" checkbox-display="{{multiSelection}}"
-                                  draggable="[[_computedDraggable(selected)]]">
+                                  draggable="[[_computedDraggable(selected)]]"
+                                  is-checked="[[_checkCheckbox(selected)]]">
                         </list-row>
                     </div>
                 </template>
@@ -104,137 +105,137 @@
     </template>
 
     <script>
-        ViewFile = Polymer
-        ({
-            is: "view-file",
-
-            properties: {
-                path: {
-                    type: String,
-                    value: "/",
-                    notify: true
-                },
-
-                parent: {
-                    type: String,
-                    notify: true,
-                    computed: '_computeParentPath(path)'
-                },
-
-                selectedItems: {
-                    type: Object,
-                    notify: true
-                },
-
-                selectedItem: {
-                    type: Object
-                },
-
-                url: {
-                    type: String,
-                    notify: true,
-                    computed: '_url(path)'
-                },
-
-                name: {
-                    type:String,
-                    notify: true
-                },
-
-                target: {
-                    type: Object,
-                    value: function() {
-                        return this.$.input;
-                    }
-                },
-
-                __counter__: {
-                    type: Number,
-                    value: 0,
-                    notify: true
-                },
-
-                loading: {
-                    type: Boolean,
-                    value: true,
-                    notify: true
-                },
-
-                multiSelection: {
-                    type: Boolean,
-                    value: function () {
-                        if (app.$.selectedTitle.querySelector('paper-toggle-button') != null) {
-                            return app.$.selectedTitle.querySelector('paper-toggle-button').active;
-                        } else {
-                            return false;
-                        }
-                    },
-                    notify: true
-                }
-            },
-
-            observers: [
-                'changedItems(items.*)',
-                'selectedItemsChanged(selectedItems.*)'
-            ],
-
-            factoryImpl: function(path)
+        class ViewFile extends Polymer.Element
+        {
+            constructor(path)
             {
-                this.path = path;
-            },
-
-            ready: function ()
+                super();
+                this.path = path === undefined ? "/" : path;
+            }
+            ready()
             {
+                super.ready();
                 var target = app.$.homedir.parentNode;
                 this.$.feList.scrollTarget = target;
                 this.$.threshold.scrollTarget = target;
-            },
+                this.target = this.$.input;
 
-            _computedUpw: function(path)
+                const sT = app.$ === null ? null : app.$.selectedTitle.shadowRoot;
+                if (sT !== null) {
+                    this.multiSelection = sT.querySelector('paper-toggle-button') === null ?
+                        false : sT.querySelector('paper-toggle-button').active;
+                } else {
+                    this.multiSelection = false;
+                }
+            }
+            static get is()
+            {
+                return "view-file";
+            }
+
+            static get properties()
+            {
+                return {
+                    path: {
+                        type: String,
+                        value: "/",
+                        notify: true
+                    },
+
+                    parent: {
+                        type: String,
+                        notify: true,
+                        computed: '_computeParentPath(path)'
+                    },
+
+                    selectedItems: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    selectedItem: {
+                        type: Object
+                    },
+
+                    url: {
+                        type: String,
+                        notify: true,
+                        computed: '_url(path)'
+                    },
+
+                    name: {
+                        type:String,
+                        notify: true
+                    },
+
+                    target: {
+                        type: Object
+                    },
+
+                    __counter__: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    loading: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+
+                    multiSelection: {
+                        type: Boolean,
+                        notify: true
+                    },
+
+                    _isSubsequentRequest: {
+                        type: Boolean,
+                        value: false
+                    }
+                }
+            }
+
+            static get observers()
+            {
+                return [
+                    'changedItems(items.*)',
+                    'selectedItemsChanged(selectedItems.*)'
+                ];
+            }
+
+            _computedUpw(path)
             {
                 if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
                     return window.atob(sessionStorage.upauth);
                 } else {
                     return "anonymous:nopassword";
                 }
-            },
+            }
 
-            _computedDraggable: function (isSelected)
+            _computedDraggable(isSelected)
             {
                 return !!isSelected;
-            },
+            }
 
-            _computedClass: function(isSelected)
+            _computedClass(isSelected)
             {
                 let classes = 'item';
                 if (isSelected) {
                     classes += ' selected';
                 }
 
-                if (this.multiSelection && isSelected){
-                    this._checkCheckbox(event, true)
-                } else if (this.multiSelection && !isSelected){
-                    this._checkCheckbox(event, false)
-                }
-
                 this.updateStyles();
 
                 return classes;
-            },
+            }
 
-            _checkCheckbox: function(e, state)
+            _checkCheckbox(isSelected)
             {
-                let i;
-                const len = e.path.length;
-                for (i=0; i<len; i++){
-                    if (e.path[i].nodeName=="LIST-ROW"){
-                        e.path[i].querySelector('paper-checkbox').checked = state;
-                        break;
-                    }
-                }
-            },
+                return !!(isSelected && this.multiSelection);
+            }
 
-            _url: function(path)
+            _url(path)
             {
                 let x;
                 const url  = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
@@ -245,9 +246,9 @@
                     x = isHome === true ? "/?children=true": path + "/?children=true";
                 }
                 return url + x;
-            },
+            }
 
-            _computeParentPath: function(path)
+            _computeParentPath(path)
             {
                 if ( this.path == null || this.path == "" || this.path == "/" ) {
                     path = "/";
@@ -257,9 +258,9 @@
                     path = path.replace(/=/g, "/");
                     return path + "/";
                 }
-            },
+            }
 
-            handleResponse: function(e)
+            handleResponse(e)
             {
                 var children = e.detail.response.children;
                 var d = this;
@@ -280,12 +281,12 @@
                 this.updateStyles();
 
                 e.stopPropagation();
-            },
+            }
 
-            handleError: function (request)
+            handleError(request)
             {
                 let msg = request.detail.error.message;
-                let code = request.detail.request.__data__.status;
+                let code = request.detail.request.__data.status;
                 let content = this.$.content;
 
                 switch (parseInt(code)) {
@@ -309,16 +310,16 @@
 
                 Polymer.dom.flush();
                 this.updateStyles();
-            },
+            }
 
-            changedItems: function (changedRecord)
+            changedItems(changedRecord)
             {
                 if (changedRecord.path) {
                     this.querySelector('iron-list').fire('iron-resize');
                 }
-            },
+            }
 
-            selectedItemsChanged: function (selectedItems)
+            selectedItemsChanged(selectedItems)
             {
                 if (document.getElementById('selectedTitle') != null) {
                     document.getElementById('selectedTitle').isSelected =
@@ -341,19 +342,19 @@
                             app.$.listTableHeader.querySelector('list-row-header').selection = 1;
                     }
                 }
-            },
+            }
 
-            openDialog: function (targetNode, name)
+            openDialog(targetNode, name)
             {
                 this.name = name;
                 this._previousName = name;
-                var dialog = Polymer.dom(this.root).querySelector('#dialog');
-                dialog.positionTarget = targetNode.querySelector('#nameContainer');
+                const dialog = this.$.dialog;
+                dialog.positionTarget = targetNode.$.nameContainer;
                 this._renameTargetNode = targetNode;
                 dialog.open();
-            },
+            }
 
-            _rename: function ()
+            _rename()
             {
                 var d = this;
                 var namespace = document.createElement('dcache-namespace');
@@ -371,7 +372,7 @@
                 var dialog = Polymer.dom(this.root).querySelector('#dialog');
                 namespace.promise.then(
                     function () {
-                        d._renameTargetNode.querySelector('#fileName').innerHTML = d.name;
+                        d._renameTargetNode.$.fileName.innerHTML = d.name;
                         d._renameTargetNode.name = d.name;
                         app.$.toast.text = "Done! File renamed. ";
                         app.$.toast.show();
@@ -384,9 +385,21 @@
                         dialog.close();
                     }
                 );
-            },
+            }
 
-            _loadNamespaceData: function ()
+            _loadNamespaceData()
+            {
+                //FIXME: race condition problem
+                if (this._isSubsequentRequest) {
+                    this.__listDirectory();
+                } else {
+                    window.addEventListener('WebComponentsReady', () => {
+                        this.__listDirectory();
+                        this._isSubsequentRequest = true;
+                    });
+                }
+            }
+            __listDirectory()
             {
                 const limit = 100;
                 let offset = this.__counter__ * limit;
@@ -400,19 +413,20 @@
                 this.$.ajax.url = this.url;
                 this.$.ajax.params = {"limit":limit, "offset": offset};
                 this.$.ajax.generateRequest();
-            },
+            }
 
             /**
              * FIXME: This is a workaround to reset the checkbox.
              * This bug that should be fix.
              */
-            resetMultiSelection: function ()
+            resetMultiSelection()
             {
                 if (this.multiSelection) {
                     this.multiSelection = false;
                     this.multiSelection = true;
                 }
             }
-        });
+        }
+        window.customElements.define(ViewFile.is, ViewFile);
     </script>
 </dom-module>

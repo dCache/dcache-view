@@ -1,4 +1,4 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../../../bower_components/paper-tabs/paper-tab.html">
@@ -20,6 +20,9 @@
             .buttons {
                 background-color: #eaeaea;
                 height: 60px;
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
                 padding: 0 !important;
                 margin: 0 !important;
             }
@@ -63,8 +66,8 @@
             }
         </style>
         <paper-toolbar>
-            <span class="title">QoS Backend Information</span>
-            <paper-icon-button icon="close" dialog-confirm></paper-icon-button>
+            <span class="title" slot="top">QoS Backend Information</span>
+            <paper-icon-button slot="top" icon="close" dialog-confirm></paper-icon-button>
         </paper-toolbar>
         <paper-tabs selected="{{selected}}" class="middle" scrollable fit-container>
             <template is="dom-repeat" items="[[possibleTransition]]">
@@ -103,28 +106,36 @@
         </div>
     </template>
     <script>
-        Polymer({
-            is: "qbi-dialog-content",
-
-            properties: {
-                possibleTransition: {
-                    type: Array,
-                    value: function () {
-                        return window.CONFIG.qos;
-                    },
-                    notify: true
-                },
-                selected: {
-                    value: 0
-                },
-                tooltips: {
-                    type: Array,
-                    notify: true
-                }
-            },
-
-            ready: function ()
+        class QbiDialogContent extends Polymer.Element
+        {
+            static get is()
             {
+                return "qbi-dialog-content";
+            }
+
+            static get properties()
+            {
+                return {
+                    possibleTransition: {
+                        type: Array,
+                        value: function () {
+                            return window.CONFIG.qos;
+                        },
+                        notify: true
+                    },
+                    selected: {
+                        value: 0
+                    },
+                    tooltips: {
+                        type: Array,
+                        notify: true
+                    }
+                }
+            }
+
+            ready()
+            {
+                super.ready();
                 this.tooltips = [
                     {
                         "key": "cdmi_data_redundancy_provided",
@@ -139,17 +150,17 @@
                         "value": "The provided maximum time in millisecond to first byte."
                     }
                 ]
-            },
+            }
 
-            _valueToString: function (arr)
+            _valueToString(arr)
             {
                 if (arr.toString() === "") {
                     return 'null';
                 }
                 return arr.toString();
-            },
+            }
 
-            _getQosBackendMetadata: function (i)
+            _getQosBackendMetadata(i)
             {
                 let a = JSON.stringify(i);
                 a = a.slice(1, -1);
@@ -162,9 +173,9 @@
                     arr.push(JSON.parse(jsonString));
                 }
                 return arr;
-            },
+            }
 
-            _formatKey: function (str)
+            _formatKey(str)
             {
                 if (str.includes("cdmi_")) {
                     str = str.replace("cdmi_", "");
@@ -178,10 +189,10 @@
                     str = str.replace("_", " ");
                 }
 
-                return str
-            },
+                return str;
+            }
 
-            _getTooltipSting: function (key)
+            _getTooltipSting(key)
             {
                 let arr = this.tooltips;
                 const len = arr.length;
@@ -191,6 +202,7 @@
                     }
                 }
             }
-        });
+        }
+        window.customElements.define(QbiDialogContent.is, QbiDialogContent);
     </script>
 </dom-module>

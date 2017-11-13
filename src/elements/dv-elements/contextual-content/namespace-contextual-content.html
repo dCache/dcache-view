@@ -1,6 +1,5 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../../bower_components/paper-menu/paper-menu.html">
-<link rel="import" href="../../../bower_components/paper-menu/paper-submenu.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../../bower_components/paper-item/paper-icon-item.html">
 
@@ -9,7 +8,7 @@
 <dom-module id="namespace-contextual-content">
     <template>
         <style>
-            :host paper-menu {
+            :host paper-listbox {
                 margin-top: -20px;
                 margin-bottom: -20px;
             }
@@ -32,184 +31,196 @@
                 border-top: 1px solid #cacaca;
             }
         </style>
-        <paper-menu>
+        <paper-listbox>
             <paper-icon-item  id="open"
                               class$="[[_computedClass('open', singleSelection,
                               multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="visibility" item-icon></iron-icon>
+                <iron-icon icon="visibility" slot="item-icon"></iron-icon>
                 Open
             </paper-icon-item>
 
             <paper-icon-item id="changeQos"
                              class$="[[_computedClass('changeQos' , singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="settings-input-composite" item-icon></iron-icon>
+                <iron-icon icon="settings-input-composite" slot="item-icon"></iron-icon>
                 Change QoS to ...
             </paper-icon-item>
             <paper-icon-item id="qosInfo"
                              class$="[[_computedClass('qosInfo', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="settings-remote" item-icon></iron-icon>
+                <iron-icon icon="settings-remote" slot="item-icon"></iron-icon>
                 Get QoS backend info
             </paper-icon-item>
             <paper-icon-item id="move"
                              class$="[[_computedClass('move', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="move-icons:movefolder" item-icon></iron-icon>
+                <iron-icon icon="move-icons:movefolder" slot="item-icon"></iron-icon>
                 Move to ...
             </paper-icon-item>
             <paper-icon-item id="rename"
                              class$="[[_computedClass('rename', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="editor:border-color" item-icon></iron-icon>
+                <iron-icon icon="editor:border-color" slot="item-icon"></iron-icon>
                 Rename
             </paper-icon-item>
 
             <paper-icon-item id="download"
                              class$="[[_computedClass('download', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="cloud-download" item-icon></iron-icon>
+                <iron-icon icon="cloud-download" slot="item-icon"></iron-icon>
                 Download
             </paper-icon-item>
 
             <paper-icon-item id="create"
                              class$="[[_computedClass('create', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="create-new-folder" item-icon></iron-icon>
+                <iron-icon icon="create-new-folder" slot="item-icon"></iron-icon>
                 Create new folder
             </paper-icon-item>
             <paper-icon-item id="upload"
                              class$="[[_computedClass('upload', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="cloud-upload" item-icon></iron-icon>
+                <iron-icon icon="cloud-upload" slot="item-icon"></iron-icon>
                 Upload file(s)
             </paper-icon-item>
 
             <paper-icon-item id="metadata"
                              class$="[[_computedClass('metadata', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="info" item-icon></iron-icon>
+                <iron-icon icon="info" slot="item-icon"></iron-icon>
                 View details
             </paper-icon-item>
 
             <paper-icon-item id="delete"
                              class$="[[_computedClass('delete', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
-                <iron-icon icon="delete" item-icon></iron-icon>
+                <iron-icon icon="delete" slot="item-icon"></iron-icon>
                 Delete
             </paper-icon-item>
-        </paper-menu>
+        </paper-listbox>
     </template>
     <script>
-        let NamespaceContextualContent = Polymer({
-            is: 'namespace-contextual-content',
-
-            properties: {
-                currentDir: {
-                    type: Boolean,
-                    notify: true
-                },
-                multipleSelection: {
-                    type: Boolean,
-                    notify: true
-                },
-                singleSelection: {
-                    type: Boolean,
-                    notify: true
-                },
-                targetNode: {
-                    type: Object
-                }
-            },
-
-            factoryImpl: function(t,n)
+        class NamespaceContextualContent extends Polymer.Element
+        {
+            constructor(t,n)
             {
+                super();
                 this.singleSelection = n === 0;
                 this.multipleSelection = n === 1;
                 this.currentDir = n === 2;
                 this.targetNode = t;
                 this._cqcm = new ChangeQosContextualMenu(t);
-            },
-            ready: function ()
+            }
+
+            static get is()
             {
+                return 'namespace-contextual-content';
+            }
+
+            static get properties()
+            {
+                return {
+                    currentDir: {
+                        type: Boolean,
+                        notify: true
+                    },
+                    multipleSelection: {
+                        type: Boolean,
+                        notify: true
+                    },
+                    singleSelection: {
+                        type: Boolean,
+                        notify: true
+                    },
+                    targetNode: {
+                        type: Object
+                    }
+                }
+            }
+
+            ready()
+            {
+                super.ready();
                 if (app.$.centralSubContextMenu.opened) {
                     app.$.centralSubContextMenu.close();
                 }
                 app.$.centralSubContextMenu.innerHTML = "";
-            },
+            }
 
-            attached: function ()
+            connectedCallback()
             {
+                super.connectedCallback();
                 if (this.singleSelection) {
-                    this.listen(this.$.delete, 'tap', '_delete');
-                    this.listen(this.$.metadata, 'tap', '_metadata');
-                    this.listen(this.$.move, 'tap', '_move');
-                    this.listen(this.$.qosInfo, 'tap', '_qosInfo');
-                    this.listen(this.$.rename, 'tap', '_rename');
+                    this.$.delete.addEventListener('tap', this._delete.bind(this));
+                    this.$.metadata.addEventListener('tap', this._metadata.bind(this));
+                    this.$.move.addEventListener('tap', this._move.bind(this));
+                    this.$.qosInfo.addEventListener('tap', this._qosInfo.bind(this));
+                    this.$.rename.addEventListener('tap', this._rename.bind(this));
 
                     switch (this.targetNode.fileType) {
                         case "DIR":
-                            this.listen(this.$.open, 'tap', '_open');
+                            this.$.open.addEventListener('tap', this._open.bind(this));
                             break;
                         case "REGULAR":
-                            this.listen(this.$.download, 'tap', '_download');
+                            this.$.download.addEventListener('tap', this._download.bind(this));
                             break;
                     }
 
                 } else if (this.multipleSelection) {
-                    this.listen(this.$.delete, 'tap', '_delete');
-                    this.listen(this.$.move, 'tap', '_move');
+                    this.$.delete.addEventListener('tap', this._delete.bind(this));
+                    this.$.move.addEventListener('tap', this._move.bind(this));
                 } else if (this.currentDir) {
-                    this.listen(this.$.create, 'tap', '_create');
-                    this.listen(this.$.metadata, 'tap', '_metadata');
-                    this.listen(this.$.qosInfo, 'tap', '_qosInfo');
-                    this.listen(this.$.upload, 'tap', '_upload');
+                    this.$.create.addEventListener('tap', this._create.bind(this));
+                    this.$.metadata.addEventListener('tap', this._metadata.bind(this));
+                    this.$.qosInfo.addEventListener('tap', this._qosInfo.bind(this));
+                    this.$.upload.addEventListener('tap', this._upload.bind(this));
                 }
 
-                this.listen(this, 'mouseover', '_mouseOverLeave');
-                this.listen(this.$.changeQos, 'mouseover', '_mouseOver');
-            },
+                this.addEventListener('mouseover', this._mouseOverLeave);
+                this.$.changeQos.addEventListener('mouseover', this._mouseOver.bind(this));
+            }
 
-            detached: function ()
+            disconnectedCallback()
             {
+                super.disconnectedCallback();
                 if (this.singleSelection) {
-                    this.unlisten(this.$.delete, 'tap', '_delete');
-                    this.unlisten(this.$.metadata, 'tap', '_metadata');
-                    this.unlisten(this.$.move, 'tap', '_move');
-                    this.unlisten(this.$.qosInfo, 'tap', '_qosInfo');
-                    this.unlisten(this.$.rename, 'tap', '_rename');
+                    this.$.delete.removeEventListener('tap', this._delete);
+                    this.$.metadata.removeEventListener('tap', this._metadata);
+                    this.$.move.removeEventListener('tap', this._move);
+                    this.$.qosInfo.removeEventListener('tap', this._qosInfo);
+                    this.$.rename.removeEventListener('tap', this._rename);
 
                     switch (this.targetNode.fileType) {
                         case "DIR":
-                            this.unlisten(this.$.open, 'tap', '_open');
+                            this.$.open.removeEventListener('tap', this._open);
                             break;
                         case "REGULAR":
-                            this.unlisten(this.$.download, 'tap', '_download');
+                            this.$.download.removeEventListener('tap', this._download);
                             break;
                     }
 
                 } else if (this.multipleSelection) {
-                    this.unlisten(this.$.delete, 'tap', '_delete');
-                    this.unlisten(this.$.move, 'tap', '_move');
+                    this.$.delete.removeEventListener('tap', this._delete);
+                    this.$.move.removeEventListener('tap', this._move);
                 } else if (this.currentDir) {
-                    this.unlisten(this.$.create, 'tap', '_create');
-                    this.unlisten(this.$.metadata, 'tap', '_metadata');
-                    this.unlisten(this.$.qosInfo, 'tap', '_qosInfo');
-                    this.unlisten(this.$.upload, 'tap', '_upload');
+                    this.$.create.removeEventListener('tap', this._create);
+                    this.$.metadata.removeEventListener('tap', this._metadata);
+                    this.$.qosInfo.removeEventListener('tap', this._qosInfo);
+                    this.$.upload.removeEventListener('tap', this._upload);
                 }
 
-                this.unlisten(this, 'mouseover', '_mouseOverLeave');
-                this.unlisten(this.$.changeQos, 'mouseover', '_mouseOver');
-            },
+                this.removeEventListener('mouseover', this._mouseOverLeave);
+                this.$.changeQos.removeEventListener('mouseover', this._mouseOver);
+            }
 
-            _mouseOverLeave: function ()
+            _mouseOverLeave()
             {
                 if (app.$.centralSubContextMenu.opened) {
                     app.$.centralSubContextMenu.close();
                 }
-            },
+            }
 
-            _mouseOver: function (e)
+            _mouseOver(e)
             {
                 e.stopPropagation();
                 if (!window.CONFIG.isSomebody) {
@@ -250,16 +261,16 @@
                 }
 
                 e.stopPropagation();
-            },
+            }
 
-            _open: function()
+            _open()
             {
                 app.$.centralContextMenu.close();
                 app.ls(this.targetNode.filePath);
                 Polymer.dom.flush();
-            },
+            }
 
-            _download: function()
+            _download()
             {
                 app.$.centralContextMenu.close();
                 let path;
@@ -276,9 +287,9 @@
                     }
                 }
                 window.open(path);
-            },
+            }
 
-            _metadata: function()
+            _metadata()
             {
                 app.$.centralContextMenu.close();
                 const fm = new FileMetadata(this.targetNode.name, this.targetNode.filePath,
@@ -286,16 +297,16 @@
                 app.$.metadataDrawer.innerHTML = "";
                 app.$.metadataDrawer.appendChild(fm);
                 app.$.metadata.openDrawer();
-            },
+            }
 
-            _rename: function ()
+            _rename()
             {
                 app.$.centralContextMenu.close();
                 const vf = document.querySelector('view-file');
                 vf.openDialog(this.targetNode, this.targetNode.name);
-            },
+            }
 
-            _move: function ()
+            _move()
             {
                 app.$.centralContextMenu.close();
                 let home = document.getElementById('homedir');
@@ -323,7 +334,7 @@
 
                 mv.addEventListener('move', (e) => {
 
-                    let list = vf.querySelector('iron-list');
+                    const list = vf.shadowRoot.querySelector('iron-list');
                     let arr = list.items;
                     const len = arr.length;
                     mv.mvFiles.forEach(function (file) {
@@ -350,7 +361,7 @@
                     dialogBox.close();
                 });
                 mv.addEventListener('move-create', function (e) {
-                    let list = vf.querySelector('iron-list');
+                    let list = vf.shadowRoot.querySelector('iron-list');
                     list.unshift('items',
                         {
                             "fileName" : e.detail.name,
@@ -362,13 +373,13 @@
                             "creationTime" : Date.now() //Assumption
                         }
                     );
-                    vf.querySelector('iron-list').fire('iron-resize');
+                    vf.shadow.querySelector('iron-list').fire('iron-resize');
                 });
                 dialogBox.appendChild(mv);
                 dialogBox.open();
-            },
+            }
 
-            _delete: function ()
+            _delete()
             {
                 app.$.centralContextMenu.close();
                 if (sessionStorage.upauth === null || sessionStorage.upauth === undefined) {
@@ -394,15 +405,15 @@
                     }
                     this._deleteSingleEntry(url, this.targetNode.name, this.targetNode.filePath);
                 }
-            },
+            }
 
-            _deleteSingleEntry: function (url, name, path)
+            _deleteSingleEntry(url, name, path)
             {
                 let namespace = document.createElement('dcache-namespace');
                 namespace.auth = app.getAuthValue();
                 namespace.promise.then(
                     ()=>{
-                        let list = document.querySelector('iron-list');
+                        let list = app.$.homedir.querySelector('view-file').$.feList;
                         let arr = list.items;
                         const len = arr.length;
                         for (let i=0; i<len; i++) {
@@ -432,9 +443,9 @@
                     url: url,
                     path: path
                 });
-            },
+            }
 
-            _create: function ()
+            _create()
             {
                 app.$.centralContextMenu.close();
 
@@ -445,6 +456,7 @@
 
                 let mkdir = document.createElement('create-directory');
                 mkdir.dirFullPath = path;
+                mkdir.header = false;
                 mkdir.addEventListener('create',function(e) {
                     let name = e.detail.newFolderName;
                     let url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
@@ -461,7 +473,7 @@
                                 vf.querySelector('#content').removeChild(ed);
                             }
 
-                            let list = vf.querySelector('iron-list');
+                            let list = vf.shadowRoot.querySelector('iron-list');
 
                             if (list != null) {
                                 list.unshift('items',
@@ -476,7 +488,7 @@
                                         //TODO: add creation time to the return object of the ajax response
                                     }
                                 );
-                                vf.querySelector('iron-list').fire('iron-resize');
+                                vf.shadowRoot.querySelector('iron-list').fire('iron-resize');
                             }
                             app.$.toast.text = "Done! New directory created. ";
                             app.$.toast.show();
@@ -500,17 +512,17 @@
                 });
                 dialogBox.appendChild(mkdir);
                 dialogBox.open();
-            },
+            }
 
-            _upload: function ()
+            _upload()
             {
                 app.$.centralContextMenu.close();
 
                 let uploadButton = document.createElement('upload-files-button');
                 uploadButton.querySelector('#files').click();
-            },
+            }
 
-            _qosInfo: function ()
+            _qosInfo()
             {
                 app.$.centralContextMenu.close();
 
@@ -532,13 +544,13 @@
 
                 dialogBox.appendChild(content);
                 dialogBox.open();
-            },
+            }
 
             /**
              * NOTE: @id value in this function must be exactly
              * the same as the element/node id attribute.
              */
-            _computedClass: function (id, singleSelection, multipleSelection, currentDir, t)
+            _computedClass(id, singleSelection, multipleSelection, currentDir, t)
             {
                 if (currentDir && (id === 'open' || id === 'move' || id === 'rename' || id === 'download'
                     || id === 'delete' || id === 'changeQos')) {
@@ -552,23 +564,24 @@
                     this.updateStyles();
                     return '';
                 }
-            },
+            }
 
-            _setDisabledAttribute: function (id, singleSelection, multipleSelection, t)
+            _setDisabledAttribute(id, singleSelection, multipleSelection, t)
             {
                 if (multipleSelection && (id === 'open' || id === 'metadata' || id === 'rename' ||
                     id === 'download' || id === 'changeQos')) {
-                    Polymer.dom(this.root).querySelector('#'+id).setAttribute('disabled', true);
+                    this.root.querySelector('#'+id).setAttribute('disabled', true);
                 }
 
                 if (singleSelection) {
                     if (t.fileType === 'DIR' && (id === 'download' || id === 'changeQos')) {
-                        Polymer.dom(this.root).querySelector('#'+id).setAttribute('disabled', true);
+                        this.root.querySelector('#'+id).setAttribute('disabled', true);
                     } else if (id  === 'open' && t.fileType === 'REGULAR') {
-                        Polymer.dom(this.root).querySelector('#'+id).setAttribute('disabled', true);
+                        this.root.querySelector('#'+id).setAttribute('disabled', true);
                     }
                 }
             }
-        });
+        }
+        window.customElements.define(NamespaceContextualContent.is, NamespaceContextualContent);
     </script>
 </dom-module>

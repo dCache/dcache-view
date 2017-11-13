@@ -1,4 +1,4 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
@@ -11,78 +11,78 @@
 <link rel="import" href="auth-behaviour/user-authentication.html">
 
 <dom-module id="login-form">
-    <style>
-        :host{
-            display: block;
-        }
-        #container {
-            width: 300px;
-        }
-        #container paper-input-container {
-            width: 100%;
-            --paper-input-container-color: #9c9c9c;
-            --paper-input-container-input-color: #fff;
-            --paper-input-container-focus-color: #00b4f0;
-        }
-        input[is="iron-input"]::placeholder {
-            color: #fff !important;
-        }
-        #container #login-button {
-            width: 100%;
-            display: flex;
-            justify-content: flex-end;
-        }
-        #login-button paper-button {
-            margin: 20px 0 0 0;
-            padding-left: 30px;
-            padding-right: 30px;
-            background: #00b4f0;
-            color: #fff;
-        }
-        #container > .messageContainer {
-            width: 100%;
-            margin-top: 10px;
-            background: rgba(161,48,41,0.9);
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        .error-message {
-            color: #fff;
-            font-size: 0.71em;
-        }
-        .hide {
-            display: none;
-        };
-        .show {
-            display: block;
-        }
-        paper-checkbox {
-            --paper-checkbox-checked-color: #ff625d;
-            --paper-checkbox-checked-ink-color: #fff;
-            --paper-checkbox-unchecked-color: #e0e0e0;
-            --paper-checkbox-unchecked-ink-color: #e0e0e0;
-            --paper-checkbox-label-color: #fff;
-            --paper-checkbox-label-checked-color: #e0e0e0;
-            --paper-checkbox-checkmark-color: #fff;
-            --paper-checkbox-label: {
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+            #container {
+                width: 300px;
+            }
+            #container paper-input-container {
+                width: 100%;
+                --paper-input-container-color: #9c9c9c;
+                --paper-input-container-input-color: #fff;
+                --paper-input-container-focus-color: #00b4f0;
+            }
+            input[is="iron-input"]::placeholder {
+                color: #fff !important;
+            }
+            #container #login-button {
+                width: 100%;
+                display: flex;
+                justify-content: flex-end;
+            }
+            #login-button paper-button {
+                margin: 20px 0 0 0;
+                padding-left: 30px;
+                padding-right: 30px;
+                background: #00b4f0;
+                color: #fff;
+            }
+            #container > .messageContainer {
+                width: 100%;
+                margin-top: 10px;
+                background: rgba(161,48,41,0.9);
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            .error-message {
+                color: #fff;
                 font-size: 0.71em;
             }
-        }
-    </style>
-    <template>
+            .hide {
+                display: none;
+            };
+            .show {
+                display: block;
+            }
+            paper-checkbox {
+                --paper-checkbox-checked-color: #ff625d;
+                --paper-checkbox-checked-ink-color: #fff;
+                --paper-checkbox-unchecked-color: #e0e0e0;
+                --paper-checkbox-unchecked-ink-color: #e0e0e0;
+                --paper-checkbox-label-color: #fff;
+                --paper-checkbox-label-checked-color: #e0e0e0;
+                --paper-checkbox-checkmark-color: #fff;
+                --paper-checkbox-label: {
+                    font-size: 0.71em;
+                }
+            }
+        </style>
         <div id="container">
             <iron-a11y-keys keys="enter" on-keys-pressed="_login"></iron-a11y-keys>
             <iron-ajax id="ajaxUser"
                        handle-as="json"
                        on-response="handleResponse" on-error="handleError"></iron-ajax>
             <paper-input-container always-float-label="true">
-                <label is="label">Username</label>
+                <label slot="label">Username</label>
                 <input is="iron-input" slot="input"
                        name="username" id="username"
                        value="{{username::input}}" placeholder="username" autofocus>
             </paper-input-container>
             <paper-input-container always-float-label="true">
-                <label is="label">Password</label>
+                <label slot="label">Password</label>
                 <input is="iron-input" slot="input"
                        name="password" id="password"
                        value="{{password::input}}" placeholder="password" type="password">
@@ -99,50 +99,58 @@
         </div>
     </template>
     <script>
-        LoginForm = Polymer({
-            is: "login-form",
-
-            properties: {
-                username: {
-                    type: String,
-                    notify: true
-                },
-                password: {
-                    type: String,
-                    notify: true
-                },
-                target: {
-                    type: Object,
-                    value: function() {
-                        return this;
-                    }
-                },
-                errorMessage: {
-                    type: String,
-                    notify: true
-                },
-                redirectTo: {
-                    type: Object,
-                    notify: true
-                },
-                assertionStatus: {
-                    type: Boolean,
-                    value: false,
-                    notify: true
-                }
-            },
-
-            factoryImpl: function(redirect)
+        class LoginForm extends Polymer.Element
+        {
+            constructor(redirect)
             {
+                super();
                 this.redirectTo = redirect;
-            },
-
-            attached: function ()
+            }
+            static get is()
             {
-                this.$.username.focus();
-            },
+                return "login-form";
+            }
 
-            _login: function()
+            static get properties()
+            {
+                return {
+                    username: {
+                        type: String,
+                        notify: true
+                    },
+                    password: {
+                        type: String,
+                        notify: true
+                    },
+                    target: {
+                        type: Object,
+                        value: function() {
+                            return this;
+                        }
+                    },
+                    errorMessage: {
+                        type: String,
+                        notify: true
+                    },
+                    redirectTo: {
+                        type: Object,
+                        notify: true
+                    },
+                    assertionStatus: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
+                };
+            }
+
+            connectedCallback()
+            {
+                super.connectedCallback();
+                this.$.username.focus();
+            }
+
+            _login()
             {
                 if (this.username === undefined || this.username === "" ||
                     this.password === "" || this.password === undefined) {
@@ -160,15 +168,16 @@
                 });
 
                 userAuth.send("Basic");
-            },
+            }
 
-            _computedClass: function (errMessage)
+            _computedClass(errMessage)
             {
                 let classes;
                 classes = errMessage === undefined || errMessage === "" ? 'hide' : 'messageContainer show';
                 this.updateStyles();
                 return classes;
             }
-        });
+        }
+        window.customElements.define(LoginForm.is, LoginForm);
     </script>
 </dom-module>

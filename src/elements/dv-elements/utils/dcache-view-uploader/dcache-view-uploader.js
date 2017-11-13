@@ -9,7 +9,8 @@
  * @constructor
  * @param {object} options Hash of options
  * @param {string} options.upauth Accept both Basic and Bearer. If it is Basic; Encoded Base64 of username:password
- * @param {blob} options.file Blob-like item to upload
+ * @param {file} options.file Blob-like item to upload
+ * @param {url} options.url
  * @param {string} [options.contentType] Content-type, if overriding the type of the blob.
  * @param {function} [options.onComplete] Callback for when upload is complete
  * @param {function} [options.onProgress] Callback for status for the in-progress upload
@@ -25,9 +26,9 @@
  *  })
  *  uploader.upload();
  */
-var UploadHandler = function (options)
-{
-    var noop = function() {};
+const UploadHandler = function (options) {
+    const noop = function () {
+    };
     this.file = options.file;
     this.contentType = options.contentType || this.file.type || 'application/octet-stream';
     this.upauth = options.upauth;
@@ -43,8 +44,8 @@ var UploadHandler = function (options)
  */
 UploadHandler.prototype.upload = function()
 {
-    var content = this.file;
-    var xhr = new XMLHttpRequest();
+    const content = this.file;
+    const xhr = new XMLHttpRequest();
     xhr.open(this.httpMethod, this.url, true);
     xhr.setRequestHeader('Content-Type', this.contentType);
     xhr.setRequestHeader('Authorization', this.upauth);
@@ -66,7 +67,7 @@ UploadHandler.prototype.upload = function()
  */
 UploadHandler.prototype.onContentUploadSuccess_ = function(e)
 {
-    if (e.target.status == 200 || e.target.status == 201) {
+    if (e.target.status === 200 || e.target.status === 201) {
         this.onComplete(this.file);
     } else {
         this.onContentUploadError_(e);

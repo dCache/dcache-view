@@ -1,4 +1,4 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 
@@ -12,72 +12,72 @@
 <link rel="import" href="../drag-and-drop/dnd-upload.html">
 
 <dom-module id="list-row">
-    <style>
-        :host {
-            @apply(--layout-block);
-            font-size: 0.7em;
-        }
-        .row {
-            @apply(--layout-horizontal);
-            @apply(--layout-center);
-            height: 40px;
-            border-bottom: 1px solid #e5e5e5;
-            text-decoration: none !important;
-        }
-        .name{
-            @apply(--layout-flex-3);
-        }
-        .ctime, .qos {
-            @apply(--layout-flex);
-        }
-        .size {
-            @apply(--layout-flex);
-            text-align: right;
-        }
-        .size > span {
-            padding-right: 10px;
-        }
-        .fit {
-            @apply(--layout-fit);
-        }
-        @keyframes blink-animation {
-            to {visibility: hidden;}
-        }
-        @-webkit-keyframes blink-animation {
-            to {visibility: hidden;}
-        }
-        #fileName {
-            min-width:10px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        #nameContainer {
-            display: flex;
-            align-items: center;
-            padding-right: 24px;
-        }
-
-        paper-icon-button {
-            width: 34px !important;
-            height: 34px !important;
-            color: rgba(0, 0, 0, 0.54);
-            --paper-icon-button-hover: {
-                color: #f09300 !important;
-            };
-        }
-        .checkbox {
-            padding-left: 24px;
-            --paper-checkbox-unchecked-color: rgba(0, 0, 0, 0.54);
-            --paper-checkbox-unchecked-ink-color: rgba(0, 0, 0, 0.54);
-        }
-        .none {
-            display: none;
-        }
-    </style>
     <template>
+        <style>
+            :host {
+                @apply(--layout-block);
+                font-size: 0.7em;
+            }
+            .row {
+                @apply(--layout-horizontal);
+                @apply(--layout-center);
+                height: 40px;
+                border-bottom: 1px solid #e5e5e5;
+                text-decoration: none !important;
+            }
+            .name{
+                @apply(--layout-flex-3);
+            }
+            .ctime, .qos {
+                @apply(--layout-flex);
+            }
+            .size {
+                @apply(--layout-flex);
+                text-align: right;
+            }
+            .size > span {
+                padding-right: 10px;
+            }
+            .fit {
+                @apply(--layout-fit);
+            }
+            @keyframes blink-animation {
+                to {visibility: hidden;}
+            }
+            @-webkit-keyframes blink-animation {
+                to {visibility: hidden;}
+            }
+            #fileName {
+                min-width:10px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            #nameContainer {
+                display: flex;
+                align-items: center;
+                padding-right: 24px;
+            }
+
+            paper-icon-button {
+                width: 34px !important;
+                height: 34px !important;
+                color: rgba(0, 0, 0, 0.54);
+                --paper-icon-button-hover: {
+                    color: #f09300 !important;
+                };
+            }
+            .checkbox {
+                padding-left: 24px;
+                --paper-checkbox-unchecked-color: rgba(0, 0, 0, 0.54);
+                --paper-checkbox-unchecked-ink-color: rgba(0, 0, 0, 0.54);
+            }
+            .none {
+                display: none;
+            }
+        </style>
         <div id="row" class="row">
-            <paper-checkbox id="checkbox"
+            <paper-checkbox id="checkbox" checked$="[[isChecked]]"
                             class$="[[_computedClass(checkboxDisplay)]]"></paper-checkbox>
             <file-icon mime-type="{{fileMimeType}}" style="padding-left: 15px; padding-right: 10px"></file-icon>
             <div class="cell name">
@@ -93,114 +93,129 @@
         </div>
     </template>
     <script>
-        Polymer({
-            is: 'list-row',
+        class ListRow extends Polymer.Element
+        {
+            static get is()
+            {
+                return 'list-row';
+            }
 
-            properties: {
-                name: {
-                    type: String,
-                    notify: true
-                },
+            static get properties()
+            {
+                return {
+                    name: {
+                        type: String,
+                        notify: true
+                    },
 
-                fileType: {
-                    type: String,
-                    notify: true
-                },
+                    fileType: {
+                        type: String,
+                        notify: true
+                    },
 
-                fileMimeType: {
-                    type: String,
-                    notify: true
-                },
+                    fileMimeType: {
+                        type: String,
+                        notify: true
+                    },
 
-                ctime: {
-                    type: String,
-                    notify: true
-                },
+                    ctime: {
+                        type: String,
+                        notify: true
+                    },
 
-                computedCTime: {
-                    type: String,
-                    computed:'_computedCTime(ctime)'
-                },
+                    computedCTime: {
+                        type: String,
+                        computed:'_computedCTime(ctime)'
+                    },
 
-                mtime: {
-                    type: String,
-                    notify: true
-                },
+                    mtime: {
+                        type: String,
+                        notify: true
+                    },
 
-                size: {
-                    type: String,
-                    notify: true
-                },
+                    size: {
+                        type: String,
+                        notify: true
+                    },
 
-                computedSize: {
-                    type: String,
-                    computed:'_computeSize(fileType, size)'
-                },
+                    computedSize: {
+                        type: String,
+                        computed:'_computeSize(fileType, size)'
+                    },
 
-                parentPath: {
-                    type: String,
-                    notify: true
-                },
+                    parentPath: {
+                        type: String,
+                        notify: true
+                    },
 
-                filePath: {
-                    type: String,
-                    computed:'_computeFilePath(parentPath, name)'
-                },
+                    filePath: {
+                        type: String,
+                        computed:'_computeFilePath(parentPath, name)'
+                    },
 
-                currentQos: {
-                    type: String,
-                    notify: true
-                },
+                    currentQos: {
+                        type: String,
+                        notify: true
+                    },
 
-                qosValue: {
-                    type: String,
-                    notify: true,
-                    computed: '_computeQoSValue(currentQos)'
-                },
+                    qosValue: {
+                        type: String,
+                        notify: true,
+                        computed: '_computeQoSValue(currentQos)'
+                    },
 
-                checkboxDisplay: {
-                    type: Boolean,
-                    notify: true
-                },
+                    checkboxDisplay: {
+                        type: Boolean,
+                        notify: true
+                    },
 
-                fileMData: {
-                    type: Object,
-                    notify: true
-                },
+                    fileMData: {
+                        type: Object,
+                        notify: true
+                    },
 
-                counter: {
-                    type: Number,
-                    value: 0,
-                    notify: true
+                    counter: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    isChecked: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
                 }
-            },
+            }
 
-            attached: function ()
+            connectedCallback()
             {
-                this.listen(this.$.row, 'dblclick', '_openFileLoc');
-                this.listen(this.$.row, 'contextmenu', '_openContextMenu');
+                super.connectedCallback();
+                this.$.row.addEventListener('dblclick', ()=>{this._openFileLoc()});
+                this.$.row.addEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
 
-                this.listen(this, 'drop', '_drop');
-                this.listen(this, 'dragenter', '_dragenter');
-                this.listen(this, 'dragleave', '_dragleave');
-                this.listen(this, 'dragstart', '_dragstart');
-            },
+                this.addEventListener('drop', (e)=>{this._drop(e)});
+                this.addEventListener('dragenter', (e)=>{this._dragenter(e)});
+                this.addEventListener('dragleave', (e)=>{this._dragleave(e)});
+                this.addEventListener('dragstart', (e)=>{this._dragstart(e)});
+            }
 
-            detached: function ()
+            disconnectedCallback()
             {
-                this.unlisten(this.$.row, 'dblclick', '_openFileLoc');
-                this.unlisten(this.$.row, 'contextmenu', '_openContextMenu');
+                super.disconnectedCallback();
+                this.$.row.removeEventListener('dblclick', ()=>{this._openFileLoc()});
+                this.$.row.removeEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
 
-                this.unlisten(this, 'drop', '_drop');
-                this.unlisten(this, 'dragenter', '_dragenter');
-                this.unlisten(this, 'dragleave', '_dragleave');
-                this.unlisten(this, 'dragstart', '_dragstart');
-            },
+                this.removeEventListener('drop', (e)=>{this._drop(e)});
+                this.removeEventListener('dragenter', (e)=>{this._dragenter(e)});
+                this.removeEventListener('dragleave', (e)=>{this._dragleave(e)});
+                this.removeEventListener('dragstart', (e)=>{this._dragstart(e)});
+            }
 
-            _drop: function (e)
+            _drop(event)
             {
-                e.stopPropagation();
-                e.preventDefault();
+                event.stopPropagation();
+                event.preventDefault();
 
                 if (this.fileType === 'DIR') {
                     this.counter = 0;
@@ -215,13 +230,13 @@
                         upload.start(event);
                     }
                 }
-                e.stopPropagation();
-            },
+                event.stopPropagation();
+            }
 
-            _dragenter: function (e)
+            _dragenter(event)
             {
-                e.stopPropagation();
-                e.preventDefault();
+                event.stopPropagation();
+                event.preventDefault();
                 if ( this.fileType === "DIR" ) {
                     this.counter++;
                     if (!event.dataTransfer.types.includes('text/plain')) {
@@ -234,13 +249,13 @@
                     this.classList.add('selected');
                     app.delayTact(this);
                 }
-                e.stopPropagation();
-            },
+                event.stopPropagation();
+            }
 
-            _dragleave: function (e)
+            _dragleave(event)
             {
-                e.stopPropagation();
-                e.preventDefault();
+                event.stopPropagation();
+                event.preventDefault();
                 if ( this.fileType === "DIR" ) {
                     this.counter--;
                     if (this.counter === 0) {
@@ -248,10 +263,10 @@
                         app.clearDelayedLs();
                     }
                 }
-                e.stopPropagation();
-            },
+                event.stopPropagation();
+            }
 
-            _dragstart: function ()
+            _dragstart(event)
             {
                 app.mvObj = {};
                 app.notifyPath('mvObj');
@@ -266,14 +281,14 @@
                 app.notifyPath('mvObj');
 
                 event.dataTransfer.setData('text/plain', 'draggable');
-            },
+            }
 
-            _computeFilePath: function(parentPath, name)
+            _computeFilePath(parentPath, name)
             {
                 return parentPath + name;
-            },
+            }
 
-            _computeQoSValue: function(qos)
+            _computeQoSValue(qos)
             {
                 switch (qos) {
                     case "disk":
@@ -285,15 +300,15 @@
                     case "unavailable":
                         return "unavailable";
                 }
-            },
+            }
 
-            _computedCTime: function(ctime)
+            _computedCTime(ctime)
             {
                 var x = new Date(ctime);
                 return x.toLocaleString();
-            },
+            }
 
-            _computeSize: function(fileType, size)
+            _computeSize(fileType, size)
             {
                 if ( fileType == "DIR" ) {
                     return  "--";
@@ -309,9 +324,9 @@
 
                     return parseFloat((size / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
                 }
-            },
+            }
 
-            _computedClass: function (isDisplay)
+            _computedClass(isDisplay)
             {
                 this.$.checkbox.checked = false;
                 let classes = 'checkbox';
@@ -320,9 +335,9 @@
                 }
                 this.updateStyles();
                 return classes;
-            },
+            }
 
-            _openFileLoc: function()
+            _openFileLoc()
             {
                 if ( this.fileType == "DIR" ) {
                     app.ls(this.filePath);
@@ -342,9 +357,9 @@
                     }
                     window.open(path);
                 }
-            },
+            }
 
-            _openContextMenu: function (e)
+            _openContextMenu(e)
             {
                 e.stopPropagation();
                 if (app.$.centralContextMenu.opened) {
@@ -403,6 +418,7 @@
                 e.preventDefault();
                 e.stopPropagation();
             }
-        });
+        }
+        window.customElements.define(ListRow.is, ListRow);
     </script>
 </dom-module>

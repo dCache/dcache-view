@@ -1,69 +1,76 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <dom-module id="upload-file-common">
     <script>
         `use-strict`;
-        UploadFileCommon = Polymer({
-            is: 'upload-file-common',
-            properties: {
-                message: {
-                    type: String,
-                    notify: true
-                },
-                progressValue: {
-                    type: Number,
-                    value: 0,
-                    notify: true
-                },
-                isComplete: {
-                    type: Boolean,
-                    notify: true
-                },
-                hasError: {
-                    type: Boolean,
-                    notify: true
-                },
-                inProgress: {
-                    type: Boolean,
-                    notify: true
-                },
-                progressStatus: {
-                    type: Boolean,
-                    value: true,
-                    notify: true
-                },
-                url: {
-                    type: String,
-                    value: function () {
-                        if (window.CONFIG["dcache-view.endpoints.webdav"] == "") {
-                            return window.location.protocol + "//" + window.location.hostname
-                                + ":2880";
-                        } else {
-                            return window.CONFIG["dcache-view.endpoints.webdav"];
-                        }
-                    }
-                },
-                path: {
-                    type: String,
-                    notify: true
-                },
-                data: {
-                    type: Object,
-                    notify: true
-                },
-                browser: {
-                    type: Object,
-                    notify: true
-                }
-            },
-
-            factoryImpl: function (path, browser)
+        class UploadFileCommon extends Polymer.Element
+        {
+            constructor(path, browser)
             {
-                 this.path = (path.endsWith("/")) ? path : path + "/";
-                 this.browser = browser;
-            },
+                super();
+                this.path = (path.endsWith("/")) ? path : path + "/";
+                this.browser = browser;
+            }
 
-            upload: function (file)
+            static get is()
+            {
+                return 'upload-file-common';
+            }
+            static get properties()
+            {
+                return {
+                    message: {
+                        type: String,
+                        notify: true
+                    },
+                    progressValue: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+                    isComplete: {
+                        type: Boolean,
+                        notify: true
+                    },
+                    hasError: {
+                        type: Boolean,
+                        notify: true
+                    },
+                    inProgress: {
+                        type: Boolean,
+                        notify: true
+                    },
+                    progressStatus: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+                    url: {
+                        type: String,
+                        value: function () {
+                            if (window.CONFIG["dcache-view.endpoints.webdav"] == "") {
+                                return `${window.location.protocol}//${window.location.hostname}:2880`;
+                            } else {
+                                return window.CONFIG["dcache-view.endpoints.webdav"];
+                            }
+                        }
+                    },
+                    path: {
+                        type: String,
+                        notify: true
+                    },
+                    data: {
+                        type: Object,
+                        notify: true
+                    },
+                    browser: {
+                        type: Object,
+                        notify: true
+                    }
+                };
+            }
+
+            upload(file)
             {
                 const uploadUrl = this.url + this.path + file.name;
 
@@ -88,7 +95,7 @@
                             "mtime" : data.lastModified,
                             "creationTime" : Date.now()
                         };
-                        this.fire('complete', {item: item});
+                        this.dispatchEvent(new CustomEvent('complete', {detail: {item: item}}));
                     },
 
                     onProgress: (evt)=>
@@ -101,7 +108,7 @@
                             this.progressStatus = false;
                             this.progressValue = ((evt.loaded/evt.total) * 100).toFixed(2);
                         }
-                        this.fire('uploading', {value: this.progressValue});
+                        this.dispatchEvent(new CustomEvent('uploading', {detail: {value: this.progressValue}}));
                     },
 
                     onError: (evt)=>
@@ -119,10 +126,11 @@
                         this.inProgress = false;
                         this.isComplete = false;
                         this.hasError = true;
-                        this.fire('error', {message: this.message});
+                        this.dispatchEvent(new CustomEvent('error', {detail: {message: this.message}}));
                     }
                 }).upload();
             }
-        });
+        }
+        window.customElements.define(UploadFileCommon.is, UploadFileCommon)
     </script>
 </dom-module>

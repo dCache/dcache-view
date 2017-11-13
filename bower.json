@@ -18,18 +18,18 @@
     "tests"
   ],
   "dependencies": {
-    "admin-page": "dcache-elements/admin-page#0.0.5",
-    "create-directory": "dcache-elements/create-directory#0.0.3",
-    "dcache-namespace": "dcache-elements/dcache-namespace#0.0.6",
-    "file-icon": "dcache-elements/file-icon#0.0.3",
-    "identicon.js": "stewartlord/identicon.js#2.3.0",
-    "JavaScript-MD5": "blueimp/JavaScript-MD5#2.7.0",
-    "move-file": "dcache-elements/move-file#0.0.6",
-    "neon-animation": "PolymerElements/neon-animation#1.2.5",
+    "polymer": "Polymer/polymer#^2.0.0",
+    "polymer-iron-elements": "dCacheElements/polymer-iron-elements#0.0.5",
+    "polymer-paper-elements": "dCacheElements/polymer-paper-elements#0.0.5",
+    "neon-animation": "PolymerElements/neon-animation#^2.0.0",
+    "identicon.js": "stewartlord/identicon.js#2.3.1",
+    "JavaScript-MD5": "blueimp/JavaScript-MD5#2.10.0",
     "page": "visionmedia/page.js#1.6.4",
-    "polymer": "Polymer/polymer#1.7.1",
-    "polymer-iron-elements": "dcache-elements/polymer-iron-elements#0.0.4",
-    "polymer-paper-elements": "dcache-elements/polymer-paper-elements#0.0.4",
-    "qos-backend-information": "dcache-elements/qos-backend-information#0.0.6"
+    "admin-page": "dCacheElements/admin-page#0.0.6",
+    "create-directory": "dCacheElements/create-directory#0.0.4",
+    "dcache-namespace": "dCacheElements/dcache-namespace#0.0.7",
+    "file-icon": "dCacheElements/file-icon#0.0.4",
+    "move-file": "dCacheElements/move-file#0.0.7",
+    "qos-backend-information": "dCacheElements/qos-backend-information#0.0.7"
   }
 }

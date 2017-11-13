@@ -1,41 +1,41 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <dom-module id="list-row-header">
-    <style>
-        :host {
-            display: block;
-            font-size: 0.75em;
-            @apply(--layout-block);
-            @apply(--layout-fit);
-            margin: 0px 30px;
-        }
-        .row {
-            @apply(--layout-horizontal);
-            @apply(--layout-center);
-            height: 40px;
-        }
-        .flex {
-            @apply(--layout-flex);
-        }
-        .flex3 {
-            @apply(--layout-flex-3);
-        }
-        .checkboxContainer {
-            width: 24px;
-            height: 24px;
-            padding-left: 21px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .none {
-            display: none;
-        }
-    </style>
     <template>
+        <style>
+            :host {
+                display: block;
+                font-size: 0.75em;
+                @apply(--layout-block);
+                @apply(--layout-fit);
+                margin: 0px 30px;
+            }
+            .row {
+                @apply(--layout-horizontal);
+                @apply(--layout-center);
+                height: 40px;
+            }
+            .flex {
+                @apply(--layout-flex);
+            }
+            .flex3 {
+                @apply(--layout-flex-3);
+            }
+            .checkboxContainer {
+                width: 24px;
+                height: 24px;
+                padding-left: 21px;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .none {
+                display: none;
+            }
+        </style>
         <div class="row">
             <div class$="[[_computedClass(checkboxDisplay)]]">
                 <div class="checkboxContainer">
@@ -50,29 +50,37 @@
         </div>
     </template>
     <script>
-        Polymer ({
-            is: 'list-row-header',
-            properties: {
-                selection: {
-                    type: Number,
-                    value: 0
-                },
-                checkboxDisplay: {
-                    type: Boolean,
-                    value: false,
-                    notify: true
-                },
-                icon: {
-                    type: String,
-                    value: 'icons:check-box-outline-blank',
-                    notify: true
+        class ListRowHeader extends Polymer.Element
+        {
+            static get is()
+            {
+                return 'list-row-header';
+            }
+            static get properties()
+            {
+                return {
+                    selection: {
+                        type: Number,
+                        value: 0
+                    },
+                    checkboxDisplay: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+                    icon: {
+                        type: String,
+                        value: 'icons:check-box-outline-blank',
+                        notify: true
+                    }
                 }
-            },
-            observers: [
-                'selectionStatus(selection)'
-            ],
+            }
+            static get observers()
+            {
+                return ['selectionStatus(selection)'];
+            }
 
-            selectionStatus: function (ps)
+            selectionStatus(ps)
             {
                 switch(ps){
                     case 2:
@@ -89,9 +97,9 @@
                         this.icon = "icons:check-box-outline-blank";
                         break;
                 }
-            },
+            }
 
-            _computedClass: function (isDisplay)
+            _computedClass(isDisplay)
             {
                 var classes = '';
                 if (!isDisplay) {
@@ -100,6 +108,7 @@
                 this.updateStyles();
                 return classes;
             }
-        })
+        }
+        window.customElements.define(ListRowHeader.is, ListRowHeader);
     </script>
 </dom-module>

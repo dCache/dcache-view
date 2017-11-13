@@ -1,6 +1,8 @@
 (function(document) {
     'use strict';
 
+    //console.info("Polymer version:", Polymer.version);
+
     var app = document.querySelector('#app');
 
     // Global variables for monitoring drag and drop activities
@@ -12,26 +14,24 @@
     // Sets app default base URL
     app.baseUrl = '/';
 
-    // Listen for template bound event to know when bindings
-    // have resolved and content has been stamped to the page
-    app.addEventListener('dom-change', function() {
-    });
-
     // See https://github.com/Polymer/polymer/issues/1381
     window.addEventListener('WebComponentsReady', function() {
         // imports are loaded and elements have been registered
-        if (window.CONFIG.qos === undefined && window.CONFIG.isSomebody) {
-            const apiEndPoint = window.CONFIG["dcache-view.endpoints.webapi"];
-
-            const qos = new QosBackendInformation(apiEndPoint, app.getAuthValue());
+        const isSomebody = !(app.getAuthValue() ===
+            `Basic ${window.btoa('anonymous:nopassword')}`);
+        if (window.CONFIG.qos === undefined && isSomebody) {
+            const qos = new QosBackendInformation();
+            qos.auth = app.getAuthValue();
+            qos.apiEndPoint = window.CONFIG["dcache-view.endpoints.webapi"];
             qos.addEventListener('qos-backend-response', (e) => {
                 window.CONFIG.qos = e.detail.response;
             });
+            qos.trigger();
         }
     });
 
     app.menuAction = function(){
-        app.$.dfDrawerPanel.togglePanel();
+        app.$.dvDrawerPanel.togglePanel();
     };
 
     /**
@@ -40,34 +40,33 @@
      */
     app.ls = function(path)
     {
-        app.$.homedir.innerHTML = "";
+        app.$.homedir.removeChild(app.$.homedir.querySelector('view-file'));
         const el1 = new ViewFile(path);
         app.$.homedir.appendChild(el1);
 
         setTimeout(()=>{
-            app.$.selectedTitle.querySelector("#pagination").innerHTML = "";
+            app.$.selectedTitle.shadowRoot.querySelector("#pagination").innerHTML = "";
 
             const elRoot = new PaginationButton("Root", "/");
+            app.$.selectedTitle.shadowRoot.querySelector("#pagination").appendChild(elRoot);
             if ( path == "/" || path == null || path == undefined || path.type == 'tap') {
-                elRoot.querySelector('a').classList.add("active");
-                app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
-                path = '/';
+                elRoot.shadowRoot.querySelector('a').classList.add("active");
             } else {
-                elRoot.querySelector('a').classList.remove("active");
-                app.$.selectedTitle.querySelector("#pagination").appendChild(elRoot);
+                elRoot.shadowRoot.querySelector('a').classList.remove("active");
                 const dirNames = path.split("/");
                 let pt =  "";
                 for (let i = 1; i < dirNames.length; i++) {
                     pt += "/" + dirNames[i];
                     const el = new PaginationButton(dirNames[i], pt);
-                    el.querySelector('a').classList.remove("active");
+                    app.$.selectedTitle.shadowRoot.querySelector("#pagination").appendChild(el);
+                    el.shadowRoot.querySelector('a').classList.remove("active");
                     if ( i == (dirNames.length-1) ) {
-                        el.querySelector('a').classList.add("active");
+                        el.shadowRoot.querySelector('a').classList.add("active");
                     }
-                    app.$.selectedTitle.querySelector("#pagination").appendChild(el);
                 }
             }
         },100);
+        el1.__listDirectory();
     };
 
     app.lsHomeDir = function()
@@ -164,8 +163,8 @@
         dndArr.push(file);
         const len = dndArr.length;
         if (len === 1) {
-            app.delayedLs(file.__data__.filePath, 2000);
-        } else if (dndArr[len - 1].__data__.name !== dndArr[len - 2].__data__.name) {
+            app.delayedLs(file.__data.filePath, 2000);
+        } else if (dndArr[len - 1].__data.name !== dndArr[len - 2].__data.name) {
             app.clearDelayedLs();
         }
     };
@@ -287,7 +286,7 @@
             namespace.promise.then( () => {
                 if (currentViewPath === sourcePath) {
                     let vf = app.$.homedir.querySelector('view-file');
-                    let list = vf.querySelector('iron-list');
+                    let list = vf.shadowRoot.querySelector('iron-list');
                     let arr = list.items;
                     const len = arr.length;
 
@@ -304,11 +303,11 @@
                 } else {
                     if (!dropFlag) {
                         let vf = app.$.homedir.querySelector('view-file');
-                        let list = vf.querySelector('iron-list');
+                        let list = vf.shadowRoot.querySelector('iron-list');
 
-                        let ed = vf.querySelector('empty-directory');
+                        let ed = vf.shadowRoot.querySelector('empty-directory');
                         if (!(ed === null || ed === undefined)) {
-                            vf.querySelector('#content').removeChild(ed);
+                            vf.shadowRoot.querySelector('#content').removeChild(ed);
                         }
 
                         if (list !== null || list !== undefined) {
@@ -323,7 +322,7 @@
                                     "creationTime" : file.creationTime
                                 }
                             );
-                            vf.querySelector('iron-list').fire('iron-resize');
+                            vf.shadowRoot.querySelector('iron-list').fire('iron-resize');
                         }
                     }
                 }
@@ -415,8 +414,11 @@
     });
 
     window.addEventListener('iron-overlay-canceled', ()=> {
-        app.$.homedir.querySelector('iron-list').selectionEnabled = false;
-        setTimeout(()=>{app.$.homedir.querySelector('iron-list').selectionEnabled = true;},10)
+        const vf = app.$.homedir.querySelector('view-file');
+        vf.$.feList.selectionEnabled = false;
+        setTimeout(() => {
+            vf.$.feList.selectionEnabled = true;
+        }, 10)
     });
 
     // Prevent drag and drop default behaviour on the page
@@ -435,5 +437,8 @@
     window.addEventListener('dragover', function(event) {
         event.preventDefault();
         return false;
+    });
+    window.addEventListener('admin-component-url-path', (evt)=>{
+        page(evt.detail.path);
     });
 })(document);

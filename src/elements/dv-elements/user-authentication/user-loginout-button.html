@@ -1,4 +1,4 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../bower_components/iron-collapse/iron-collapse.html">
 
@@ -10,117 +10,120 @@
 <link rel="import" href="user-login-page.html">
 
 <dom-module id="user-loginout-button">
-    <style>
-        :host {
-            align-self: center;
-        }
-        paper-button {
-            text-transform: initial !important;
-            font-size: 0.7em;
-        }
-        #logout {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding-right: 5px;
-            padding-left: 5px;
-        }
-        #logout:hover {
-            background: dimgray;
-        }
-        paper-dropdown-menu {
-            width: 24px;
-            --paper-dropdown-menu-icon: {
-                fill: white;
-            };
-            --paper-input-container-underline: {
-                display: none;
-            };
-            --paper-input-container-input: {
-                display: none !important;
-            };
-        }
-        .header {
-            padding-bottom: 10px;
-        }
-        .collapse-content {
-            padding: 5px;
-            border: 1px solid #dedede;
-            font-size: 0.7em;
-            white-space:normal !important;
-            max-width: 350px;
-        }
-        .uid, .gid, .hmdir {
-            width: 100%;
-            height: 40px;
-            display: flex;
-            align-items: center;
-        }
-        .uid > span, .gid > span, .hmdir > span {
-            flex:1;
-            font-size: 0.7em;
-            margin-left: 7px;
-        }
-        .guid {
-            background: #efefef;
-            border-top: 1px solid #424242;
-        }
-        .rotate {
-            -webkit-animation-name: rotate;
-            -webkit-animation-duration:3s;
-            -webkit-animation-iteration-count: 1;
-            -webkit-animation-timing-function: ease;
-            -webkit-animation-fill-mode: forwards;
-            animation-name: rotate;
-            animation-duration:0.5s;
-            animation-iteration-count: 1;
-            animation-timing-function: ease;
-            animation-fill-mode: forwards;
-        }
-
-        @-webkit-keyframes rotate {
-            from {
-                -webkit-transform: rotate(0deg);
-            }
-            to {
-                -webkit-transform: rotate(180deg);
-            }
-        }
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(180deg);
-            }
-        }
-        paper-icon-button {
-            width: 34px;
-            height: 34px;
-            color: #333;
-        }
-        .usernameContainer {
-            display: flex;
-            background: #616161;
-            color: lime;
-            flex-direction: column;
-            padding:5px;
-        }
-        .username > div {
-            flex: 0 1 auto;
-            max-width: 350px;
-        }
-        .username > div > code {
-            word-wrap: break-word;
-        }
-    </style>
     <template>
+        <style>
+            :host {
+                align-self: center;
+            }
+            paper-button {
+                text-transform: initial !important;
+                font-size: 0.7em;
+            }
+            #logout {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding-right: 5px;
+                padding-left: 5px;
+            }
+            #logout:hover {
+                background: dimgray;
+            }
+            paper-dropdown-menu {
+                width: 24px;
+                --paper-dropdown-menu-icon: {
+                    fill: white;
+                };
+                --paper-input-container-underline: {
+                    display: none;
+                };
+                --paper-input-container-input: {
+                    display: none !important;
+                };
+            }
+            .header {
+                padding-bottom: 10px;
+            }
+            .collapse-content {
+                padding: 5px;
+                border: 1px solid #dedede;
+                font-size: 0.7em;
+                white-space:normal !important;
+                max-width: 350px;
+            }
+            .uid, .gid, .hmdir {
+                width: 100%;
+                height: 40px;
+                display: flex;
+                align-items: center;
+            }
+            .uid > span, .gid > span, .hmdir > span {
+                flex:1;
+                font-size: 0.7em;
+                margin-left: 7px;
+            }
+            .guid {
+                background: #efefef;
+                border-top: 1px solid #424242;
+            }
+            .rotate {
+                -webkit-animation-name: rotate;
+                -webkit-animation-duration:3s;
+                -webkit-animation-iteration-count: 1;
+                -webkit-animation-timing-function: ease;
+                -webkit-animation-fill-mode: forwards;
+                animation-name: rotate;
+                animation-duration:0.5s;
+                animation-iteration-count: 1;
+                animation-timing-function: ease;
+                animation-fill-mode: forwards;
+            }
+
+            @-webkit-keyframes rotate {
+                from {
+                    -webkit-transform: rotate(0deg);
+                }
+                to {
+                    -webkit-transform: rotate(180deg);
+                }
+            }
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(180deg);
+                }
+            }
+            paper-icon-button {
+                width: 34px;
+                height: 34px;
+                color: #333;
+            }
+            .usernameContainer {
+                display: flex;
+                background: #616161;
+                color: lime;
+                flex-direction: column;
+                padding:5px;
+            }
+            .username > div {
+                flex: 0 1 auto;
+                max-width: 350px;
+            }
+            .username > div > code {
+                word-wrap: break-word;
+            }
+            .hide {
+                display: none !important;
+            }
+        </style>
         <paper-button on-tap="_login" id="login" style="border: 1px solid white;">log in</paper-button>
         <div id="logout" on-tap="_openDropdown">
             <iron-icon icon="icons:account-circle"></iron-icon>
             <paper-dropdown-menu id="logoutDropdown" noink no-animations no-label-float
                                  dynamic-align horizontal-align="left" vertical-align="bottom">
-                <paper-listbox class="dropdown-content" style="padding: 0px !important;">
+                <paper-listbox slot="dropdown-content" style="padding: 0px !important;">
                     <paper-card>
                         <div class="card-content">
                             <div class="header">
@@ -172,58 +175,67 @@
         </div>
     </template>
     <script>
-        UserLoginoutButton = Polymer({
-            is: 'user-loginout-button',
-            properties: {
-                upauth: {
-                    type: String,
-                    value: function () {
-                        // TODO: Add functionality to support storing auth for longer period
-                        return sessionStorage.upauth;
-                    },
-                    notify: true
-                },
-                username: {
-                    type: String,
-                    notify: true
-                },
-                uid: {
-                    type: String,
-                    notify: true
-                },
-                gids: {
-                    type: String,
-                    notify: true
-                },
-                homeDir: {
-                    type: String,
-                    notify: true
-                },
-                pgRoute: {
-                    type: String,
-                    notify: true
-                },
-            },
-
-            observers: [
-                'authenticationCheck(upauth)'
-            ],
-
-            ready: function ()
+        class UserLoginoutButton extends Polymer.Element
+        {
+            static get is()
             {
+                return 'user-loginout-button';
+            }
+            ready()
+            {
+                super.ready();
                 if (typeof(Storage) === "undefined") {
                     app.$.toast.text = 'Sorry! No Web Storage support... ';
                     app.$.toast.show();
                 }
                 this.authenticationStatus(this.upauth);
-            },
+            }
 
-            authenticationCheck: function (upauth)
+            static get properties()
+            {
+                return {
+                    upauth: {
+                        type: String,
+                        value: function () {
+                            // TODO: Add functionality to support storing auth for longer period
+                            return sessionStorage.upauth;
+                        },
+                        notify: true
+                    },
+                    username: {
+                        type: String,
+                        notify: true
+                    },
+                    uid: {
+                        type: String,
+                        notify: true
+                    },
+                    gids: {
+                        type: String,
+                        notify: true
+                    },
+                    homeDir: {
+                        type: String,
+                        notify: true
+                    },
+                    pgRoute: {
+                        type: String,
+                        notify: true
+                    }
+                }
+            }
+            static get observers()
+            {
+                return [
+                    'authenticationCheck(upauth)'
+                ]
+            }
+            authenticationCheck(upauth)
             {
                 this.authenticationStatus(upauth);
-            },
+            }
 
-            _login: function()
+            _login()
             {
                 let pathName;
                 if (this.pgRoute === "home") {
@@ -238,23 +250,23 @@
                 }
 
                 page(pathName);
-            },
+            }
 
-            _logout: function()
+            _logout()
             {
                 this.__clearSessionStorage();
                 Polymer.dom.flush();
                 this.updateStyles();
                 window.location.reload();
-            },
+            }
 
-            _diffuser: function ()
+            _diffuser()
             {
                 this.__clearSessionStorage();
                 this._login();
-            },
+            }
 
-            __clearSessionStorage: function ()
+            __clearSessionStorage()
             {
                 sessionStorage.clear();
                 this.upauth = null;
@@ -263,62 +275,65 @@
                 this.gids = null;
                 window.CONFIG.isSomebody = false;
                 app.notifyPath('config.isSomebody');
-            },
+            }
 
-            _openDropdown: function ()
+            _openDropdown()
             {
                 this.$.logoutDropdown.open();
-            },
+            }
 
-            authenticationStatus: function (upauth)
+            authenticationStatus(upauth)
             {
                 if ( upauth === null || upauth === "" || upauth === undefined ) {
-                    this.$.login.hidden = false;
-                    this.$.logout.hidden = true;
+                    this.$.login.classList.remove("hide");
+                    this.$.logout.classList.add("hide");
                 } else {
-                    this.$.login.hidden = true;
-                    this.$.logout.hidden = false;
+                    this.$.login.classList.add("hide");
+                    this.$.logout.classList.remove("hide");
                     this.username = this._returnSessionValues("name");
                     this.uid = this._returnSessionValues("uid");
                     this.gids = this._returnSessionValues("gids");
                     this.homeDir = this._returnSessionValues("homeDirectory");
                 }
-            },
+                this.updateStyles();
+            }
 
-            _returnSessionValues: function (item) {
-                var a = sessionStorage.getItem(item);
-                if (a != null || a !== undefined) {
+            _returnSessionValues(item)
+            {
+                const a = sessionStorage.getItem(item);
+                if (a !== null || a !== undefined) {
                     return a;
                 } else {
                     return "no " + item;
                 }
-            },
+            }
 
-            _uid: function (e)
+            _uid(e)
             {
                 e.stopPropagation();
                 this._showMore(this.$.uid, this.$.uidButton);
                 e.stopPropagation();
-            },
+            }
 
-            _gid: function (e)
+            _gid(e)
             {
                 e.stopPropagation();
                 this._showMore(this.$.gid, this.$.gidButton);
                 e.stopPropagation();
-            },
-            _hmdir: function (e)
+            }
+            _hmdir(e)
             {
                 e.stopPropagation();
                 this._showMore(this.$.hmDir, this.$.hmDirButton);
                 e.stopPropagation();
-            },
-            _showMore: function (feCollapseNode, btn)
+            }
+            _showMore(feCollapseNode, btn)
             {
                 feCollapseNode.toggle();
                 btn.parentNode.classList.toggle("guid");
                 btn.classList.toggle("rotate");
             }
-        });
+        }
+        window.customElements.define(UserLoginoutButton.is, UserLoginoutButton);
     </script>
 </dom-module>

@@ -7,166 +7,166 @@
 <link rel="import" href="login-form.html">
 
 <dom-module id="loginform-with-openid">
-    <style>
-        @media only screen and (max-width: 740px) {
-            /* smaller screen: */
-            :host {
-                display: flex;
-                margin-top: 16px;
-            }
-
-            #openIDs, #divider, login-form {
-                width: 300px !important;
-            }
-            #openIDs paper-button {
-                width: 300px !important;
-                text-transform: none !important;
-                background: #ccc;
-                color: #373737;
-                margin: 0;
-            }
-            #divider {
-                box-sizing: border-box;
-                display: flex;
-                justify-content: center;
-                margin-top: 20px;
-            }
-            #divider div {
-                width: 100%;
-                text-align: center;
-                border-bottom: 1px solid #b0b0b0;
-                line-height: 0.1em;
-                margin: 10px 0 20px;
-            }
-
-            #divider div span {
-                background: #686868;
-                padding:0 10px;
-                color: #fafafa;
-                font-size: 12px;
-                letter-spacing: 1px;
-            }
-            neon-animated-pages {
-                flex: 1 auto;
-            }
-            neon-animatable:nth-child(1) {
-                width: 300px;
-                margin: 16px auto;
-            }
-
-            /* TODO:  below is the sama with the larger screen setting; factor out */
-            neon-animatable:nth-child(2) {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                height: calc(100vh - 25vh - 89px);
-                margin-top: -16px;
-            }
-            neon-animatable:nth-child(2) #providersContainer {
-                box-sizing: border-box;
-                margin: 10px;
-                max-height: calc(100vh - 25vh - 89px - 75px);
-                padding-bottom: 45px;
-                overflow-y: scroll;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            #providersContainer paper-button {
-                background: #ccc;
-                color: #383838;
-                margin: 0.5em;
-                padding: 0.5em 1em;
-                max-width: 300px !important; /* TODO: remember to add ellipsis */
-            }
-        }
-        @media only screen and (min-width: 740px) {
-            /* larger screen: */
-            :host {
-                display: flex;
-                margin-top: 16px;
-            }
-
-            login-form {
-                width: 300px !important;
-            }
-            #openIDs paper-button {
-                width: 300px !important;
-                text-transform: none !important;
-                background: #ccc;
-                color: #373737;
-                margin: 0;
-            }
-
-            #divider {
-                height: 200px;
-                width: 50px;
-            }
-            #divider div {
-                position: relative;
-                height: 200px;
-                text-align: center;
-            }
-            #divider div:after {
-                content: " ";
-                position: absolute;
-                left: 50%;
-                height: 100%;
-                border-left: 1px solid #b0b0b0;
-            }
-            #divider div span {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                padding: 5px;
-                color: #fafafa;
-                font-size: 12px;
-                letter-spacing: 1px;
-                background: #686868;
-                transform: translateX(-50%) translateY(-50%);
-                z-index: 1;
-            }
-
-            neon-animated-pages {
-                flex: 1 auto;
-            }
-            neon-animatable{
-                display: flex;
-            }
-            neon-animatable:nth-child(1) {
-                margin-top: 15px;
-                height: 200px;
-                align-items: center;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-
-            neon-animatable:nth-child(2) {
-                flex-direction: column;
-                align-items: center;
-                height: calc(100vh - 25vh - 89px);
-                margin-top: -16px;
-            }
-            neon-animatable:nth-child(2) #providersContainer {
-                box-sizing: border-box;
-                margin: 10px;
-                max-height: calc(100vh - 25vh - 89px - 75px);
-                padding-bottom: 45px;
-                overflow-y: scroll;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            #providersContainer paper-button {
-                background: #ccc;
-                color: #383838;
-                margin: 0.5em;
-                padding: 0.5em 1em;
-                max-width: 300px !important; /* TODO: remember to add ellipsis */
-            }
-        }
-    </style>
     <template>
+        <style>
+            @media only screen and (max-width: 740px) {
+                /* smaller screen: */
+                :host {
+                    display: flex;
+                    margin-top: 16px;
+                }
+
+                #openIDs, #divider, login-form {
+                    width: 300px !important;
+                }
+                #openIDs paper-button {
+                    width: 300px !important;
+                    text-transform: none !important;
+                    background: #ccc;
+                    color: #373737;
+                    margin: 0;
+                }
+                #divider {
+                    box-sizing: border-box;
+                    display: flex;
+                    justify-content: center;
+                    margin-top: 20px;
+                }
+                #divider div {
+                    width: 100%;
+                    text-align: center;
+                    border-bottom: 1px solid #b0b0b0;
+                    line-height: 0.1em;
+                    margin: 10px 0 20px;
+                }
+
+                #divider div span {
+                    background: #686868;
+                    padding:0 10px;
+                    color: #fafafa;
+                    font-size: 12px;
+                    letter-spacing: 1px;
+                }
+                neon-animated-pages {
+                    flex: 1 auto;
+                }
+                neon-animatable:nth-child(1) {
+                    width: 300px;
+                    margin: 16px auto;
+                }
+
+                /* TODO:  below is the sama with the larger screen setting; factor out */
+                neon-animatable:nth-child(2) {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    height: calc(100vh - 25vh - 89px);
+                    margin-top: -16px;
+                }
+                neon-animatable:nth-child(2) #providersContainer {
+                    box-sizing: border-box;
+                    margin: 10px;
+                    max-height: calc(100vh - 25vh - 89px - 75px);
+                    padding-bottom: 45px;
+                    overflow-y: scroll;
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                #providersContainer paper-button {
+                    background: #ccc;
+                    color: #383838;
+                    margin: 0.5em;
+                    padding: 0.5em 1em;
+                    max-width: 300px !important; /* TODO: remember to add ellipsis */
+                }
+            }
+            @media only screen and (min-width: 740px) {
+                /* larger screen: */
+                :host {
+                    display: flex;
+                    margin-top: 16px;
+                }
+
+                login-form {
+                    width: 300px !important;
+                }
+                #openIDs paper-button {
+                    width: 300px !important;
+                    text-transform: none !important;
+                    background: #ccc;
+                    color: #373737;
+                    margin: 0;
+                }
+
+                #divider {
+                    height: 200px;
+                    width: 50px;
+                }
+                #divider div {
+                    position: relative;
+                    height: 200px;
+                    text-align: center;
+                }
+                #divider div:after {
+                    content: " ";
+                    position: absolute;
+                    left: 50%;
+                    height: 100%;
+                    border-left: 1px solid #b0b0b0;
+                }
+                #divider div span {
+                    position: absolute;
+                    left: 50%;
+                    top: 50%;
+                    padding: 5px;
+                    color: #fafafa;
+                    font-size: 12px;
+                    letter-spacing: 1px;
+                    background: #686868;
+                    transform: translateX(-50%) translateY(-50%);
+                    z-index: 1;
+                }
+
+                neon-animated-pages {
+                    flex: 1 auto;
+                }
+                neon-animatable{
+                    display: flex;
+                }
+                neon-animatable:nth-child(1) {
+                    margin-top: 15px;
+                    height: 200px;
+                    align-items: center;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+
+                neon-animatable:nth-child(2) {
+                    flex-direction: column;
+                    align-items: center;
+                    height: calc(100vh - 25vh - 89px);
+                    margin-top: -16px;
+                }
+                neon-animatable:nth-child(2) #providersContainer {
+                    box-sizing: border-box;
+                    margin: 10px;
+                    max-height: calc(100vh - 25vh - 89px - 75px);
+                    padding-bottom: 45px;
+                    overflow-y: scroll;
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                #providersContainer paper-button {
+                    background: #ccc;
+                    color: #383838;
+                    margin: 0.5em;
+                    padding: 0.5em 1em;
+                    max-width: 300px !important; /* TODO: remember to add ellipsis */
+                }
+            }
+        </style>
         <neon-animated-pages id="pages" selected="[[selected]]" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]">
             <neon-animatable>
                 <div id="openIDs">
@@ -202,27 +202,35 @@
         </neon-animated-pages>
     </template>
     <script>
-        LoginformWithOpenid = Polymer({
-            is: "loginform-with-openid",
-
-            properties: {
-                openIDproviders: {
-                    type: Array,
-                    notify: true
-                },
-                selected: {
-                    type: Number,
-                    value: 0,
-                    notify: true
-                },
-                redirectTo: {
-                    type: Object,
-                    notify: true
-                }
-            },
-
-            ready: function()
+        class LoginformWithOpenid extends Polymer.Element
+        {
+            static get is()
             {
+                return "loginform-with-openid";
+            }
+
+            static get properties()
+            {
+                return {
+                    openIDproviders: {
+                        type: Array,
+                        notify: true
+                    },
+                    selected: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+                    redirectTo: {
+                        type: Object,
+                        notify: true
+                    }
+                };
+            }
+
+            ready()
+            {
+                super.ready();
                 let a = window.CONFIG["dcache-view.oidc-provider-name-list"].trim().split(" ");
                 let b = window.CONFIG["dcache-view.oidc-client-id-list"].trim().split(" ");
                 let c = window.CONFIG["dcache-view.oidc-authz-endpoint-list"].trim().split(" ");
@@ -234,23 +242,23 @@
 
                 this.openIDproviders = [JSON.parse(jsonString.slice(0,-1))];
 
-            },
+            }
 
-            _showAllAvailableProviders: function ()
+            _showAllAvailableProviders ()
             {
                 this.entryAnimation = 'slide-from-right-animation';
                 this.exitAnimation = 'slide-left-animation';
                 this.selected = 1;
-            },
+            }
 
-            _backToMain: function()
+            _backToMain()
             {
                 this.entryAnimation = 'slide-from-left-animation';
                 this.exitAnimation = 'slide-right-animation';
                 this.selected = 0;
-            },
+            }
 
-            _connect: function (e)
+            _connect (e)
             {
                 sessionStorage.removeItem('nonce');
                 const id = e.target.getAttribute('data-id');
@@ -270,12 +278,12 @@
                     '&scope=openid%20profile%20email' +
                     '&nonce=' + nonce +
                     '&prompt=consent';
-            },
+            }
 
             /**
              * Consider moving @this._entropy & @this._generateNonce into dv.js
              */
-            _entropy: function(str)
+            _entropy(str)
             {
                 let a = str.split(""),
                     len = a.length;
@@ -287,9 +295,9 @@
                     a[j] = tmp;
                 }
                 return a.join("");
-            },
+            }
 
-            _generateNonce: function()
+            _generateNonce()
             {
                 let ints = new Uint32Array(8);
                 window.crypto.getRandomValues(ints);
@@ -300,6 +308,7 @@
 
                 return nonce;
             }
-        })
+        }
+        window.customElements.define(LoginformWithOpenid.is, LoginformWithOpenid);
     </script>
 </dom-module>

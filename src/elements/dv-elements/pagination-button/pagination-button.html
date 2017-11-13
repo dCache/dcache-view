@@ -1,118 +1,127 @@
-<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../utils/ajax-ls/view-file.html">
 <link rel="import" href="../drag-and-drop/dnd-upload.html">
 
 <dom-module id="pagination-button">
-    <style>
-        :host{
-            display: inline-block;
-            /*Prevent text selection after double click*/
-            -webkit-user-select: none; /* webkit (safari, chrome) browsers */
-            -moz-user-select: none; /* mozilla browsers */
-            -khtml-user-select: none; /* webkit (konqueror) browsers */
-            -ms-user-select: none; /* IE10+ */
-        }
-        div {
-            display: inline;
-        }
-        a {
-            color: black;
-            float: left;
-            padding: 8px 16px;
-            text-decoration: none;
-            border: 1px solid #fafafa;
-            transition: background-color .3s;
-            font-size: 13px;
-            background-color: #fafafa;
-            border-radius: 3px;
-            margin: 0 1px;
-        }
-        a.active {
-            background-color: #fff;
-            color: #000;
-            border: 1px solid #b9babb;
-        }
-        a:hover:not(.active) {
-            background-color: #efefef;
-            cursor:pointer;
-            border: 1px solid #f44336;
-        }
-
-        .dragEnter {
-            border: 1px solid #0e5aff;
-        }
-
-    </style>
     <template>
+        <style>
+            :host{
+                display: inline-block;
+                /*Prevent text selection after double click*/
+                 -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+                 -moz-user-select: none; /* mozilla browsers */
+                 -khtml-user-select: none; /* webkit (konqueror) browsers */
+                 -ms-user-select: none; /* IE10+ */
+            }
+            div {
+                display: inline;
+            }
+            a {
+                color: black;
+                float: left;
+                padding: 8px 16px;
+                text-decoration: none;
+                border: 1px solid #fafafa;
+                transition: background-color .3s;
+                font-size: 13px;
+                background-color: #fafafa;
+                border-radius: 3px;
+                margin: 0 1px;
+            }
+            a.active {
+                background-color: #fff;
+                color: #000;
+                border: 1px solid #b9babb;
+            }
+            a:hover:not(.active) {
+                background-color: #efefef;
+                cursor:pointer;
+                border: 1px solid #f44336;
+            }
+
+            .dragEnter {
+                border: 1px solid #0e5aff;
+            }
+        </style>
         <div><a on-tap="_ref">{{name}}</a></div>
     </template>
     <script>
-        PaginationButton = Polymer({
-            is: 'pagination-button',
-
-            properties: {
-                /**
-                 * Directory Name
-                 */
-                name: {
-                    type: String,
-                    notify: true
-                },
-
-                /**
-                 * Full path to the directory
-                 */
-                filePath: {
-                    type: String,
-                    notify: true
-                },
-
-                active: {
-                    type: String,
-                    notify: true,
-                    value: false,
-                    observer: '_activeChanged'
-                },
-
-                counter: {
-                    type: Number,
-                    value: 0,
-                    notify: true
-                }
-            },
-
-            factoryImpl: function(dirName, canonicalPath)
+        class PaginationButton extends Polymer.Element
+        {
+            constructor(dirName, canonicalPath)
             {
+                super();
                 this.name = dirName;
                 this.filePath = canonicalPath;
-            },
+            }
 
-            attached: function ()
+            static get is()
             {
-                this.listen(this, 'drop', '_drop');
-                this.listen(this, 'dragenter', '_dragenter');
-                this.listen(this, 'dragleave', '_dragleave');
-            },
+                return 'pagination-button';
+            }
 
-            detached: function ()
+            static get properties()
             {
-                this.unlisten(this, 'drop', '_drop');
-                this.unlisten(this, 'dragenter', '_dragenter');
-                this.unlisten(this, 'dragleave', '_dragleave');
-            },
+                return {
+                    /**
+                     * Directory Name
+                     */
+                    name: {
+                        type: String,
+                        notify: true
+                    },
 
-            _ref: function()
+                    /**
+                     * Full path to the directory
+                     */
+                    filePath: {
+                        type: String,
+                        notify: true
+                    },
+
+                    active: {
+                        type: String,
+                        notify: true,
+                        value: false,
+                        observer: '_activeChanged'
+                    },
+
+                    counter: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    }
+                }
+            }
+
+            connectedCallback()
+            {
+                super.connectedCallback();
+                this.addEventListener('drop', this._drop);
+                this.addEventListener('dragenter', this._dragenter);
+                this.addEventListener('dragleave', this._dragleave);
+            }
+
+            disconnectedCallback()
+            {
+                super.disconnectedCallback();
+                this.removeEventListener('drop', this._drop);
+                this.removeEventListener('dragenter', this._dragenter);
+                this.removeEventListener('dragleave', this._dragleave);
+            }
+
+            _ref()
             {
                 app.ls(this.filePath);
-            },
+            }
 
-            _activeChanged: function ()
+            _activeChanged()
             {
-                this.querySelector('a').classList.add("active");
-            },
+                this.shadowRoot.querySelector('a').classList.add("active");
+            }
 
-            _drop: function (e)
+            _drop(e)
             {
                 event.stopPropagation();
                 event.preventDefault && event.preventDefault();
@@ -122,34 +131,35 @@
                     upload.isCurrentView = this.filePath === app.$.homedir.querySelector('view-file').path;
                     upload.start(event);
                 e.stopPropagation();
-            },
+            }
 
-            _dragenter: function (e)
+            _dragenter(e)
             {
                 e.stopPropagation();
                 event.preventDefault && event.preventDefault();
                     this.counter++;
                     app.$.dropZoneContent.querySelector('drag-enter-toast').directoryName = this.name;
-                    if (!app.$.dropZoneToast.opened){
+                    if (!app.$.dropZoneToast.opened) {
                         app.$.dropZoneToast.open();
                     }
-                    Polymer.dom(this.root).querySelector('a').classList.add('dragEnter');
+                    this.shadowRoot.querySelector('a').classList.add('dragEnter');
                     app.delayTact(this);
                 e.stopPropagation();
-            },
+            }
 
-            _dragleave: function (e)
+            _dragleave(e)
             {
                 e.stopPropagation();
                 event.preventDefault && event.preventDefault();
                     this.counter--;
                     if (this.counter === 0) {
                         //app.$.dropZoneToast.close();
-                        Polymer.dom(this.root).querySelector('a').classList.remove('dragEnter');
+                        this.shadowRoot.querySelector('a').classList.remove('dragEnter');
                         app.clearDelayedLs();
                     }
                 e.stopPropagation();
             }
-        });
+        }
+        window.customElements.define(PaginationButton.is, PaginationButton);
     </script>
 </dom-module>

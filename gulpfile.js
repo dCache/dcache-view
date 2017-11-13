@@ -36,7 +36,7 @@ gulp.task('copy-robots', function() {
 
 gulp.task('copy-webcomponents', function() {
     return gulp.src([
-        './src/bower_components/webcomponentsjs/webcomponents-lite.min.js'
+        './src/bower_components/webcomponentsjs/*'
     ], {
         base: ''
     })

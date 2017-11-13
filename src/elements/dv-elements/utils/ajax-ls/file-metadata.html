@@ -1,4 +1,4 @@
-<link rel="import" href="../../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../../../bower_components/iron-collapse/iron-collapse.html">
@@ -16,127 +16,128 @@
 <link rel="import" href="../../directory-ls-message/directory-ls-error.html">
 
 <dom-module id="file-metadata">
-    <style>
-        :host {
-            height: 100%;
-            margin: 0;
-            width: 100%;
-        }
-        .dir {
-            --iron-icon-fill-color:#4FC3F7;
-        }
-        .spacer {
-            margin-left: 10px !important;
-        }
-        paper-scroll-header-panel {
-            height: 100%;
-        }
-        paper-toolbar {
-            background: #fafafa;
-            color: #333;
-        }
-        .content {
-            padding: 2px 7px;
-            background: #eee;
-            width: 100%;
-        }
-        .content #content {
-            width: 100%;
-        }
-        .cafe-light {
-            color: var(--paper-grey-600);
-        }
-        .cafe-header {
-            @apply(--paper-font-headline);
-        }
-        .cafe-light {
-            color: var(--paper-grey-600);
-        }
-        .cafe-location {
-            float: right;
-            font-size: 15px;
-            vertical-align: middle;
-        }
-        .flex, #qosActionsButtons {
-            display: flex;
-        }
-        #qosActionsButtons > paper-button {
-            text-transform: capitalize;
-            font-size: 0.7em;
-            flex: 1 1 auto;
-        }
-        paper-button[disabled] {
-            color: #a8a8a8;
-        }
-        .collapse-header {
-            width: 100%;
-            height: 40px;
-            display: flex;
-            align-items: center;
-        }
-        .collapse-header > span {
-            flex:1;
-            font-size: 0.7em;
-            margin-left: 7px;
-        }
-        .collapse-content > paper-icon-button {
-            width: 34px;
-            height: 34px;
-            color: #333;
-        }
-        .collapse-content {
-            padding: 5px;
-            border: 1px solid #dedede;
-            font-size: 0.7em;
-            white-space:normal !important;
-            max-width: 350px;
-        }
-        .clicked {
-            background: #efefef;
-            border-top: 1px solid #424242;
-        }
-        .rotate {
-            -webkit-animation-name: rotate;
-            -webkit-animation-duration:3s;
-            -webkit-animation-iteration-count: 1;
-            -webkit-animation-timing-function: ease;
-            -webkit-animation-fill-mode: forwards;
-            animation-name: rotate;
-            animation-duration:0.5s;
-            animation-iteration-count: 1;
-            animation-timing-function: ease;
-            animation-fill-mode: forwards;
-        }
-        .key {
-            text-transform:capitalize;
-        }
-
-        @-webkit-keyframes rotate {
-            from {
-                -webkit-transform: rotate(0deg);
-            }
-            to {
-                -webkit-transform: rotate(180deg);
-            }
-        }
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(180deg);
-            }
-        }
-    </style>
     <template>
+        <style>
+            :host {
+                height: 100%;
+                margin: 0;
+                width: 100%;
+            }
+            .dir {
+                --iron-icon-fill-color:#4FC3F7;
+            }
+            .spacer {
+                margin-left: 10px !important;
+            }
+            paper-scroll-header-panel {
+                height: 100%;
+            }
+            paper-toolbar {
+                background: #fafafa;
+                color: #333;
+            }
+            .content {
+                padding: 2px 7px;
+                background: #eee;
+                width: 100%;
+            }
+            .content #content {
+                width: 100%;
+            }
+            .cafe-light {
+                color: var(--paper-grey-600);
+            }
+            .cafe-header {
+                @apply(--paper-font-headline);
+            }
+            .cafe-light {
+                color: var(--paper-grey-600);
+            }
+            .cafe-location {
+                float: right;
+                font-size: 15px;
+                vertical-align: middle;
+            }
+            .flex, #qosActionsButtons {
+                display: flex;
+            }
+            #qosActionsButtons > paper-button {
+                text-transform: capitalize;
+                font-size: 0.7em;
+                flex: 1 1 auto;
+            }
+            paper-button[disabled] {
+                color: #a8a8a8;
+            }
+            .collapse-header {
+                width: 100%;
+                height: 40px;
+                display: flex;
+                align-items: center;
+            }
+            .collapse-header > span {
+                flex:1;
+                font-size: 0.7em;
+                margin-left: 7px;
+            }
+            .collapse-content > paper-icon-button {
+                width: 34px;
+                height: 34px;
+                color: #333;
+            }
+            .collapse-content {
+                padding: 5px;
+                border: 1px solid #dedede;
+                font-size: 0.7em;
+                white-space:normal !important;
+                max-width: 350px;
+            }
+            .clicked {
+                background: #efefef;
+                border-top: 1px solid #424242;
+            }
+            .rotate {
+                -webkit-animation-name: rotate;
+                -webkit-animation-duration:3s;
+                -webkit-animation-iteration-count: 1;
+                -webkit-animation-timing-function: ease;
+                -webkit-animation-fill-mode: forwards;
+                animation-name: rotate;
+                animation-duration:0.5s;
+                animation-iteration-count: 1;
+                animation-timing-function: ease;
+                animation-fill-mode: forwards;
+            }
+            .key {
+                text-transform:capitalize;
+            }
+
+            @-webkit-keyframes rotate {
+                from {
+                    -webkit-transform: rotate(0deg);
+                }
+                to {
+                    -webkit-transform: rotate(180deg);
+                }
+            }
+            @keyframes rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(180deg);
+                }
+            }
+        </style>
         <paper-scroll-header-panel class="flex" fixed>
 
-            <paper-toolbar>
-                <div class="spacer title">Metadata Info</div>
-                <paper-icon-button icon="close" title="close" id="closeFileMetadataPanel"></paper-icon-button>
+            <paper-toolbar slot="header">
+                <div slot="top" class="spacer title">Metadata Info</div>
+                <paper-icon-button slot="top" icon="close"
+                                   title="close" id="closeFileMetadataPanel"></paper-icon-button>
             </paper-toolbar>
 
-            <div class="content">
+            <div class="content" slot="content">
                 <iron-ajax id="ajax"
                         auto
                         url="[[url]]"
@@ -252,87 +253,11 @@
         </paper-scroll-header-panel>
     </template>
     <script>
-        FileMetadata = Polymer({
-            is: 'file-metadata',
-
-            properties: {
-                fileName: {
-                    type: String,
-                    notify: true
-                },
-
-                path: {
-                    type: String,
-                    notify: true
-                },
-
-                fileType: {
-                    type: String,
-                    notify: true
-                },
-
-                cTime: {
-                    type: String,
-                    notify: true
-                },
-
-                mTime: {
-                    type: String,
-                    notify: true
-                },
-
-                currentQos: {
-                    type: String,
-                    notify: true
-                },
-
-                parentPath: {
-                    type: String,
-                    notify: true,
-                    computed:'_computeParent(path)'
-                },
-
-                headers: {
-                    type: String,
-                    notify: true,
-                },
-
-                url: {
-                    type: String,
-                    notify: true,
-                },
-
-                isSomebody: {
-                    type: Boolean,
-                    notify: true
-                },
-
-                isRegular: {
-                    type: Boolean,
-                    notify: true
-                },
-
-                index: {
-                    type: Number,
-                    notify: true
-                },
-
-                _loadingBackendQosInfo: {
-                    type: Boolean,
-                    value: true,
-                    notify: true
-                },
-                possibleTransition: {
-                    type: Array,
-                    value: function () {
-                        return window.CONFIG.qos;
-                    },
-                    notify: true
-                }
-            },
-
-            factoryImpl: function(fileName, path, fileType, currentQos, index)
+        class FileMetadata extends Polymer.Element
+        {
+            constructor(fileName, path, fileType, currentQos, index)
             {
+                super();
                 this.fileName = fileName;
                 this.path = path;
                 this.fileType = fileType;
@@ -356,13 +281,104 @@
                     "Accept": "application/json",
                     "Suppress-WWW-Authenticate": "Suppress"
                 };
-            },
+            }
+            static get is()
+            {
+                return 'file-metadata';
+            }
 
-            listeners: {
-                'closeFileMetadataPanel.tap': '_closeFileMetadataPanel'
-            },
+            static get properties()
+            {
+                return {
+                    fileName: {
+                        type: String,
+                        notify: true
+                    },
 
-            _url: function(path)
+                    path: {
+                        type: String,
+                        notify: true
+                    },
+
+                    fileType: {
+                        type: String,
+                        notify: true
+                    },
+
+                    cTime: {
+                        type: String,
+                        notify: true
+                    },
+
+                    mTime: {
+                        type: String,
+                        notify: true
+                    },
+
+                    currentQos: {
+                        type: String,
+                        notify: true
+                    },
+
+                    parentPath: {
+                        type: String,
+                        notify: true,
+                        computed:'_computeParent(path)'
+                    },
+
+                    headers: {
+                        type: String,
+                        notify: true,
+                    },
+
+                    url: {
+                        type: String,
+                        notify: true,
+                    },
+
+                    isSomebody: {
+                        type: Boolean,
+                        notify: true
+                    },
+
+                    isRegular: {
+                        type: Boolean,
+                        notify: true
+                    },
+
+                    index: {
+                        type: Number,
+                        notify: true
+                    },
+
+                    _loadingBackendQosInfo: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+                    possibleTransition: {
+                        type: Array,
+                        value: function () {
+                            return window.CONFIG.qos;
+                        },
+                        notify: true
+                    }
+                }
+            }
+
+            connectedCallback()
+            {
+                super.connectedCallback();
+                this.$.closeFileMetadataPanel.addEventListener('tap', this._closeFileMetadataPanel);
+            }
+
+            disconnectedCallback()
+            {
+                super.disconnectedCallback();
+                this.$.closeFileMetadataPanel.removeEventListener('tap', this._closeFileMetadataPanel);
+            }
+
+            _url(path)
             {
                 let x;
                 const url  = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
@@ -373,9 +389,9 @@
                     x = isHome === true ? "/?children=true": path + "/?children=true";
                 }
                 return url + x;
-            },
+            }
 
-            _computeParent: function(path)
+            _computeParent(path)
             {
                 var parentPath = decodeURIComponent(app.params);
 
@@ -389,18 +405,18 @@
                     }
                 }
                 return parentPath;
-            },
+            }
 
-            _closeFileMetadataPanel: function(e)
+            _closeFileMetadataPanel(e)
             {
                 e.stopPropagation();
                 app.$.metadata.closeDrawer();
                 e.stopPropagation();
-            },
+            }
 
-            handleResponse: function(e, request)
+            handleResponse(e, request)
             {
-                x = request.xhr.response;
+                const x = request.xhr.response;
                 if (x != null || x != undefined || x != "" ) {
                     this.cTime = new Date(x.creationTime);
                     this.mTime = new Date(x.mtime);
@@ -408,9 +424,9 @@
                         this.currentQos = x.currentQos;
                     }
                 }
-            },
+            }
 
-            handleError: function (e, request)
+            handleError(e, request)
             {
                 var x;
                 var msg;
@@ -422,7 +438,7 @@
                 div.classList.add("card-content");
 
                 try {
-                    x = request.request.__data__.xhr.response.errors[0];
+                    x = request.request.__data.xhr.response.errors[0];
                     msg = x.message;
                     code = x.status;
                     switch (code) {
@@ -446,9 +462,9 @@
                 this.updateStyles();
 
                 e.stopPropagation();
-            },
+            }
 
-            _changeQos: function (e)
+            _changeQos(e)
             {
                 const target = e.target.getAttribute('data-transition-name');
                 const namespace = document.createElement('dcache-namespace');
@@ -479,9 +495,9 @@
                     path: path,
                     target: target
                 });
-            },
+            }
 
-            _details: function (e)
+            _details(e)
             {
                 for (let i = 0; i < e.path.length; i++) {
                     if (e.path[i].classList.contains("collapse-header")) {
@@ -490,25 +506,25 @@
                     }
                 }
 
-            },
+            }
 
-            _valueToString: function (arr)
+            _valueToString(arr)
             {
                 if (arr.toString() == "") {
                     return 'null';
                 }
                 return arr.toString();
-            },
+            }
 
-            _showMore: function (feCollapseNode, btn)
+            _showMore(feCollapseNode, btn)
             {
                 feCollapseNode.toggle();
                 btn.parentNode.classList.toggle("clicked");
                 btn.classList.toggle("rotate");
                 this._loadingBackendQosInfo = window.CONFIG.qos == undefined;
-            },
+            }
 
-            _computedDisabled: function (buttonName,currentQos)
+            _computedDisabled(buttonName,currentQos)
             {
                 if (buttonName == currentQos){
                     return true;
@@ -526,9 +542,9 @@
                         }
                     }
                 }
-            },
+            }
 
-            _getQosBackendMetadata: function (i)
+            _getQosBackendMetadata(i)
             {
                 let a = JSON.stringify(i);
                 a = a.slice(1, -1);
@@ -541,9 +557,9 @@
                     arr.push(JSON.parse(jsonString));
                 }
                 return arr;
-            },
+            }
 
-            _formatKey: function (str)
+            _formatKey(str)
             {
                 if (str.includes("cdmi_")) {
                     str = str.replace("cdmi_", "");
@@ -556,6 +572,7 @@
                 return str
             }
 
-        });
+        }
+        window.customElements.define(FileMetadata.is, FileMetadata);
     </script>
 </dom-module>
