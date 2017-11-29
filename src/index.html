@@ -190,6 +190,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             display: inline-block;
                         }
                         .shadow-2dp { @apply --shadow-elevation-2dp; }
+                        .toast-button {
+                            width: 16px !important;
+                            height: 16px !important;
+                            padding: 0 !important;
+                            margin-left: 10px !important;
+                            float:right;
+                            color: white;
+                        }
                     </style>
                 </custom-style>
                 <paper-header-panel class="flex" mode="standard" shadow id="dv-main-header">
@@ -366,7 +374,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                 <!-- HERE IS A CENTRAL TOAST -->
                 <paper-toast id="toast">
-                    <span class="toast-hide-button" role="button" tabindex="0" onclick="app.$.toast.hide()">Ok</span>
+                    <paper-icon-button icon="close" title="close"
+                                       class="toast-button" tabindex="0"
+                                       onclick="app.$.toast.hide()"></paper-icon-button>
                 </paper-toast>
 
                 <paper-toast id="uploadToast" text="Upload Status Panel" duration="0">

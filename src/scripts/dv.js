@@ -279,7 +279,7 @@
         if (sourcePath === destinationPath) {
             return;
         }
-
+        let errMsg;
         app.mvObj.files.forEach((file) => {
             let namespace = document.createElement('dcache-namespace');
             namespace.auth = app.getAuthValue();
@@ -334,13 +334,37 @@
                     }
                 }
             }).catch((err)=>{
-                app.$.toast.text = err.message + " ";
-                app.$.toast.show();
+                errMsg = err.message;
             });
         });
 
-        app.$.toast.text = app.mvObj.files.length + " files have been moved from " +
-            sourcePath + " to " + destinationPath + ". ";
+        if (errMsg === undefined) {
+            const div = document.createElement('div');
+            const boldSource = document.createElement('code');
+            const boldDestination = document.createElement('code');
+            boldSource.innerHTML = sourcePath;
+            boldDestination.innerHTML = destinationPath;
+
+            boldSource.setAttribute("style", "color:yellow; font-weight: bold;");
+            boldDestination.setAttribute("style", "color:yellow; font-weight: bold;");
+
+            div.appendChild(boldSource);
+            div.appendChild(document.createTextNode(" to destination path: "));
+            div.appendChild(boldDestination);
+            div.appendChild(document.createTextNode(". "));
+            div.setAttribute("style", "display:inline;");
+
+            app.$.toast.text = app.mvObj.files.length + " files have been moved from source path: ";
+            app.$.toast.insertBefore(div, app.$.toast.querySelector('span'));
+
+            app.$.toast.addEventListener('iron-overlay-closed', ()=>{
+                if (app.$.toast.contains(div)) {
+                    app.$.toast.removeChild(div);
+                }
+            });
+        } else {
+            app.$.toast.text = errMsg;
+        }
         app.$.toast.show();
         app.mvObj = {};
         app.$.homedir.querySelector('view-file').resetMultiSelection();
