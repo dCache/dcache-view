@@ -272,15 +272,22 @@
     app.dragNdropMoveFiles = function (destinationPath, dropFlag)
     {
         const currentViewPath = app.$.homedir.querySelector('view-file').path;
-        const sourcePath = app.mvObj.source;
+        const sourcePath = ((app.mvObj.source).length > 1  && (app.mvObj.source).endsWith("/")) ?
+            (app.mvObj.source).slice(0, -1) : app.mvObj.source;
+
+        // prevent moving file if destination and source path are the same
+        if (sourcePath === destinationPath) {
+            return;
+        }
+
         app.mvObj.files.forEach((file) => {
             let namespace = document.createElement('dcache-namespace');
             namespace.auth = app.getAuthValue();
 
             namespace.mv({
                 url: "/api/v1/namespace",
-                path: sourcePath + "/" + file.fileName,
-                destination: destinationPath + "/" + file.fileName
+                path: `${sourcePath}/${file.fileName}`,
+                destination: `${destinationPath}/${file.fileName}`
             });
 
             namespace.promise.then( () => {
