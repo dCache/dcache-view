@@ -44,6 +44,11 @@
         page('/admin/:component', function(data) {
             app.route = 'admin-component-page';
             app.params = data.params;
+
+            let isAdminView = app.$.billingPlotsContainer.querySelector('billing-plots-view') instanceof Polymer.Element;
+            if (app.params.component === "billing-plots" && !isAdminView) {
+                app.$.billingPlotsContainer.appendChild(new BillingPlotsView());
+            }
         });
 
         page('/user-login', function(ctx) {

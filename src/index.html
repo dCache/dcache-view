@@ -57,8 +57,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <style is="custom-style"
                            include="iron-flex iron-flex-alignment">
                         html {
-                            --paper-toolbar-background: #616161;
-
                             /*dCache View Color theme definition*/
                             --dv-blue-500: #2196F3;
                             --dv-blue-900: #0D47A1;
@@ -83,6 +81,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                             --dv-red-500: #F44336;
                             --dv-red-900: #B71C1C;
+
+                            --dv-light-grey: #d5d5d5;
+                            --dv-charcoal-grey: #616161;
+
+                            --dv-main-foreground: #333;
+                            --dv-main-background: #fafafa;
+
+                            --paper-toolbar-background: var(--dv-charcoal-grey);
                         }
                         body {
                             @apply(--layout-fullbleed);
@@ -95,13 +101,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             @apply(--layout-fit);
                         }
                         #listTableHeader {
-                            --paper-toolbar-background: #616161;
+                            --paper-toolbar-background: var(--dv-charcoal-grey);
                             --paper-toolbar-height: 45px;
                             border-bottom: solid 1px #ccc;
                             color: #fafafa;
                         }
                         paper-drawer-panel {
-                            --paper-drawer-panel-left-drawer-container: {background-color: #d5d5d5;};
+                            --paper-drawer-panel-left-drawer-container: {background-color: var(--dv-light-grey)};
                         }
                         #dv-page-navigator {
                             display: flex;
@@ -289,49 +295,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 <div main>
                                                     <iron-pages attr-for-selected="admin-component"
                                                                 selected="{{params.component}}">
+                                                        <section admin-component="alarms" class="fit"
+                                                                 style="background-color:#ECECEC;">
+                                                            <div id="alarmsContainer"/>
+                                                        </section>
                                                         <section admin-component="cell-services" class="fit"
                                                                  style="background-color:#ECECEC;">
-                                                            <div>Here is the page for Cell Services</div>
+                                                            <div id="cellInfoContainer"/>
                                                         </section>
-                                                        <section admin-component="pool-usage" class="fit"
+                                                        <section admin-component="pool-info" class="fit"
                                                                  style="background-color:#ECECEC;">
-                                                            <div>Here is the page for Pool Usage</div>
-                                                        </section>
-                                                        <section admin-component="pool-queues" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div>Here is the page for Pool Queues</div>
-                                                        </section>
-                                                        <section admin-component="pool-queue-plots" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div>Here is the page for Pool Queue Plots</div>
-                                                        </section>
-                                                        <section admin-component="pool-selection-setup" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div>Here is the page for the Pool Selection Setup</div>
-                                                        </section>
-                                                        <section admin-component="space-tokens" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div>Here is the page for the Space Tokens</div>
+                                                            <div id="poolInfoContainer"/>
                                                         </section>
                                                         <section admin-component="active-transfers" class="fit"
                                                                  style="background-color:#ECECEC;">
-                                                            <div>Here is the page for Active Transfers</div>
+                                                            <div id="transferContainer"/>
                                                         </section>
                                                         <section admin-component="tape-transfer-queue" class="fit"
                                                                  style="background-color:#ECECEC;">
-                                                            <div>Here is the page for the Tape Transfer Queue</div>
+                                                            <div id="restoresContainer"/>
                                                         </section>
                                                         <section admin-component="billing-plots" class="fit"
                                                                  style="background-color:#ECECEC;">
-                                                            <div>Here is the page for Billing Plots</div>
+                                                            <div id="billingPlotsContainer"/>
                                                         </section>
-                                                        <section admin-component="file-lifetime-plots" class="fit"
+                                                        <section admin-component="pool-plots" class="fit"
                                                                  style="background-color:#ECECEC;">
-                                                            <div>Here is the page for File Lifetime Plots</div>
+                                                            <div id="poolPlotsContainer"/>
                                                         </section>
-                                                        <section admin-component="alarms" class="fit"
+                                                        <section admin-component="pool-selection" class="fit"
                                                                  style="background-color:#ECECEC;">
-                                                            <div>Here is the page for Alarms</div>
+                                                            <div id="poolSelectionContainer"/>
+                                                        </section>
+                                                        <section admin-component="space-tokens" class="fit"
+                                                                 style="background-color:#ECECEC;">
+                                                            <div>Coming soon ... the Space Tokens</div>
                                                         </section>
                                                     </iron-pages>
                                                 </div>
@@ -385,6 +383,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <drag-enter-toast></drag-enter-toast>
                     </div>
                 </paper-toast>
+
+                <!-- PLACEHOLDER FOR STACKING INFO DIALOGS (ADMIN) -->
+                <div id="adminDialogs"></div>
             </template>
             <script src="scripts/dv.js"></script>
         </dom-bind>

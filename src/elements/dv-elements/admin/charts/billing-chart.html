@@ -1,0 +1,255 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/google-apis/google-apis.html">
+<link rel="import"
+      href="../../../../bower_components/google-chart/google-chart.html">
+<link rel="import"
+      href="../../../../bower_components/google-chart/google-chart-styles.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="billing-chart">
+    <template>
+        <style>
+            :host {
+                display: inline;
+                @apply(--layout-vertical);
+            }
+
+            .nodata {
+                position: relative;
+                padding: 5px;
+                vertical-align: middle;
+                text-align: center;
+                font-weight: 200;
+                font-size: 10pt;
+            }
+
+            .pngplot {
+                position: relative;
+                margin: 2px auto;
+                max-width: 95%;
+                cursor: pointer;
+            }
+        </style>
+
+        <div class="nodata" hidden$="[[hasData]]">[[error]]</div>
+        <div hidden$="[[!hasData]]">
+            <img class="pngplot" on-tap="_magnify" src="[[uri]]"/>
+        </div>
+        <div hidden="true" id="chart_div"></div>
+    </template>
+    <script>
+        class BillingChart extends
+            DcacheViewMixins.Chart(DcacheViewMixins.AdminBase(Polymer.Element)) {
+
+            static get is() {
+                return 'billing-chart';
+            }
+
+            static get properties() {
+                return {
+                    title: {
+                        type: String
+                    },
+
+                    inputData: {
+                        type: Array,
+                    },
+
+                    dataTable: {
+                        type: Object,
+                        computed: '_build(pngOptions, inputData)',
+                        observer: '_generateUri'
+                    },
+
+                    options: {
+                        type: Object,
+                        computed: '_chartSvgOptions(yAxis)'
+                    },
+
+                    pngOptions: {
+                        type: Object,
+                        computed: '_chartPngOptions(yAxis)'
+                    },
+
+                    yAxis: {
+                        type: String
+                    },
+
+                    chartStyle: {
+                        type: String,
+                        value: 'line'
+                    },
+
+                    uri: {
+                        type: String,
+                        value: "favicons/blank.png",
+                        notify: true
+                    },
+
+                    hasData: {
+                        type: Boolean,
+                        notify: true
+                    },
+
+                    error: {
+                        type: String,
+                        notify: true
+                    }
+                }
+            }
+
+            /*
+             *  Input data structure is a list of named 2D arrays:
+             *
+             *  [[type, [[t, v]...]] ...]
+             *  ------------------------------------------
+             *  [i]             = [type, [[t, v]...]]   | i -> outer
+             *  [i][0]          = type
+             *  [i][1]          = [[t, v] ...]]         | array2D
+             *  [i][1][j]       = [t, v]                | j -> inner
+             *  [i][1][j][0]    = time (t)
+             *  [i][1][j][1]    = value (v)
+             */
+            _build(pngOptions, data) {
+                this.hasData = false;
+
+                if (typeof pngOptions === "undefined" ||
+                    typeof data === "undefined") {
+                    this.error = "No Data Currently Available";
+                    return;
+                }
+
+                let inner;
+                const outer = data.length;
+
+                if (outer === 0) {
+                    this.error = "No Data Currently Available";
+                    return;
+                }
+
+                for (let i = 0; i < outer; i++) {
+                    let next = data[i][1];
+
+                    if (typeof next === 'undefined') {
+                        this.error = "No Data Currently Available";
+                        return;
+                    }
+
+                    if (inner && inner !== next.length) {
+                        this.error = "Data arrays not of equal " +
+                            "dimension for " + type;
+                        return;
+                    }
+                    inner = next.length;
+                }
+
+                const header = ['Date'];
+                for (let i = 0; i < outer; i++) {
+                    header.push(data[i][0]);
+                }
+
+                const chartData = [];
+                chartData.push(header);
+
+                for (let j = 0; j < inner; j++) {
+                    const tuple = [];
+                    let array2D = data[0][1];
+
+                    /*
+                     * convert time to 0-precision long value
+                     */
+                    const t = array2D[j][0].toFixed(0) / 1;
+                    const datetime = new Date(t);
+                    tuple.push(datetime);
+
+                    for (let i = 0; i < outer; i++) {
+                        array2D = data[i][1];
+                        const value = this._normalizeChartValue(data[i][0],
+                            array2D[j][1]);
+                        if (value) {
+                            this.hasData = true;
+                        }
+                        tuple.push(value);
+                    }
+
+                    chartData.push(tuple);
+                }
+
+                if (!this.hasData) {
+                    this.error = "No Data Currently Available"
+                    return;
+                }
+
+                return google.visualization.arrayToDataTable(chartData);
+            }
+
+            _chartSvgOptions(label) {
+                return this._chartOptions(label, 10, 12, 0);
+            }
+
+            _chartPngOptions(label) {
+                return this._chartOptions(label, 8, 9, 5);
+            }
+
+            _chartOptions(label, s1, s2, cnt) {
+                const options = {
+                    title: this.title,
+                    interpolateNulls: true,
+                    legend: {
+                        position: 'right',
+                        textStyle: {fontSize: s1}
+                    },
+                    vAxis: {
+                        logScale: true,
+                        minValue: 0.1,
+                        format: 'scientific',
+                        textStyle: {fontSize: s1},
+                        title: label,
+                        titleTextStyle: {fontSize: s2}
+                    },
+                    hAxis: {
+                        gridlines: {
+                            units: {
+                                days: {format: ['MMM dd']},
+                                hours: {format: ['HH:mm', 'ha']},
+                            },
+                        },
+                        maxValue: new Date(Date.now() + (12 * 60 * 60 * 1000)),
+                        textStyle: {fontSize: s1},
+                        title: "Date/Time",
+                        titleTextStyle: {fontSize: s2}
+                    }
+                };
+
+                if (cnt > 0) {
+                    options.hAxis.gridlines.count = cnt;
+                }
+
+                return options;
+            }
+
+            _generateUri(dataTable) {
+                const div = this.shadowRoot.querySelector('#chart_div');
+                this.drawGoogleChart(this, div, dataTable, this.pngOptions);
+            }
+
+            _getGoogleChart() {
+                return new google.visualization.LineChart(this.shadowRoot.querySelector('#chart_div'));
+            }
+
+            _magnify(e) {
+                this.magnify(e, this, this._chartSvgOptions(this.yAxis));
+            }
+
+            _normalizeChartValue(type, value) {
+                const dfactor = type.endsWith('SECS') ? 1000 : 1;
+                return this.nonZeroLog(type, value, dfactor);
+            }
+        }
+
+        window.customElements.define(BillingChart.is, BillingChart);
+    </script>
+</dom-module>
