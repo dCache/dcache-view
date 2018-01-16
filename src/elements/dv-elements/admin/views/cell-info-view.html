@@ -1,0 +1,303 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-filter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="cell-info-view">
+    <template>
+        <style is="custom-style">
+            :host {
+                display: block;
+                height: 80vh;
+                @apply(--layout-vertical);
+            }
+
+            vaadin-grid {
+                position: relative;
+                height: 100%;
+                -webkit-font-smoothing: antialiased;
+                --divider-color: #d4d4d4;
+
+                --vaadin-grid-cell: {
+                    padding: 0 8px;
+                    height: 32px;
+                    border-right: 1px solid #d4d4d4;
+                    box-sizing: border-box;
+                    font-size: 8pt;
+                    cursor: default;
+                };
+
+                --vaadin-grid-header-cell: {
+                    height: 36px;
+                    border-bottom: 1px solid #d4d4d4;
+                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                    font-size: 9pt;
+                    text-style: bold;
+                    text-align: center;
+                    cursor: default;
+                };
+
+                --vaadin-grid-body-row-odd-cell: {
+                    background-color: #f5f5f5;
+                };
+            }
+
+            paper-toolbar {
+                color: var(--dv-main-background);
+                background: var(--dv-charcoal-grey);
+            }
+
+            .tablediv {
+                height: 100%;
+            }
+
+            input {
+                @apply(--layout-flex);
+                height: 95%;
+                width: 90%;
+                padding-right: 5px;
+            }
+
+            .state0 {
+                background: #fff844;
+                color: var(--dv-charcoal-grey);
+                width: 100%;
+            }
+
+            .state1 {
+                background: var(--dv-green-900);
+                color: var(--dv-main-background);
+                width: 100%;
+            }
+
+            .state2 {
+                background: var(--dv-orange-900);
+                color: var(--dv-main-background);
+                width: 100%;
+            }
+
+            .state3 {
+                background: var(--dv-red-900);
+                color: var(--dv-main-background);
+                width: 100%;
+            }
+
+            .state4 {
+                background: var(--dv-light-grey);
+                color: var(--dv-main-background);
+                width: 100%;
+            }
+        </style>
+
+        <iron-ajax
+                id="AjaxGet"
+                method="GET"
+                handle-as="json"
+                on-response="_handleResponse"
+                on-error="_handleError">
+        </iron-ajax>
+        <paper-toolbar id="title">
+            <div slot="top" class="title"><strong>Cell (Service) Information</strong></div>
+        </paper-toolbar>
+        <hr/>
+        <div class="tablediv">
+            <vaadin-grid aria-label="Cell Info" id="cellinfo"
+                         items="[[cells]]" multi-sort="true" size="100">
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="state.value">
+                            State
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>
+                            <span class$="state[[item.state.value]]">
+                                [[item.state.name]]
+                            </span>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="cellName">
+                            Cell
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Cell"
+                                                path="cellName"
+                                                value="[[_filterCell]]">
+                                <input slot="filter"
+                                       placeholder="Cell"
+                                       value="{{_filterCell::input}}"
+                                       focus-target="">
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.cellName]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="domainName">
+                            Domain
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="200px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Domain"
+                                                path="domainName"
+                                                value="[[_filterDomain]]">
+                                <input slot="filter"
+                                       placeholder="Domain"
+                                       value="{{_filterDomain::input}}"
+                                       focus-target="">
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.domainName]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="eventQueueSize">
+                            Event Queue
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>[[item.eventQueueSize]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="threadCount">
+                            Thread Count
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>[[item.threadCount]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="roundTripTime">
+                            Ping (ms)
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>[[item.roundTripTime]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="creationTime.value">
+                            Created
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="150px">
+                        <template class="header"></template>
+                        <template>[[item.creationTime.formatted]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header" resizable>
+                        <vaadin-grid-sorter path="version">
+                            Version
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="150px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Version"
+                                                path="version"
+                                                value="[[_filterVersion]]">
+                                <input slot="filter"
+                                       placeholder="Version"
+                                       value="{{_filterVersion::input}}"
+                                       focus-target="">
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.version]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+            </vaadin-grid>
+        </div>
+    </template>
+
+    <script>
+        class CellInfoView extends
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)) {
+
+            static get is() {
+                return 'cell-info-view';
+            }
+
+            static get properties() {
+                return {
+                    cells: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
+                }
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.refreshAndReset(this._requestCellInfo.bind(this), 60000);
+            }
+
+            _convertStateToNameValue(state) {
+                switch (state) {
+                    case 0:
+                        return {name: "INITIAL", value: state};
+                    case 1:
+                        return {name: "ACTIVE", value: state};
+                    case 2:
+                        return {name: "REMOVING", value: state};
+                    case 3:
+                        return {name: "DEAD", value: state};
+                    default:
+                        return {name: "UNKNOWN", value: 0};
+                }
+            }
+
+            _handleError(event) {
+                this.handleError(event.detail.error.message);
+            }
+
+            _handleResponse(event) {
+                const input = event.detail.response;
+                input.forEach((cell) => {
+                    cell.creationTime = this.convertDatestampToObject(cell.creationTime);
+                    cell.state = this._convertStateToNameValue(cell.state);
+                });
+                this.cells = input;
+            }
+
+            _requestCellInfo() {
+                this.$.AjaxGet.url = this.getUrl('cells', null);
+                this.$.AjaxGet.headers = this.getHeaders();
+                this.$.AjaxGet.generateRequest();
+            }
+        }
+
+        window.customElements.define(CellInfoView.is, CellInfoView);
+    </script>
+</dom-module>

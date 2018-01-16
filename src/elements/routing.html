@@ -48,6 +48,13 @@
             let isAdminView = app.$.billingPlotsContainer.querySelector('billing-plots-view') instanceof Polymer.Element;
             if (app.params.component === "billing-plots" && !isAdminView) {
                 app.$.billingPlotsContainer.appendChild(new BillingPlotsView());
+                return;
+            }
+
+            isAdminView = app.$.cellInfoContainer.querySelector('cell-info-view') instanceof Polymer.Element;
+            if (app.params.component === "cell-services" && !isAdminView) {
+                app.$.cellInfoContainer.appendChild(new CellInfoView());
+                return;
             }
         });
 
