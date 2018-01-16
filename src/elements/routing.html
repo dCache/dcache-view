@@ -56,6 +56,12 @@
                 app.$.cellInfoContainer.appendChild(new CellInfoView());
                 return;
             }
+
+            isAdminView = app.$.poolInfoContainer.querySelector('pool-groups-view') instanceof Polymer.Element;
+            if (app.params.component === "pool-info" && !isAdminView) {
+                app.$.poolInfoContainer.appendChild(new PoolGroupView());
+                return;
+            }
         });
 
         page('/user-login', function(ctx) {

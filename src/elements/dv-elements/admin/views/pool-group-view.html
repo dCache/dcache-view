@@ -1,0 +1,348 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import"
+      href="../../../../bower_components/iron-pages/iron-pages.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-filter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/charts/layout-bar.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="pool-group-view">
+    <template>
+        <style>
+            :host {
+                display: block;
+                height: 80vh;
+                @apply(--layout-vertical);
+            }
+
+            vaadin-grid {
+                position: relative;
+                height: 100%;
+                -webkit-font-smoothing: antialiased;
+                --divider-color: #d4d4d4;
+
+                --vaadin-grid-cell: {
+                    padding: 0 8px;
+                    height: 32px;
+                    border-right: 1px solid #d4d4d4;
+                    box-sizing: border-box;
+                    font-size: 8pt;
+                    cursor: default;
+                };
+
+                --vaadin-grid-header-cell: {
+                    height: 36px;
+                    border-bottom: 1px solid #d4d4d4;
+                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                    font-size: 9pt;
+                    text-style: bold;
+                    text-align: center;
+                    cursor: default;
+                };
+
+                --vaadin-grid-body-row-odd-cell: {
+                    background-color: #f5f5f5;
+                };
+            }
+
+            paper-toolbar {
+                color: var(--dv-main-background);
+                background: var(--dv-charcoal-grey);
+            }
+
+            iron-pages {
+                height: 70%;
+                width: 100%;
+            }
+
+            .tablediv {
+                height: 100%;
+            }
+
+            .actionable {
+                cursor: pointer;
+                color: var(--dv-indigo-500);
+            }
+
+            .disk {
+                position: relative;
+                padding-right: 30px;
+                width: 100%;
+                height: 30px;
+            }
+
+            input {
+                @apply(--layout-flex);
+                height: 95%;
+                width: 95%;
+                padding-right: 5px;
+            }
+
+        </style>
+
+        <iron-ajax
+                id="AjaxGroups"
+                method="GET"
+                handle-as="json"
+                on-response="_handleGroupsResponse"
+                on-error="_handleGroupsError">
+        </iron-ajax>
+        <iron-ajax
+                id="AjaxSpace"
+                method="GET"
+                handle-as="json"
+                on-response="_handleSpaceResponse"
+                on-error="_handleSpaceError">
+        </iron-ajax>
+        <paper-toolbar id="title">
+            <div slot="top" class="title"><strong>Pool Group Information</strong></div>
+        </paper-toolbar>
+        <hr/>
+        <iron-pages selected="0">
+            <div class="tablediv">
+                <vaadin-grid aria-label="Pool Groups" id="groups"
+                             items="[[groups]]" multi-sort="true" size="20">
+                    <vaadin-grid-column-group>
+                        <template class="header">
+                            <vaadin-grid-sorter path="group">
+                                Pool Group
+                            </vaadin-grid-sorter>
+                        </template>
+                        <vaadin-grid-column width="300px">
+                            <template class="header">
+                                <vaadin-grid-filter aria-label="Pool Group"
+                                                    path="group"
+                                                    value="[[_filterGroup]]">
+                                    <input placeholder="Pool Group"
+                                           value="{{_filterGroup::input}}"
+                                           focus-target="">
+                                </vaadin-grid-filter>
+                            </template>
+                            <template>
+                                <span class="actionable"
+                                      on-tap="_openPoolGroupInfoDialog">
+                                    [[item.group]]
+                                </span>
+                            </template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+                    <vaadin-grid-column-group>
+                        <template class="header">
+                            <vaadin-grid-sorter path="total">
+                                Total Space (MB)
+                            </vaadin-grid-sorter>
+                        </template>
+                        <vaadin-grid-column width="150px">
+                            <template class="header"></template>
+                            <template>[[item.total]]</template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+                    <vaadin-grid-column-group>
+                        <template class="header">
+                            <vaadin-grid-sorter path="free">
+                                Free Space (MB)
+                            </vaadin-grid-sorter>
+                        </template>
+                        <vaadin-grid-column width="150px">
+                            <template class="header"></template>
+                            <template>[[item.free]]</template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+                    <vaadin-grid-column-group>
+                        <template class="header">
+                            <vaadin-grid-sorter path="precious">
+                                Precious Space (MB)
+                            </vaadin-grid-sorter>
+                        </template>
+                        <vaadin-grid-column width="150px">
+                            <template class="header"></template>
+                            <template>[[item.precious]]</template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+                    <vaadin-grid-column-group>
+                        <template class="header"></template>
+                        <vaadin-grid-column width="150px">
+                            <template class="header"></template>
+                            <template>
+                                <layout-bar class="disk"
+                                            diskspace$="[[item.disk]]">
+                                </layout-bar>
+                            </template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+                </vaadin-grid>
+            </div>
+        </iron-pages>
+    </template>
+
+    <script>
+        class PoolGroupView extends
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)) {
+
+            static get is() {
+                return 'pool-group-view';
+            }
+
+            static get properties() {
+                return {
+                    groups: {
+                        type: Array,
+                        notify: true,
+                    },
+
+                    numberOfGroups: {
+                        type: Number
+                    },
+
+                    incoming: {
+                        type: Array,
+                        value: []
+                    }
+                }
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.refreshAndReset(this._sendGroupRequest.bind(this), 60000);
+            }
+
+            _addAllPools() {
+                let total = 0;
+                let free = 0;
+                let precious = 0;
+                let removable = 0;
+
+                this.incoming.forEach(group => {
+                    total += group.total;
+                    free += group.free;
+                    precious += group.precious;
+                    removable += group.removable;
+                });
+
+                this.incoming.push({
+                    'group': 'all-pools',
+                    'total': total,
+                    'precious': precious,
+                    'free': free,
+                    'removable': removable,
+                    'disk': {
+                        'total': total, 'precious': precious,
+                        'free': free, 'removable': removable
+                    }
+                });
+
+                this.groups = this.incoming;
+                this.incoming = [];
+            }
+
+            _handleGroupsError(event) {
+                this.handleError(`Could not process pool groups request:
+                    ${event.detail.error.message}`);
+            }
+
+            _handleGroupsResponse(event) {
+                const names = [];
+                const groups = event.detail.response;
+
+                groups.forEach(group => {
+                    names.push(group.name);
+                });
+
+                if (names.length > 0) {
+                    this.numberOfGroups = names.length;
+                    names.forEach(group => {
+                        this._sendSpaceRequest(group);
+                    });
+                } else {
+                    this.numberOfGroups = 0;
+                    this.handleError('Request returned no pool groups; ' +
+                        'please refresh and try again.');
+                }
+            }
+
+            _handleSpaceError(event) {
+                this.handleError(`Could not process space info request:
+                  ${message + event.detail.error.message}`);
+            }
+
+            _handleSpaceResponse(event) {
+                const result = event.detail.response;
+                const group = this.getSubpathFromUrl(event.detail.url, 4);
+
+                if (!result.groupSpaceData) {
+                    this.incoming.push({
+                        'group': group,
+                        'total': 0,
+                        'precious': 0,
+                        'free': 0,
+                        'removable': 0,
+                        'disk': {
+                            'total': 0, 'precious': 0,
+                            'free': 0, 'removable': 0
+                        }
+                    });
+                } else {
+                    const total = this.convertToMiB(result.groupSpaceData.total);
+                    const free = this.convertToMiB(result.groupSpaceData.free);
+                    const precious = this.convertToMiB(result.groupSpaceData.precious);
+                    const removable = this.convertToMiB(result.groupSpaceData.removable);
+                    this.incoming.push({
+                        'group': group,
+                        'total': total,
+                        'precious': precious,
+                        'free': free,
+                        'removable': removable,
+                        'disk': {
+                            'total': total, 'precious': precious,
+                            'free': free, 'removable': removable
+                        }
+                    });
+                }
+
+                if (this.incoming.length === this.numberOfGroups) {
+                    this._addAllPools();
+                }
+            }
+
+            _openPoolGroupInfoDialog(e) {
+                e.stopPropagation();
+                const group = e.target.innerText;
+                const dialog = new PoolGroupInfoDialog(group);
+                this.pushDialog(dialog);
+                dialog.open();
+                e.stopPropagation();
+            }
+
+            _sendGroupRequest() {
+                this.$.AjaxGroups.url
+                    = this.getUrl('poolgroups', null);
+                this.$.AjaxGroups.headers = this.getHeaders();
+                this.$.AjaxGroups.generateRequest();
+            }
+
+            _sendSpaceRequest(group) {
+                this.$.AjaxSpace.url
+                    = this.getUrl(`poolgroups/${group}/space`, null);
+                this.$.AjaxSpace.headers = this.getHeaders();
+                this.$.AjaxSpace.generateRequest();
+            }
+        }
+
+        window.customElements.define(PoolGroupView.is, PoolGroupView);
+    </script>
+</dom-module>
