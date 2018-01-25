@@ -23,25 +23,8 @@
             .flex3 {
                 @apply(--layout-flex-3);
             }
-            .checkboxContainer {
-                width: 24px;
-                height: 24px;
-                padding-left: 21px;
-                position: relative;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .none {
-                display: none;
-            }
         </style>
         <div class="row">
-            <div class$="[[_computedClass(checkboxDisplay)]]">
-                <div class="checkboxContainer">
-                    <iron-icon icon="{{icon}}"></iron-icon>
-                </div>
-            </div>
             <div style="padding-left: 15px; padding-right: 10px">Type</div>
             <div class="flex3" style="padding-left:5px;">Name</div>
             <div class="flex">Creation time</div>
@@ -55,58 +38,6 @@
             static get is()
             {
                 return 'list-row-header';
-            }
-            static get properties()
-            {
-                return {
-                    selection: {
-                        type: Number,
-                        value: 0
-                    },
-                    checkboxDisplay: {
-                        type: Boolean,
-                        value: false,
-                        notify: true
-                    },
-                    icon: {
-                        type: String,
-                        value: 'icons:check-box-outline-blank',
-                        notify: true
-                    }
-                }
-            }
-            static get observers()
-            {
-                return ['selectionStatus(selection)'];
-            }
-
-            selectionStatus(ps)
-            {
-                switch(ps){
-                    case 2:
-                        //all items are selected
-                        this.icon = "icons:check-box";
-                        break;
-                    case 1:
-                        // 1 or more items are selected
-                        this.icon = "icons:indeterminate-check-box";
-                        break;
-                    case 0:
-                    default :
-                        // no item is selected
-                        this.icon = "icons:check-box-outline-blank";
-                        break;
-                }
-            }
-
-            _computedClass(isDisplay)
-            {
-                var classes = '';
-                if (!isDisplay) {
-                    classes += ' none';
-                }
-                this.updateStyles();
-                return classes;
             }
         }
         window.customElements.define(ListRowHeader.is, ListRowHeader);

@@ -23,7 +23,6 @@
                 max-height: 100vh;
                 display: flex;
                 flex-direction: column;
-                margin: 0px 30px;
                 /*Prevent text selection after double click*/
                 -webkit-user-select: none; /* webkit (safari, chrome) browsers */
                 -moz-user-select: none; /* mozilla browsers */
@@ -38,9 +37,6 @@
             }
             .item:focus {
                 outline: 0 solid transparent !important;
-            }
-            .item.selected {
-                background-color: #f5f5f5;
             }
             iron-list {
                 flex: 1 1 auto;
@@ -64,18 +60,16 @@
         <paper-material id="content" elevation="1">
             <iron-list id="feList" items="[]"
                        selected-item="{{selectedItem}}"
-                       selected-items="{{selectedItems}}"
-                       selection-enabled multi-selection="{{multiSelection}}">
+                       selection-enabled>
                 <template>
                     <div>
                         <list-row class$="[[_computedClass(selected)]]" tabindex$="[[tabIndex]]"
+                                  x-selected$="[[__computedXselected(item.xSelected)]]"
                                   name="{{item.fileName}}" file-type="{{item.fileType}}"
                                   ctime="{{item.creationTime}}" mtime="{{item.mtime}}"
                                   size="{{item.size}}" current-qos="{{item.currentQos}}"
                                   file-mime-type="{{item.fileMimeType}}" file-m-data="{{item}}"
-                                  parent-path="[[parent]]" checkbox-display="{{multiSelection}}"
-                                  draggable="[[_computedDraggable(selected)]]"
-                                  is-checked="[[_checkCheckbox(selected)]]">
+                                  parent-path="[[parent]]" draggable="[[_computedDraggable(item.xSelected)]]">
                         </list-row>
                     </div>
                 </template>
@@ -94,7 +88,7 @@
                 </paper-input>
             </div>
         </paper-dialog>
-        <div class="loading">
+        <div class="loading" id="loading">
             <paper-spinner alt="Loading data" active="{{loading}}"></paper-spinner>
         </div>
 
@@ -111,6 +105,10 @@
             {
                 super();
                 this.path = path === undefined ? "/" : path;
+
+                window.dispatchEvent(
+                    new CustomEvent('dv-namespace-view-file-created', {
+                        detail: {}, bubbles: true, composed: true}));
             }
             ready()
             {
@@ -119,14 +117,45 @@
                 this.$.feList.scrollTarget = target;
                 this.$.threshold.scrollTarget = target;
                 this.target = this.$.input;
+            }
+            connectedCallback()
+            {
+                super.connectedCallback();
 
-                const sT = app.$ === null ? null : app.$.selectedTitle.shadowRoot;
-                if (sT !== null) {
-                    this.multiSelection = sT.querySelector('paper-toggle-button') === null ?
-                        false : sT.querySelector('paper-toggle-button').active;
-                } else {
-                    this.multiSelection = false;
-                }
+                this.addEventListener('keydown', (e)=>{this._multipleSelectionShortcuts(e)});
+                this.addEventListener('keyup', (e)=>{this._resetMultipleSelectionShortcuts(e)});
+                window.addEventListener('dv-namespace-remove-items', (e)=>{this._removeItems(e)});
+                window.addEventListener('dv-namespace-add-items', (e)=>{this._addItems(e)});
+                window.addEventListener('dv-namespace-request-current-path', (e)=>{this._sendCurrentPath(this.path)});
+
+                window.addEventListener('dv-namespace-request-item-index', (e)=>{this._sendItemIndex(e)});
+
+                window.addEventListener('dv-namespace-reset-element-internal-parameters', (e)=>{this._reset(e)});
+
+                this.addEventListener('click', (e)=>{
+                    e.stopPropagation();
+                });
+
+                this.$.loading.addEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
+            }
+            disconnectedCallback()
+            {
+                super.disconnectedCallback();
+                this.removeEventListener('keydown', (e)=>{this._multipleSelectionShortcuts(e)});
+                this.removeEventListener('keyup', (e)=>{this._resetMultipleSelectionShortcuts(e)});
+                window.removeEventListener('dv-namespace-remove-items', (e)=>{this._removeItems(e)});
+                window.removeEventListener('dv-namespace-add-items', (e)=>{this._addItems(e)});
+                window.removeEventListener('dv-namespace-request-current-path', (e)=>{this._sendCurrentPath(this.path)});
+
+                window.removeEventListener('dv-namespace-request-item-index', (e)=>{this._sendItemIndex(e)});
+
+                window.removeEventListener('dv-namespace-reset-element-internal-parameters', (e)=>{this._reset(e)});
+
+                this.removeEventListener('click', (e)=>{
+                    e.stopPropagation();
+                });
+
+                this.$.loading.removeEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
             }
             static get is()
             {
@@ -138,7 +167,6 @@
                 return {
                     path: {
                         type: String,
-                        value: "/",
                         notify: true
                     },
 
@@ -146,11 +174,6 @@
                         type: String,
                         notify: true,
                         computed: '_computeParentPath(path)'
-                    },
-
-                    selectedItems: {
-                        type: Object,
-                        notify: true
                     },
 
                     selectedItem: {
@@ -161,6 +184,12 @@
                         type: String,
                         notify: true,
                         computed: '_url(path)'
+                    },
+
+                    currentDirName: {
+                        type: String,
+                        computed: '_computeCurrentDirName(path)',
+                        notify: true
                     },
 
                     name: {
@@ -192,6 +221,29 @@
                     _isSubsequentRequest: {
                         type: Boolean,
                         value: false
+                    },
+
+                    _shiftKeyOn: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    _ctrlKeyOn: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    _xSelectedItems: {
+                        type: Array,
+                        value: ()=>{return [];},
+                        notify: true
+                    },
+
+                    _temporarySelectedItemsHolder: {
+                        type: Array,
+                        value: ()=>{return [];}
                     }
                 }
             }
@@ -200,7 +252,10 @@
             {
                 return [
                     'changedItems(items.*)',
-                    'selectedItemsChanged(selectedItems.*)'
+                    'selectedItemChanged(selectedItem)',
+                    '_temporarySelectedItemsHolderModified(_temporarySelectedItemsHolder.splices)',
+                    '__xSelectedItemsChanged(_xSelectedItems.splices)',
+                    '_sendCurrentPath(path)'
                 ];
             }
 
@@ -228,11 +283,6 @@
                 this.updateStyles();
 
                 return classes;
-            }
-
-            _checkCheckbox(isSelected)
-            {
-                return !!(isSelected && this.multiSelection);
             }
 
             _url(path)
@@ -319,28 +369,19 @@
                 }
             }
 
-            selectedItemsChanged(selectedItems)
+            selectedItemChanged(selectedItem)
             {
-                if (document.getElementById('selectedTitle') != null) {
-                    document.getElementById('selectedTitle').isSelected =
-                        !(selectedItems.base == null || selectedItems.base.length == 0);
-                }
-                if (this.multiSelection) {
-                    let items = this.$.feList.items;
-                    let selectedLength = selectedItems.base == null ? 0 : selectedItems.base.length;
-                    switch (selectedLength) {
-                        case 0:
-                            //nothing is selected
-                            app.$.listTableHeader.querySelector('list-row-header').selection = 0;
-                            break;
-                        case items.length:
-                            // all items in current view have been selected
-                            app.$.listTableHeader.querySelector('list-row-header').selection = 2;
-                            break;
-                        default:
-                            // some part of the items have been selected
-                            app.$.listTableHeader.querySelector('list-row-header').selection = 1;
+                if (selectedItem) {
+                    if (this._shiftKeyOn) {
+                        this._temporarySelectedItemsHolder.push({"keyValue":"shift","file":selectedItem});
+                    } else if (this._ctrlKeyOn) {
+                        this._temporarySelectedItemsHolder.push({"keyValue":"ctrl","file":selectedItem});
+                    } else {
+                        this._temporarySelectedItemsHolder.push({"keyValue":"none","file":selectedItem});
                     }
+
+                    this.notifySplices('_temporarySelectedItemsHolder');
+                    this.$.feList.clearSelection();
                 }
             }
 
@@ -415,16 +456,327 @@
                 this.$.ajax.generateRequest();
             }
 
-            /**
-             * FIXME: This is a workaround to reset the checkbox.
-             * This bug that should be fix.
-             */
-            resetMultiSelection()
+            _multipleSelectionShortcuts(event)
             {
-                if (this.multiSelection) {
-                    this.multiSelection = false;
-                    this.multiSelection = true;
+                if ((window.navigator.platform.match("Mac")
+                        ? event.metaKey : event.ctrlKey) && event.key === "ArrowUp") {
+                    this.__arrowUpDown_CtrlShift('up');
+                } else if ((window.navigator.platform.match("Mac")
+                        ? event.metaKey : event.ctrlKey) && event.key === "ArrowDown") {
+                    this.__arrowUpDown_CtrlShift('down');
+                } else if (event.shiftKey && event.key === "ArrowUp") {
+                    this.__arrowUpDown_CtrlShift('up');
+                } else if (event.shiftKey && event.key === "ArrowDown") {
+                    this.__arrowUpDown_CtrlShift('down');
+                } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                    const key = event.key;
+                    const file = this._temporarySelectedItemsHolder[this._temporarySelectedItemsHolder.length - 1].file;
+
+                    this.$.feList.clearSelection();
+                    this._removeAllXSelected();
+                    this._temporarySelectedItemsHolder = [];
+                    let index;
+                    switch (key) {
+                        case 'ArrowUp':
+                            index = this.$.feList.items.indexOf(file) - 1 === -1 ? 0 :
+                                this.$.feList.items.indexOf(file) - 1;
+                            break;
+                        default:
+                            index = this.$.feList.items.indexOf(file) + 1 === this.$.feList.items.length ?
+                                this.$.feList.items.indexOf(file) : this.$.feList.items.indexOf(file) + 1;
+                    }
+                    this.$.feList.selectIndex(index);
+                } else if (event.shiftKey) {
+                    this._shiftKeyOn = true;
+                    this._ctrlKeyOn = false;
+                } else if (window.navigator.platform.match("Mac") ? event.metaKey : event.ctrlKey) {
+                    this._shiftKeyOn = false;
+                    this._ctrlKeyOn = true;
                 }
+
+            }
+
+            _resetMultipleSelectionShortcuts(event)
+            {
+                if (event.key === "Shift") {
+                    this._shiftKeyOn = false;
+                }
+
+                if (window.navigator.platform.match("Mac") ?
+                        event.key === "Meta" : event.key === "Control") {
+                    this._ctrlKeyOn = false;
+                }
+            }
+
+            __computedXselected(xSelected)
+            {
+                return xSelected ? xSelected: false;
+            }
+
+            _xSelectItem(index)
+            {
+                this.$.feList.items[index].xSelected = true;
+                this.$.feList.notifyPath(`items.${index}.xSelected`);
+            }
+
+            _removeAllXSelected()
+            {
+                const items = this.$.feList.items;
+                const len = items.length;
+                for (let i=0; i < len; i++) {
+                    if (items[i].xSelected) {
+                        this._removeXSelected(i);
+                    }
+                }
+            }
+
+            _removeXSelected(idx)
+            {
+                this.$.feList.items[idx].xSelected = false;
+                this.$.feList.notifyPath(`items.${idx}.xSelected`);
+                delete this.$.feList.items[idx].xSelected;
+            }
+
+            _temporarySelectedItemsHolderModified(arr)
+            {
+                if (arr) {
+                    const len = this._temporarySelectedItemsHolder.length;
+                    const lastKeyValue = this._temporarySelectedItemsHolder[len-1].keyValue;
+                    const lastFile = this._temporarySelectedItemsHolder[len-1].file;
+                    const idx1 = this.$.feList.items.indexOf(lastFile);
+                    switch (lastKeyValue) {
+                        case 'none':
+                            this._removeAllXSelected();
+                            lastFile.xSelected = true;
+                            this._temporarySelectedItemsHolder = [{"keyValue":"none", "file": lastFile}];
+                            this._xSelectItem(idx1);
+                            break;
+                        case 'shift':
+                            let idx0;
+                            for (let i = 2; i < len+1; i++ ) {
+                                if (this._temporarySelectedItemsHolder[len-i].keyValue !== "shift") {
+                                    idx0 =
+                                        this.$.feList.items.indexOf(this._temporarySelectedItemsHolder[len-i].file);
+                                    break;
+                                }
+                            }
+
+                            if (len > 2 && (this._temporarySelectedItemsHolder[len-2].keyValue === "shift")) {
+                                const idx0S =
+                                    this.$.feList.items.indexOf(this._temporarySelectedItemsHolder[len-2].file);
+                                const idxes = this.__getLoopBoundaries(idx0S, idx1);
+                                for (let i = idxes[0]; i < idxes[1]; i++) {
+                                    this._removeXSelected(i);
+                                }
+                            }
+
+                            if (this.__getLoopBoundaries(idx0, idx1) !== []) {
+                                const idxes = this.__getLoopBoundaries(idx0, idx1);
+
+                                for (let i = idxes[0]; i < idxes[1]; i++) {
+                                    this._xSelectItem(i)
+                                }
+                            }
+                            break;
+                        case 'ctrl':
+                            if (this.$.feList.items[idx1].xSelected) {
+                                this._removeXSelected(idx1);
+
+                                const id = this._temporarySelectedItemsHolder.findIndex(el => {
+                                    return el.file.fileName === lastFile.fileName;
+                                });
+                                if (id >= 0) {
+                                    this._temporarySelectedItemsHolder.splice(id, 1);
+                                }
+                            } else {
+                                this._temporarySelectedItemsHolder[len-1].file.xSelected = true;
+                                this._xSelectItem(idx1);
+                            }
+                            break;
+                        case 'arrow-up':
+                        case 'arrow-down':
+                            if (this.$.feList.items[idx1].xSelected) {
+                                const myD = this._temporarySelectedItemsHolder.slice(0,len-1);
+                                const id = myD.findIndex(el => {
+                                    return el.file.fileName === lastFile.fileName;
+                                });
+                                if (id >= 0 && myD[id].keyValue === lastKeyValue) {
+                                    this._removeXSelected(idx1);
+                                    this._temporarySelectedItemsHolder.splice(id, 1);
+                                }
+                            } else {
+                                this._temporarySelectedItemsHolder[len-1].file.xSelected = true;
+                                this._xSelectItem(idx1);
+                            }
+                            break;
+                    }
+                    this.__getAllItemsXSelected();
+                }
+            }
+
+            __getLoopBoundaries(idx0,idx1)
+            {
+                return idx0 < idx1 || idx0 > idx1 ? idx0 < idx1 ? [idx0, idx1 + 1] : [idx1, idx0 + 1] : [];
+            }
+
+            __getAllItemsXSelected()
+            {
+                this._xSelectedItems = [];
+                const len = (this.$.feList.items).length;
+                for (let i=0; i<len; i++) {
+                    if (this.$.feList.items[i].xSelected) {
+                        const x = Object.assign({}, this.$.feList.items[i]);
+                        delete x.xSelected;
+                        this._xSelectedItems.push(x);
+                    }
+                }
+                this.notifySplices('_xSelectedItems');
+            }
+
+            __xSelectedItemsChanged(arr)
+            {
+                if (arr) {
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-x-selected-items-changed', {
+                            detail:{xSelectedItems: this._xSelectedItems},
+                            bubbles: true, composed: true})
+                    );
+                }
+            }
+
+            _removeItems(event)
+            {
+                const files = event.detail.files;
+                const len = this.$.feList.items.length;
+                files.forEach( (file) => {
+                    for (let i=0; i < len; i++) {
+                        if (this.$.feList.items[i].fileName === file.fileName) {
+                            this.$.feList.splice('items', i, 1);
+                            if (this._xSelectedItems.length > 0) {
+                                const idx = this._xSelectedItems.indexOf(file);
+                                this.splice('_xSelectedItems', idx, 1);
+                            }
+                            break;
+                        }
+                    }
+                });
+            }
+
+            _addItems(event)
+            {
+                const ed = this.shadowRoot.querySelector('empty-directory');
+                if (ed) {
+                    this.$.content.removeChild(ed);
+                }
+                if (this.$.feList !== null || this.$.feList !== undefined) {
+                    const files = event.detail.files;
+                    files.forEach( (file) => {
+                        this.$.feList.unshift('items',file);
+                    });
+                }
+                this.$.feList.fire('iron-resize');
+            }
+
+            _sendCurrentPath(pt)
+            {
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-current-path', {
+                        detail: {currentPath: pt}, bubbles: true, composed: true}));
+            }
+
+            /**
+             * TODO: Moved the method to the Base mixin class
+             */
+            __findItemIndexOnAList(list, item, searchKey)
+            {
+                searchKey = !searchKey ? 'fileName': searchKey;
+                return list.findIndex(el => {
+                    return el[`${searchKey}`] === item[`${searchKey}`];
+                });
+            }
+
+            __getItemCurrentIndex(item)
+            {
+                return this.__findItemIndexOnAList(this.$.feList.items, item);
+            }
+
+            _sendItemIndex(event)
+            {
+                const index = this.__getItemCurrentIndex(event.detail.item.fileName);
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-receive-item-index', {
+                        detail: {index: index}, bubbles: true, composed: true}));
+            }
+
+            _reset(event)
+            {
+                if (event.detail.element === "view-file") {
+                    this.$.feList.clearSelection();
+                    this._removeAllXSelected();
+                    this._xSelectedItems = [];
+                    this._temporarySelectedItemsHolder = [];
+                    this.notifySplices('_xSelectedItems');
+                    this._shiftKeyOn = false;
+                    this._ctrlKeyOn = false;
+                }
+            }
+
+            __arrowUpDown_CtrlShift(arrowType)
+            {
+                const file =
+                    this._temporarySelectedItemsHolder[this._temporarySelectedItemsHolder.length - 1].file;
+                const keyValue =
+                    this._temporarySelectedItemsHolder[this._temporarySelectedItemsHolder.length - 1].keyValue;
+                const idx = this.__getItemCurrentIndex(file);
+
+                if (keyValue === 'arrow-down' && arrowType === 'up'
+                        || keyValue === 'arrow-up' && arrowType === 'down') {
+                    this._removeXSelected(idx);
+                    this._temporarySelectedItemsHolder.pop();
+                    this.__getAllItemsXSelected();
+                    return;
+                }
+                switch (arrowType) {
+                    case 'up':
+                        if (idx > 0) {
+                            const selectedItem = this.$.feList.items[idx-1];
+                            this._temporarySelectedItemsHolder.push({"keyValue": "arrow-up", "file": selectedItem});
+                            this.notifySplices('_temporarySelectedItemsHolder');
+                        }
+                        break;
+                    case 'down':
+                        if (idx >= 0 && idx < this.$.feList.items.length -1) {
+                            const selectedItem = this.$.feList.items[idx + 1];
+                            this._temporarySelectedItemsHolder.push({"keyValue": "arrow-down", "file": selectedItem});
+                            this.notifySplices('_temporarySelectedItemsHolder');
+                        }
+                        break;
+                }
+            }
+
+            _openContextMenu(event)
+            {
+                event.preventDefault();
+                event.stopPropagation();
+                /**
+                 * A WORKAROUND for firefox
+                 * TODO: When firefox support web components fully, revisit.
+                 */
+                this.dispatchEvent(new MouseEvent('contextmenu', {
+                    view: window,
+                    bubbles: true,
+                    composed: true,
+                    cancelable: true,
+                    clientX: event.clientX,
+                    clientY: event.clientY,
+                    screenX: event.screenX,
+                    screenY: event.screenY
+                }));
+            }
+
+            _computeCurrentDirName(path)
+            {
+                return path === "/" ? 'ROOT' : path.slice(path.lastIndexOf("/")+1);
             }
         }
         window.customElements.define(ViewFile.is, ViewFile);

@@ -3,11 +3,9 @@
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../../../bower_components/paper-checkbox/paper-checkbox.html">
 
 <link rel="import" href="../../../bower_components/file-icon/file-icon.html">
 
-<link rel="import" href="../contextual-content/namespace-contextual-content.html">
 <link rel="import" href="../utils/ajax-ls/view-file.html">
 <link rel="import" href="../drag-and-drop/dnd-upload.html">
 
@@ -17,6 +15,13 @@
             :host {
                 @apply(--layout-block);
                 font-size: 0.7em;
+            }
+            :host([x-selected]) {
+                background-color: #2196F3 !important;
+                color: #fff !important;
+            }
+            :host([x-selected]) .row {
+                border-bottom: 1px solid #2196F3;
             }
             .row {
                 @apply(--layout-horizontal);
@@ -67,18 +72,11 @@
                     color: #f09300 !important;
                 };
             }
-            .checkbox {
-                padding-left: 24px;
-                --paper-checkbox-unchecked-color: rgba(0, 0, 0, 0.54);
-                --paper-checkbox-unchecked-ink-color: rgba(0, 0, 0, 0.54);
-            }
             .none {
                 display: none;
             }
         </style>
         <div id="row" class="row">
-            <paper-checkbox id="checkbox" checked$="[[isChecked]]"
-                            class$="[[_computedClass(checkboxDisplay)]]"></paper-checkbox>
             <file-icon mime-type="{{fileMimeType}}" style="padding-left: 15px; padding-right: 10px"></file-icon>
             <div class="cell name">
                 <div id="nameContainer">
@@ -164,11 +162,6 @@
                         computed: '_computeQoSValue(currentQos)'
                     },
 
-                    checkboxDisplay: {
-                        type: Boolean,
-                        notify: true
-                    },
-
                     fileMData: {
                         type: Object,
                         notify: true
@@ -180,10 +173,10 @@
                         notify: true
                     },
 
-                    isChecked: {
+                    xSelected: {
                         type: Boolean,
-                        value: false,
-                        notify: true
+                        notify: true,
+                        reflectToAttribute: true
                     }
                 }
             }
@@ -326,17 +319,6 @@
                 }
             }
 
-            _computedClass(isDisplay)
-            {
-                this.$.checkbox.checked = false;
-                let classes = 'checkbox';
-                if (!isDisplay) {
-                    classes += ' none';
-                }
-                this.updateStyles();
-                return classes;
-            }
-
             _openFileLoc()
             {
                 if ( this.fileType == "DIR" ) {
@@ -359,64 +341,22 @@
                 }
             }
 
-            _openContextMenu(e)
+            _openContextMenu(event)
             {
-                e.stopPropagation();
-                if (app.$.centralContextMenu.opened) {
-                    app.$.centralContextMenu.close();
-                }
-                app.$.centralContextMenu.innerHTML = "";
-                let cc;
-
-                if (this.classList.contains('selected') &&
-                    document.querySelector('view-file').selectedItems.length>1) {
-                    cc = new NamespaceContextualContent(
-                        {
-                            files: document.querySelector('view-file').selectedItems,
-                            parentPath: this.parentPath
-                        }, 1);
-                } else {
-                    cc = new NamespaceContextualContent(this, 0);
-                }
-
-                app.$.centralContextMenu.appendChild(cc);
-                let x = 0, y = 0;
-
-                if (e.pageX || e.pageY) {
-                    x = e.pageX;
-                    y = e.pageY;
-                } else if (e.clientX || e.clientY) {
-                    x = e.clientX + document.body.scrollLeft +
-                        document.documentElement.scrollLeft;
-                    y = e.clientY + document.body.scrollTop +
-                        document.documentElement.scrollTop;
-                }
-
-                const vx = window.innerWidth;
-                const vy = window.innerHeight;
-                const w = 250;
-                const h = 340;
-
-                if (vx - x < w && vy - y >= h) {
-                    app.x = x-w;
-                    app.y = y;
-                } else if (vx - x < w && vy - y < h) {
-                    app.x = x-w;
-                    app.y = y-h;
-                } else if (vx - x >= w && vy - y < h) {
-                    app.x = x;
-                    app.y = y-h;
-                } else {
-                    app.x = x;
-                    app.y = y;
-                }
-                app.notifyPath('x');
-                app.notifyPath('y');
-                app.$.centralContextMenu.resetFit();
-                app.$.centralContextMenu.open();
-
-                e.preventDefault();
-                e.stopPropagation();
+                event.preventDefault();
+                event.stopPropagation();
+                /**
+                 * A WORKAROUND for firefox
+                 * TODO: When firefox support web components fully, revisit.
+                 */
+                this.dispatchEvent(new MouseEvent('contextmenu', {
+                    view: window,
+                    bubbles: true,
+                    composed: true,
+                    cancelable: true,
+                    clientX: event.clientX,
+                    clientY: event.clientY
+                }));
             }
         }
         window.customElements.define(ListRow.is, ListRow);

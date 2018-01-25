@@ -273,10 +273,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                     <paper-toolbar id="listTableHeader" slot="header">
                                                         <list-row-header slot="top"></list-row-header>
                                                     </paper-toolbar>
-                                                    <div class="fit" id="homedir"
+                                                    <div class="fit" id="homedir" style="padding: 0 30px;"
                                                          on-contextmenu="currentDirContext" on-drop="drop"
                                                          on-dragenter="dragenter" on-dragleave="dragleave"
-                                                         on-dragend="dragend" on-dragexit="dragexit">
+                                                         on-dragend="dragend" on-dragexit="dragexit" on-click="click">
                                                         <view-file id="homeDir"></view-file>
                                                     </div>
                                                 </paper-header-panel>

@@ -102,7 +102,7 @@
                     </div>
                 </div>
                 <div class="standardTools flex">
-                    <template is="dom-if" if="{{isSelected}}" restamp>
+                    <template is="dom-if" if="[[isSelected]]" restamp>
                         <div>
                             <paper-icon-button class="move"
                                                icon="move-icons:movefolder"
@@ -110,10 +110,6 @@
                             <paper-tooltip>move the selected file to another directory</paper-tooltip>
                         </div>
                     </template>
-                    <div>
-                        <paper-toggle-button on-change="_multiselection" noink></paper-toggle-button>
-                        <paper-tooltip>toggle multiple selection</paper-tooltip>
-                    </div>
                     <div>
                         <paper-icon-button class="create"
                                            icon="create-new-folder"
@@ -152,6 +148,34 @@
                 return 'selected-title';
             }
 
+            connectedCallback()
+            {
+                super.connectedCallback();
+                window.addEventListener('dv-namespace-x-selected-items-changed',
+                    (e)=>{this._isSelectedChanged(e)}
+                );
+                window.addEventListener('dv-namespace-current-path',(e)=>{this._setCurrentPath(e)});
+
+                window.addEventListener('dv-namespace-view-file-created',
+                    (e)=>{this._resetViewFileDependentParameters(e)}
+                );
+
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-request-current-path', {bubbles: true, composed: true}));
+            }
+
+            disconnectedCallback()
+            {
+                super.disconnectedCallback();
+                window.removeEventListener('dv-namespace-x-selected-items-changed',
+                    (e)=>{this._isSelectedChanged(e)}
+                );
+                window.removeEventListener('dv-namespace-current-path',(e)=>{this._setCurrentPath(e)});
+                window.removeEventListener('dv-namespace-view-file-created',
+                    (e)=>{this._resetViewFileDependentParameters(e)}
+                );
+            }
+
             static get properties()
             {
                 return {
@@ -179,6 +203,16 @@
                         type: Boolean,
                         value: false,
                         notify: true
+                    },
+
+                    _selectedItems: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    currentPath: {
+                        type: String,
                     }
                 }
             }
@@ -222,96 +256,61 @@
 
             _metadataInfo(e)
             {
-                e.stopPropagation();
-
+                //TODO: This should be part of the base mixin
                 let el1;
-                let z = app.$.homedir.querySelector('view-file');
-                let x = z.shadowRoot.querySelector("#feList");
-
-                let path = z.path;
-
-                //-10 denote current view i.e. current view path
-                const currentViewIndex = -10;
-
-                app.$.metadataDrawer.innerHTML = "";
-
-                if (path === "/") {
-                    const y = x.selectedItem;
-
-                    if ( y === null ) {
-                        el1 = new FileMetadata("Root", "/", "DIR", null, currentViewIndex);
-                    } else {
-                        const index = x.items.indexOf(y);
-                        el1 = new FileMetadata(y.fileName, "/" + y.fileName, y.fileType, y.currentQos, index);
-                    }
-                    app.$.metadataDrawer.appendChild(el1);
-
-                } else {
-                    if ( x === null || x.selectedItem === null ) {
-                        let n = path.lastIndexOf("/");
-                        let name = path.slice(n+1);
-                        el1 = new FileMetadata(name, path, "DIR", null, currentViewIndex);
-                    } else {
-                        let y = x.selectedItem;
-                        const index = x.items.indexOf(y);
-                        el1 = new FileMetadata(y.fileName, path + "/" + y.fileName, y.fileType, y.currentQos, index);
-                    }
-                    app.$.metadataDrawer.appendChild(el1);
+                const fm = app.$.metadataDrawer.querySelector('file-metadata');
+                if (fm) {
+                    app.$.metadataDrawer.removeChild(fm);
                 }
 
-                Polymer.dom.flush();
+                const y = this._selectedItems.length;
+                const reqIndex = y === 0 ? 1: 0;
+                const path = this.currentPath.endsWith("/") ? this.currentPath.slice(0, -1) : this.currentPath;
+                if ( y === 1 ) {
+                    const item = Object.assign({}, this._selectedItems[0]);
+                    item.xSelected = true;
+                    el1 = new FileMetadata(item, `${path}/${item.fileName}`, reqIndex);//0 denote request for index
+                } else if (y === 0) {
+                    el1 = new FileMetadata({}, path, reqIndex);
+                }
 
+                app.$.metadataDrawer.appendChild(el1);
                 app.$.metadata.togglePanel();
-                e.stopPropagation();
             }
 
             _create(e)
             {
-                var home = document.getElementById('homedir');
-                var vf = home.querySelector('view-file');
-                var path = vf.path;
                 var dialogBox = document.getElementById('centralDialogBox');
                 dialogBox.innerHTML = "";
 
                 //TODO: Lazy load create-directory and dcache-namespace
                 var mkdir = document.createElement('create-directory');
-                mkdir.dirFullPath = path;
+                mkdir.dirFullPath = this.currentPath;
                 mkdir.header = false;
-                mkdir.addEventListener('create',function(e) {
+                mkdir.addEventListener('create',(e) => {
                     var name = e.detail.newFolderName;
                     var url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
                     var namespace = document.createElement('dcache-namespace');
 
                     namespace.auth = app.getAuthValue();
 
-                    namespace.promise.then(
-                        function() {
+                    namespace.promise.then(() => {
                             dialogBox.close();
                             dialogBox.removeChild(mkdir);
 
-                            var ed = vf.shadowRoot.querySelector('empty-directory');
-                            if (ed != null) {
-                                vf.shadowRoot.querySelector('#content').removeChild(ed);
-                            }
-
-                            var list = vf.shadowRoot.querySelector('iron-list');
-                            //TODO: CODE-DUPLICATION - make this a utility: shared-behaviour
-                            if (list != null) {
-                                list.unshift('items',
-                                    {
-                                        "fileName" : name,
-                                        "fileMimeType" : "application/vnd.dcache.folder",
-                                        "fileLocality" : "",
-                                        "size" : "--",
-                                        "fileType" : "DIR",
-                                        "mtime" : "--",
-                                        "creationTime" : Date.now() //Assumption
-                                        //TODO: add creation time to the return object of the ajax response
-                                    }
-                                );
-                                vf.shadowRoot.querySelector('iron-list').fire('iron-resize');
-                            }
-                            vf.resetMultiSelection();
+                            const file = {
+                                "fileName" : name,
+                                "fileMimeType" : "application/vnd.dcache.folder",
+                                "fileLocality" : "",
+                                "size" : "--",
+                                "fileType" : "DIR",
+                                "mtime" : "--",
+                                "creationTime" : Date.now() //Assumption
+                                //TODO: add creation time to the return object of the ajax response
+                            };
+                            this.dispatchEvent(new CustomEvent('dv-namespace-add-items', {
+                                detail: {files: [file]}, bubbles: true, composed: true})
+                            );
                             app.$.toast.text = "Done! New directory created. ";
                             app.$.toast.show();
                         }
@@ -324,7 +323,7 @@
 
                     namespace.mkdir({
                         url: url,
-                        path: path,
+                        path: this.currentPath,
                         name: name
                     });
                 });
@@ -338,39 +337,19 @@
 
             _move()
             {
-                var home = document.getElementById('homedir');
-                var vf = home.querySelector('view-file');
-                var currentPath = vf.path;
-                let noOfMovedItems = 1;
-                let fileType = "item";
+                const noOfMovedItems = this._selectedItems.length;
+                const fileType = this._selectedItems.length === 1 ? "item": "items";
                 var dialogBox = document.getElementById('centralDialogBox');
                 dialogBox.innerHTML = "";
                 var mv = document.createElement('move-file');
                 mv.auth = app.getAuthValue();
-                mv.currentPath = currentPath;
+                mv.currentPath = this.currentPath;
+                mv.mvFiles = this._selectedItems;
 
-                if (vf.selectedItems.constructor === Array) {
-                    mv.mvFiles = vf.selectedItems;
-                    noOfMovedItems = mv.mvFiles.length;
-                    fileType = "items";
-                } else {
-                    mv.mvFiles = [vf.selectedItems];
-                }
-                mv.addEventListener('move', function (e) {
-                    var list = vf.shadowRoot.querySelector('iron-list');
-                    var arr = list.items;
-                    const len = arr.length;
-                    var i;
-                    this.mvFiles.forEach(function (file) {
-                        for (i=0; i < len; i++) {
-                            if (arr[i].fileName == file.fileName) {
-                                list.splice('items', i, 1);
-                                break;
-                            }
-                        }
-                    });
+                mv.addEventListener('move', (e) => {
+                    this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
+                        detail: {files: mv.mvFiles},bubbles: true, composed: true}));
                     dialogBox.close();
-                    vf.resetMultiSelection();
                     app.$.toast.text = noOfMovedItems + " " + fileType + " have been moved from " +
                         e.detail.response.sourceDirName + " to " + e.detail.response.targetDirName + ". ";
                     app.$.toast.show();
@@ -383,30 +362,37 @@
                     dialogBox.close();
                 });
                 mv.addEventListener('move-create', function (e) {
-                    var list = vf.shadowRoot.querySelector('iron-list');
-                    list.unshift('items',
-                        {
-                            "fileName" : e.detail.name,
-                            "fileMimeType" : "application/vnd.dcache.folder",
-                            "fileLocality" : "",
-                            "size" : "--",
-                            "fileType" : "DIR",
-                            "mtime" : "--",
-                            "creationTime" : Date.now() //Assumption
-                        }
-                    );
-                    vf.shadowRoot.querySelector('iron-list').fire('iron-resize');
+                    const file = {
+                        "fileName" : e.detail.name,
+                        "fileMimeType" : "application/vnd.dcache.folder",
+                        "fileLocality" : "",
+                        "size" : "--",
+                        "fileType" : "DIR",
+                        "mtime" : "--",
+                        "creationTime" : Date.now() //Assumption
+                    };
+                    this.dispatchEvent(new CustomEvent('dv-namespace-add-items', {
+                            detail: {files: [file]},bubbles: true, composed: true}));
                 });
                 dialogBox.appendChild(mv);
                 dialogBox.open();
             }
 
-            _multiselection()
+            _isSelectedChanged(e)
             {
-                var vf = document.getElementById('homedir').querySelector('view-file');
-                vf.multiSelection = this.shadowRoot.querySelector('paper-toggle-button').active;
-                app.$.listTableHeader.querySelector('list-row-header').checkboxDisplay =
-                    this.shadowRoot.querySelector('paper-toggle-button').active;
+                this.isSelected = e.detail.xSelectedItems.length !== 0;
+                this._selectedItems = e.detail.xSelectedItems;
+            }
+
+            _setCurrentPath(e)
+            {
+                this.currentPath = e.detail.currentPath;
+            }
+
+            _resetViewFileDependentParameters(e)
+            {
+                this._selectedItems = [];
+                this.isSelected = false;
             }
         }
         window.customElements.define(SelectedTitle.is, SelectedTitle);

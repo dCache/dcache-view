@@ -134,6 +134,9 @@
                     },
                     targetNode: {
                         type: Object
+                    },
+                    currentPath: {
+                        type: String,
                     }
                 }
             }
@@ -178,6 +181,10 @@
 
                 this.addEventListener('mouseover', this._mouseOverLeave);
                 this.$.changeQos.addEventListener('mouseover', this._mouseOver.bind(this));
+
+                window.addEventListener('dv-namespace-current-path',(e)=>{this._setCurrentPath(e)});
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-request-current-path', {bubbles: true, composed: true}));
             }
 
             disconnectedCallback()
@@ -211,6 +218,8 @@
 
                 this.removeEventListener('mouseover', this._mouseOverLeave);
                 this.$.changeQos.removeEventListener('mouseover', this._mouseOver);
+
+                window.removeEventListener('dv-namespace-current-path',(e)=>{this._setCurrentPath(e)});
             }
 
             _mouseOverLeave()
@@ -292,9 +301,13 @@
             _metadata()
             {
                 app.$.centralContextMenu.close();
-                const fm = new FileMetadata(this.targetNode.name, this.targetNode.filePath,
-                    this.targetNode.fileType);
-                app.$.metadataDrawer.innerHTML = "";
+                if (app.$.metadataDrawer.querySelector('file-metadata')) {
+                    app.$.metadataDrawer.removeChild(
+                        app.$.metadataDrawer.querySelector('file-metadata'));
+                }
+                const fm = this.targetNode.fileMData ?
+                    new FileMetadata(this.targetNode.fileMData, this.targetNode.filePath, 0) :
+                    new FileMetadata(this.targetNode, this.targetNode.filePath, 1);
                 app.$.metadataDrawer.appendChild(fm);
                 app.$.metadata.openDrawer();
             }
@@ -309,48 +322,28 @@
             _move()
             {
                 app.$.centralContextMenu.close();
-                let home = document.getElementById('homedir');
-                let vf = home.querySelector('view-file');
-                let currentPath = vf.path;
                 let noOfMovedItems = 1;
                 let fileType = "item";
-                let dialogBox = document.getElementById('centralDialogBox');
-                dialogBox.innerHTML = "";
-                let mv = document.createElement('move-file');
+                const dialogBox = document.getElementById('centralDialogBox');
+                app.removeAllChildren(dialogBox);
+                const mv = document.createElement('move-file');
                 mv.auth = app.getAuthValue();
-                mv.currentPath = currentPath;
+                mv.currentPath = this.currentPath;
 
                 if (this.multipleSelection) {
-                    if (vf.selectedItems.constructor === Array) {
-                        mv.mvFiles = vf.selectedItems;
-                        noOfMovedItems = mv.mvFiles.length;
-                        fileType = "items";
-                    } else {
-                        mv.mvFiles = [vf.selectedItems];
-                    }
+                    mv.mvFiles = this.targetNode.files;
+                    noOfMovedItems = mv.mvFiles.length;
+                    fileType = "items";
                 } else {
                     mv.mvFiles = [this.targetNode.fileMData];
                 }
 
                 mv.addEventListener('move', (e) => {
-
-                    const list = vf.shadowRoot.querySelector('iron-list');
-                    let arr = list.items;
-                    const len = arr.length;
-                    mv.mvFiles.forEach(function (file) {
-                        for (let i=0; i < len; i++) {
-                            if (arr[i].fileName == file.fileName) {
-                                list.splice('items', i, 1);
-                                break;
-                            }
-                        }
-                    });
-                    if (this.multipleSelection) {
-                        vf.resetMultiSelection();
-                    }
+                    this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
+                        detail: {files: mv.mvFiles},bubbles: true, composed: true}));
                     dialogBox.close();
-                    app.$.toast.text = noOfMovedItems + " " + fileType + " have been moved from " +
-                        e.detail.response.sourceDirName + " to " + e.detail.response.targetDirName + ". ";
+                    app.$.toast.text = `${noOfMovedItems} ${fileType} have been moved from
+                        ${e.detail.response.sourceDirName} to ${e.detail.response.targetDirName}. `;
                     app.$.toast.show();
                 });
                 mv.addEventListener('error', function (e) {
@@ -361,19 +354,17 @@
                     dialogBox.close();
                 });
                 mv.addEventListener('move-create', function (e) {
-                    let list = vf.shadowRoot.querySelector('iron-list');
-                    list.unshift('items',
-                        {
-                            "fileName" : e.detail.name,
-                            "fileMimeType" : "application/vnd.dcache.folder",
-                            "fileLocality" : "",
-                            "size" : "--",
-                            "fileType" : "DIR",
-                            "mtime" : "--",
-                            "creationTime" : Date.now() //Assumption
-                        }
-                    );
-                    vf.shadow.querySelector('iron-list').fire('iron-resize');
+                    const file = {
+                        "fileName" : e.detail.name,
+                        "fileMimeType" : "application/vnd.dcache.folder",
+                        "fileLocality" : "",
+                        "size" : "--",
+                        "fileType" : "DIR",
+                        "mtime" : "--",
+                        "creationTime" : Date.now() //Assumption
+                    };
+                    this.dispatchEvent(new CustomEvent('dv-namespace-add-items', {
+                        detail: {files: [file]},bubbles: true, composed: true}));
                 });
                 dialogBox.appendChild(mv);
                 dialogBox.open();
@@ -449,51 +440,37 @@
             {
                 app.$.centralContextMenu.close();
 
-                let vf = app.$.homedir.querySelector('view-file');
-                let path = vf.path;
-                let dialogBox = document.getElementById('centralDialogBox');
-                dialogBox.innerHTML = "";
+                const dialogBox = document.getElementById('centralDialogBox');
+                app.removeAllChildren(dialogBox);
 
                 let mkdir = document.createElement('create-directory');
-                mkdir.dirFullPath = path;
+                mkdir.dirFullPath = this.currentPath;
                 mkdir.header = false;
-                mkdir.addEventListener('create',function(e) {
+                mkdir.addEventListener('create',(e) => {
                     let name = e.detail.newFolderName;
                     let url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
                     let namespace = document.createElement('dcache-namespace');
                     namespace.auth = app.getAuthValue();
 
-                    namespace.promise.then(
-                        function() {
-                            dialogBox.close();
-                            dialogBox.removeChild(mkdir);
-
-                            let ed = vf.querySelector('empty-directory');
-                            if (ed != null) {
-                                vf.querySelector('#content').removeChild(ed);
-                            }
-
-                            let list = vf.shadowRoot.querySelector('iron-list');
-
-                            if (list != null) {
-                                list.unshift('items',
-                                    {
-                                        "fileName" : name,
-                                        "fileMimeType" : "application/vnd.dcache.folder",
-                                        "fileLocality" : "",
-                                        "size" : "--",
-                                        "fileType" : "DIR",
-                                        "mtime" : "--",
-                                        "creationTime" : Date.now() //Assumption
-                                        //TODO: add creation time to the return object of the ajax response
-                                    }
-                                );
-                                vf.shadowRoot.querySelector('iron-list').fire('iron-resize');
-                            }
-                            app.$.toast.text = "Done! New directory created. ";
-                            app.$.toast.show();
-                        }
-                    ).catch(
+                    namespace.promise.then(() => {
+                        dialogBox.close();
+                        dialogBox.removeChild(mkdir);
+                        const file = {
+                            "fileName" : name,
+                            "fileMimeType" : "application/vnd.dcache.folder",
+                            "fileLocality" : "",
+                            "size" : "--",
+                            "fileType" : "DIR",
+                            "mtime" : "--",
+                            "creationTime" : Date.now() //Assumption
+                            //TODO: add creation time to the return object of the ajax response
+                        };
+                        this.dispatchEvent(new CustomEvent('dv-namespace-add-items', {
+                            detail: {files: [file]}, bubbles: true, composed: true})
+                        );
+                        app.$.toast.text = "Done! New directory created. ";
+                        app.$.toast.show();
+                    }).catch(
                         function(err) {
                             app.$.toast.text = err.message + " ";
                             app.$.toast.show();
@@ -502,7 +479,7 @@
 
                     namespace.mkdir({
                         url: url,
-                        path: path,
+                        path: this.currentPath,
                         name: name
                     });
                 });
@@ -553,7 +530,7 @@
             _computedClass(id, singleSelection, multipleSelection, currentDir, t)
             {
                 if (currentDir && (id === 'open' || id === 'move' || id === 'rename' || id === 'download'
-                    || id === 'delete' || id === 'changeQos')) {
+                    || id === 'delete' || id === 'changeQos' || id === 'qosInfo')) {
                     return ' none';
                 } else {
                     if (!currentDir && (id === 'upload' || id === 'create')) {
@@ -569,17 +546,22 @@
             _setDisabledAttribute(id, singleSelection, multipleSelection, t)
             {
                 if (multipleSelection && (id === 'open' || id === 'metadata' || id === 'rename' ||
-                    id === 'download' || id === 'changeQos')) {
-                    this.root.querySelector('#'+id).setAttribute('disabled', true);
+                    id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
+                    this.root.querySelector('#'+id).setAttribute('disabled', "");
                 }
 
                 if (singleSelection) {
                     if (t.fileType === 'DIR' && (id === 'download' || id === 'changeQos')) {
-                        this.root.querySelector('#'+id).setAttribute('disabled', true);
+                        this.root.querySelector('#'+id).setAttribute('disabled', "");
                     } else if (id  === 'open' && t.fileType === 'REGULAR') {
-                        this.root.querySelector('#'+id).setAttribute('disabled', true);
+                        this.root.querySelector('#'+id).setAttribute('disabled', "");
                     }
                 }
+            }
+
+            _setCurrentPath(e)
+            {
+                this.currentPath = e.detail.currentPath;
             }
         }
         window.customElements.define(NamespaceContextualContent.is, NamespaceContextualContent);

@@ -74,25 +74,51 @@
         app.ls(sessionStorage.homeDirectory);
     };
 
+    app.removeAllChildren = function (node)
+    {
+        while (node.firstChild) {
+            node.removeChild(node.firstChild);
+        }
+    };
+
     app.currentDirContext = function(e)
     {
-        if (app.$.centralContextMenu.opened) {
-            app.$.centralContextMenu.close();
-        }
-        app.$.centralContextMenu.innerHTML = "";
+        /**
+         * This code include a workaround to accommodate firefox.
+         * TODO: When firefox support web components fully, revisit
+         * this patch and update accordingly
+         * ISSUE STATUS: https://developer.mozilla.org/en-US/docs/Web/Web_Components/Status_in_Firefox
+         * See also:
+         * a. https://caniuse.com/#search=Shadow%20DOM
+         * b. https://caniuse.com/#search=Custom%20Elements
+         */
+        const contextMenu = app.$.centralContextMenu;
+        if (contextMenu.opened) contextMenu.close();
+        app.removeAllChildren(contextMenu);
 
-        let path = app.$.homedir.querySelector('view-file').path;
-        let name;
-        if (path === "/") {
-            name = 'ROOT';
+        const vf = app.$.homedir.querySelector('view-file');
+        let x = 0, y = 0, h = 176, cc;
+        if (e.screenX === 0 & e.screenY === 0) {
+            const arr = e.path || (e.composedPath && e.composedPath());
+            const lr = arr.find(function (el) {
+                return el.tagName === "LIST-ROW";
+            });
+
+            if (lr.xSelected && vf._xSelectedItems.length > 1) {
+                cc = new NamespaceContextualContent({files: vf._xSelectedItems,
+                    parentPath: this.path}, 1);
+            } else {
+                cc = new NamespaceContextualContent(lr, 0);
+            }
+            h = 340;
         } else {
-            name = path.slice(path.lastIndexOf("/"));
+            const path = vf.path;
+            const name = path === "/" ? 'ROOT' : path.slice(path.lastIndexOf("/"));
+            cc = new NamespaceContextualContent({"name":name,
+                "filePath":path, "fileType":"DIR"}, 2);
         }
-        let fm = {"name":name,"filePath":path, "fileType":"DIR"};
-        let cc = new NamespaceContextualContent(fm, 2);
-        app.$.centralContextMenu.appendChild(cc);
-        let x = 0, y = 0;
 
+        const w = 250;
         if (e.pageX || e.pageY) {
             x = e.pageX;
             y = e.pageY;
@@ -102,12 +128,8 @@
             y = e.clientY + document.body.scrollTop +
                 document.documentElement.scrollTop;
         }
-
         const vx = window.innerWidth;
         const vy = window.innerHeight;
-        const w = 250;
-        const h = 176;
-
         if (vx - x < w && vy - y >= h) {
             app.x = x-w;
             app.y = y;
@@ -123,8 +145,15 @@
         }
         app.notifyPath('x');
         app.notifyPath('y');
-        app.$.centralContextMenu.resetFit();
-        app.$.centralContextMenu.open();
+        contextMenu.appendChild(cc);
+        contextMenu.resetFit();
+        contextMenu.open();
+    };
+
+    app.click = function (e) {
+        this.dispatchEvent(
+            new CustomEvent('dv-namespace-reset-element-internal-parameters', {
+                detail: {element: 'view-file'}, bubbles: true, composed: true}));
     };
 
     /**
@@ -367,7 +396,6 @@
         }
         app.$.toast.show();
         app.mvObj = {};
-        app.$.homedir.querySelector('view-file').resetMultiSelection();
     };
 
     function updateFeListAndMetaDataDrawer(status, itemIndex)

@@ -255,17 +255,37 @@
     <script>
         class FileMetadata extends Polymer.Element
         {
-            constructor(fileName, path, fileType, currentQos, index)
+            constructor(file, path, idx)
             {
                 super();
-                this.fileName = fileName;
+                if (idx === 1) {
+                    this.index = -10;
+                } else {
+                    window.addEventListener('dv-namespace-receive-item-index', (e)=>{
+                        this.index = e.detail.index;
+                    });
+
+                    window.dispatchEvent(
+                        new CustomEvent('dv-namespace-request-item-index', {
+                            detail: {item: file}, bubbles: true, composed: true}));
+                }
+                path = path === "" ? "/": path;
+                if (JSON.stringify(file) === '{}') {
+                    this.fileName = path === "/" ? "Root" : path.slice(path.lastIndexOf("/") + 1);
+                    this.fileType = "DIR";
+                } else {
+                    this.fileName = file.fileName;
+                    this.fileType = file.fileType;
+                }
+
                 this.path = path;
-                this.fileType = fileType;
-                this.index = index;
                 this.isSomebody = !(sessionStorage.upauth === undefined || sessionStorage.upauth == null);
-                this.isRegular = fileType == 'REGULAR';
-                this.currentQos = currentQos;
-                if (window.CONFIG.qos == undefined && window.CONFIG.isSomebody) {
+                this.isRegular = this.fileType === 'REGULAR';
+                this.currentQos = file.currentQos === undefined ? null : file.currentQos;
+
+
+
+                if (window.CONFIG.qos === undefined && window.CONFIG.isSomebody) {
                     const apiEndPoint = window.CONFIG["dcache-view.endpoints.webapi"];
                     const qos = new QosBackendInformation(apiEndPoint, app.getAuthValue());
                     qos.addEventListener('qos-backend-response', (e) => {
@@ -273,7 +293,6 @@
                         this.possibleTransition = e.detail.response;
                     });
                 }
-
                 this.url = this._url(path);
                 let authzValue = app.getAuthValue();
                 this.headers = {
@@ -376,6 +395,9 @@
             {
                 super.disconnectedCallback();
                 this.$.closeFileMetadataPanel.removeEventListener('tap', this._closeFileMetadataPanel);
+                window.removeEventListener('dv-namespace-receive-item-index', (e)=>{
+                    this.index = e.detail.index;
+                });
             }
 
             _url(path)
@@ -476,6 +498,7 @@
                         const currentQos = this.currentQos;
                         app.$.toast.text = "Request successful! File in transition. ";
                         app.$.toast.show();
+                        //FIXME: `this.fire` is deprecated in polymer 2.x please adjust accordingly.
                         this.fire('qos-in-transition', {options: {
                             currentQos: currentQos,
                             targetQos: target,
