@@ -1,0 +1,677 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import"
+      href="../../../../bower_components/iron-selector/iron-selector.html">
+<link rel="import"
+      href="../../../../bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import"
+      href="../../../../bower_components/paper-item/paper-item.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/charts/pool-info-chart.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="pool-plots-view">
+    <template>
+        <style>
+            :host {
+                display: block;
+                width: 100vw;
+                height: 80vh;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            paper-scroll-header-panel {
+                position: relative;
+                height: 70%;
+            }
+
+            paper-toolbar {
+                color: var(--dv-main-background);
+                background: var(--dv-charcoal-grey);
+            }
+
+            paper-dropdown-menu {
+                padding: 0px 55px;
+            }
+
+            paper-item {
+                background-color: var(--dv-light-grey);
+                color: var(--dv-indigo-900);
+                cursor: pointer;
+            }
+
+            hr {
+                color: var(--dv-main-background);
+                background: var(--dv-main-background);
+            }
+
+            .container {
+                width: 100%;
+                height: 100%;
+                background-color: var(--dv-light-grey);
+                justify-self: center;
+                align-self: center;
+            }
+
+            .subtitle {
+                color: var(--dv-charcoal-grey);
+                width: 95%;
+                padding-left: 10px;
+                padding-right: 10px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 14pt;
+            }
+
+            .caption {
+                position: relative;
+                background-color: var(--dv-light-grey);
+                margin: 5px auto;
+                text-align: center;
+                font-weight: 200;
+                font-size: 10pt;
+            }
+
+            .cur0 {
+                cursor: default;
+            }
+
+            .cur1 {
+                cursor: default;
+            }
+
+            .cur2 {
+                cursor: pointer;
+            }
+
+            .arrow {
+                position: relative;
+                color: var(--dv-main-background);
+                background: var(--dv-charcoal-grey);
+                font-size: 9pt;
+                font-weight: 100;
+                text-align: center;
+                padding: 5px 0px;
+                min-height: 25px;
+                cursor: pointer;
+            }
+
+            .renderingIndicator {
+                font-size: 16px;
+                text-align: center;
+                height: 60px;
+                margin-top: 10px;
+            }
+
+            .grid {
+                width: 95%;
+                margin: 10px;
+                display: grid;
+                align-items: center;
+                align-content: center;
+            }
+
+            .pos1 {
+                grid-area: main;
+            }
+
+            .cols1 {
+                grid-template-columns: 25% 1fr 25%;
+                grid-template-areas: ". main .";
+            }
+
+            .cols2 {
+                grid-gap: 60px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cols3 {
+                grid-gap: 40px;
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .cols4 {
+                grid-gap: 20px;
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .cols5 {
+                grid-gap: 10px;
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+            .cols6 {
+                grid-gap: 10px;
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .cols7 {
+                grid-gap: 10px;
+                grid-template-columns: repeat(7, 1fr);
+            }
+
+            .cols8 {
+                grid-gap: 10px;
+                grid-template-columns: repeat(8, 1fr);
+            }
+
+            .chart-image {
+                position: relative;
+                width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+                cursor: pointer;
+            }
+
+            #filterTools {
+                background: var(--dv-main-background);
+            }
+
+            #nameFilter {
+                min-width: 40%;
+                color: var(--dv-charcoal-grey);
+            }
+
+            #clear {
+                max-width: 10%;
+                background: var(--dv-charcoal-grey);
+                color: var(--dv-main-background);
+                margin-left: 50px;
+                margin-right: 20px;
+            }
+        </style>
+
+        <iron-ajax
+                id="AjaxGroups"
+                method="GET"
+                handle-as="json"
+                on-response="_handleGroupsResponse"
+                on-error="_handleGroupsError">
+        </iron-ajax>
+        <iron-ajax
+                id="AjaxPools"
+                method="GET"
+                handle-as="json"
+                on-response="_handlePoolsResponse"
+                on-error="_handlePoolsError">
+        </iron-ajax>
+        <iron-ajax
+                id="AjaxHistogram"
+                method="GET"
+                handle-as="json"
+                on-response="_handleHistogramResponse"
+                on-error="_handleHistogramError">
+        </iron-ajax>
+        <paper-toolbar>
+            <div slot="top" class="title"><strong>Pool Plots</strong></div>
+        </paper-toolbar>
+        <div class="renderingIndicator" hidden="[[!rendering]]">
+            <paper-spinner class="thick" active="[[rendering]]"></paper-spinner>
+            <br/>
+            <strong>Rendering [[currentChildren.length]] plots ...</strong>
+        </div>
+        <hr/>
+        <paper-toolbar id="filterTools">
+            <paper-dropdown-menu slot="top"
+                                 label="Select Plot Type" noink no-animations>
+                <iron-selector slot="dropdown-content"
+                               class="dropdown-content"
+                               selected="{{selected}}">
+                    <paper-item>Queue Stats</paper-item>
+                    <paper-item>Disk Space</paper-item>
+                    <paper-item>File Last Access</paper-item>
+                    <paper-item>File Lifetime Stats</paper-item>
+                </iron-selector>
+            </paper-dropdown-menu>
+            <paper-input slot="top" id="nameFilter"
+                         label="Filter charts using regex:"
+                         on-keyup="_ifEnterFilterCharts"></paper-input>
+        </paper-toolbar>
+        <hr/>
+        <div class="subtitle"><span id="subtitle"></span></div>
+        <hr/>
+        <paper-scroll-header-panel>
+            <div slot="content" class$="grid cols[[cols]]">
+                <template is="dom-repeat" items="[[charts]]">
+                    <div class$="container pos[[cols]]">
+                        <div class="arrow" on-tap="_up">
+                            <iron-icon icon="icons:arrow-upward"
+                                       hidden="[[!upLabel]]">
+                            </iron-icon>
+                            [[upLabel]]
+                            <iron-icon icon="icons:arrow-upward"
+                                       hidden="[[!upLabel]]"></iron-icon></div>
+                        <div class$="caption cur[[gridLevel]]"
+                             on-tap="_openPoolInfoDialog">[[item.title]]</div>
+                        <img on-tap="_magnify" id="[[item.title]]"
+                             class="chart-image"
+                             src="[[item.uri]]"/>
+                        <div class="arrow" on-tap="_down">
+                            <iron-icon icon="icons:arrow-downward"></iron-icon>
+                            [[downLabel]]
+                            <iron-icon icon="icons:arrow-downward"></iron-icon>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </paper-scroll-header-panel>
+        <div hidden="true" id="chart-placeholders"></div>
+    </template>
+
+    <script>
+        class PoolPlotsView extends Polymer.mixinBehaviors([Polymer.IronResizableBehavior],
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+
+            static get is() {
+                return 'pool-plots-view';
+            }
+
+            static get properties() {
+                return {
+                    currentChildren: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    charts: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
+
+                    hiddenCharts: {
+                        type: Array,
+                        value: []
+                    },
+
+                    cols: {
+                        type: Number,
+                        notify: true
+                    },
+
+                    plotDataResponses: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    gridLevel: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    gridLevels: {
+                        type: Array,
+                        value: ['all-pools', 'groups', 'pools']
+                    },
+
+                    plotType: {
+                        type: String,
+                        value: 'queues',
+                    },
+
+                    selected: {
+                        type: Number,
+                        value: 0,
+                        observer: '_typeChanged'
+                    },
+
+                    selectedGroup: {
+                        type: String
+                    },
+
+                    upLabel: {
+                        type: String,
+                        notify: true
+                    },
+
+                    downLabel: {
+                        type: String,
+                        notify: true
+                    },
+
+                    rendering: {
+                        type: Boolean,
+                        notify: true
+                    }
+                }
+            }
+
+            _down(e) {
+                e.stopPropagation();
+                this.selectedGroup = e.model.item.title;
+                this.gridLevel = (this.gridLevel + 1) % this.gridLevels.length;
+                this._reset();
+                this._getChildren();
+                e.stopPropagation();
+            }
+
+            _fetchPlotData() {
+                const hiddenDiv = this.shadowRoot.querySelector('#chart-placeholders');
+                this.removeAllChildrenFromSingleNode(hiddenDiv);
+
+                this.currentChildren.forEach((child) => {
+                    this._sendHistogramRequest(child);
+                });
+            }
+
+            _getChildren() {
+                this.stopRefresh();
+
+                switch (this.gridLevel) {
+                    case 0:
+                        this.currentChildren = [this.gridLevels[0]];
+                        this._rebuild();
+                        break;
+                    case 1:
+                        this._sendAllGroupsRequest();
+                        break;
+                    case 2:
+                        this._sendPoolsOfGroupRequest();
+                        break;
+                    default:
+                        this.handleError('unknown grid level ' + this.gridLevel
+                            + '. This is a bug; please report it to our ' +
+                            'development team.');
+                }
+
+                this.resetRefresh(this._getChildren.bind(this), 60000);
+            }
+
+            _getSeriesData(data) {
+                switch (this.plotType) {
+                    case 'space':
+                        return this._getSpaceData(data);
+                    case 'access':
+                    case 'lifetime':
+                        return (this.gridLevel === 2) ?
+                            data.fileStat: data.groupFileStat;
+                    case 'queues':
+                    default:
+                        return (this.gridLevel === 2) ?
+                            data.queueStat: data.groupQueueStat;
+                }
+            }
+
+            _getSpaceData(data) {
+                let pinned;
+                let removable;
+                let free;
+                let precious;
+                let total;
+
+                if (this.gridLevel === 2) {
+                    total = data.poolData.detailsData.costData.space.total;
+                    free = data.poolData.detailsData.costData.space.free;
+                    removable = data.poolData.detailsData.costData.space.removable;
+                    precious = data.poolData.detailsData.costData.space.precious;
+                } else {
+                    total = data.groupSpaceData.total;
+                    free = data.groupSpaceData.free;
+                    removable = data.groupSpaceData.removable;
+                    precious = data.groupSpaceData.precious;
+                }
+
+                pinned = total - free - removable - precious;
+
+                return {
+                    'free': free,
+                    'removable': removable,
+                    'precious': precious,
+                    'pinned': pinned
+                };
+            }
+
+            _handleGroupsResponse(event) {
+                const names = [];
+                const groups = event.detail.response;
+
+                groups.forEach((group) => {
+                    names.push(group.name);
+                });
+
+                this.currentChildren = names;
+                if (this.currentChildren && this.currentChildren.length > 0) {
+                    this._rebuild();
+                } else {
+                    this.rendering = false;
+                    this.handleError(`Could not retrieve pool groups from
+                        service; please refresh and try again.`);
+                }
+            }
+
+            _handleGroupsError(event) {
+                this.handleError(`Could not process pool groups
+                    request: ${event.detail.error.message}`);
+            }
+
+            _handleHistogramResponse(event) {
+                const name = this.getSubpathFromUrl(event.detail.url, 4);
+                const histogram = event.detail.response;
+
+                if (Object.keys(histogram).length > 0) {
+                    const plot = new PoolInfoChart();
+                    plot.title = name;
+                    plot.inputData = {
+                        'type': this.plotType,
+                        'seriesData': this._getSeriesData(histogram)
+                    };
+                    this.shadowRoot.querySelector('#chart-placeholders')
+                        .appendChild(plot);
+                    this.push('charts', plot);
+                }
+
+                this.plotDataResponses += 1;
+
+                if (this.plotDataResponses === this.currentChildren.length) {
+                    this._setNameFilter(this.$.nameFilter.value);
+                    this.rendering = false;
+                }
+            }
+
+            _handleHistogramError(event) {
+                this.plotDataResponses += 1;
+                this.handleError(`Could not process histogram:
+                    ${event.detail.error.message}`);
+            }
+
+            _handlePoolsResponse(event) {
+                this.currentChildren = event.detail.response;
+                if (this.currentChildren && this.currentChildren.length > 0) {
+                    this._rebuild();
+                } else {
+                    this.rendering = false;
+                    this.handleError(`Could not retrieve pools for
+                        ${this.selectedGroup} from service; please refresh
+                        and try again.`);
+                }
+            }
+
+            _handlePoolsError(event) {
+                this.handleError(`Could not process pools request:
+                    ${event.detail.error.message}`);
+            }
+
+            _ifEnterFilterCharts(e) {
+                if (e.keyCode === 13) {
+                    this._setNameFilter(this.$.nameFilter.value);
+                }
+            }
+
+            _magnify (e) {
+                e.model.item._magnify(e);
+            }
+
+            _openPoolInfoDialog(e) {
+                if (this.gridLevel === 2) {
+                    this.openPoolInfoDialog(e.target.innerText, null);
+                }
+            }
+
+            _rebuild() {
+                this.charts = [];
+                this.hiddenCharts = [];
+                this._setCols();
+                this.plotDataResponses = 0;
+                google.charts.load('current', {'packages': ['corechart', 'bar']});
+                google.charts.setOnLoadCallback(this._fetchPlotData.bind(this));
+            }
+
+            _reset() {
+                this.rendering = true;
+
+                switch (this.gridLevel) {
+                    case 0:
+                        this.upLabel = "";
+                        this.downLabel = "POOL GROUPS";
+                        this.removeAllChildrenFromSingleNode(this.$.subtitle);
+                        this.$.subtitle.appendChild(document.createTextNode("ALL POOLS"));
+                        break;
+                    case 1:
+                        this.upLabel = "ALL POOLS";
+                        this.downLabel = "POOLS";
+                        this.removeAllChildrenFromSingleNode(this.$.subtitle);
+                        this.$.subtitle.appendChild(document.createTextNode("POOL GROUPS"));
+                        break;
+                    case 2:
+                        this.upLabel = "POOL GROUPS";
+                        this.downLabel = "ALL POOLS";
+                        this.removeAllChildrenFromSingleNode(this.$.subtitle);
+                        this.$.subtitle.appendChild(document.createTextNode(this.selectedGroup));
+                        break;
+                    default:
+                        this.handleError(`unknown grid level ${this.gridLevel}.
+                            This is a bug; please report
+                            it to our development team.`);
+                }
+            }
+
+            _sendAllGroupsRequest() {
+                this.$.AjaxGroups.url
+                    = this.getUrl('poolgroups', null);
+                this.$.AjaxGroups.headers = this.getHeaders();
+                this.$.AjaxGroups.generateRequest();
+            }
+
+            _sendHistogramRequest(name) {
+                let path = `${(this.gridLevel === 2) ? 'pools/': 'poolgroups/'}${name}`;
+
+                switch (this.plotType) {
+                    case 'space':
+                        path += (this.gridLevel === 2 ? "/usage" : "/space");
+                        break;
+                    case 'access':
+                    case 'lifetime':
+                        path += "/histograms/files";
+                        break;
+                    default:
+                        path += "/histograms/queues";
+                }
+
+                this.$.AjaxHistogram.url = this.getUrl(path, null);
+                this.$.AjaxHistogram.headers = this.getHeaders();
+                this.$.AjaxHistogram.generateRequest();
+            }
+
+            _sendPoolsOfGroupRequest() {
+                if (!this.selectedGroup) {
+                    this.handleError(`No group was selected. This is a bug;
+                        please it report to our development team.`);
+                }
+
+                const path = `poolgroups/${this.selectedGroup}/pools`;
+                this.$.AjaxPools.url = this.getUrl(path, null);
+                this.$.AjaxPools.headers = this.getHeaders();
+                this.$.AjaxPools.generateRequest();
+            }
+
+            _setCols() {
+                this.cols = (Math.max(1, Math.min(8, Math.floor(
+                    Math.sqrt(this.currentChildren.length))))).toFixed(0) / 1;
+            }
+
+            _setNameFilter(expression) {
+                const regex = (expression && expression.length > 0) ?
+                    new RegExp(expression) : null;
+
+                const matching = [];
+                const excluded = [];
+
+                this.charts.forEach((chart) => {
+                    if (!regex || regex.test(chart.title)) {
+                        matching.push(chart);
+                    } else {
+                        excluded.push(chart);
+                    }
+                });
+
+                this.hiddenCharts.forEach((chart) => {
+                    if (!regex || regex.test(chart.title)) {
+                        matching.push(chart);
+                    } else {
+                        excluded.push(chart);
+                    }
+                });
+
+                matching.sort(this._sortByTitle);
+
+                this.charts = [];
+                this.charts = matching;
+                this.hiddenCharts = excluded;
+            }
+
+            _sortByTitle(a, b) {
+                if (a.title < b.title) {
+                    return -1;
+                }
+
+                if (a.title > b.title) {
+                    return 1;
+                }
+
+                return 0;
+            }
+
+            _typeChanged(newValue, oldValue) {
+                switch(this.selected) {
+                    case 1:
+                        this.plotType = 'space';
+                        break;
+                    case 2:
+                        this.plotType = 'access';
+                        break;
+                    case 3:
+                        this.plotType = 'lifetime';
+                        break;
+                    default:
+                        this.plotType = 'queues';
+                        break;
+                }
+
+                this._reset();
+                this._getChildren();
+            }
+
+            _up(e) {
+                if (this.gridLevel === 0) {
+                    return;
+                }
+
+                this.selectedGroup = e.model.item.title;
+                this.gridLevel = (this.gridLevel - 1) % this.gridLevels.length;
+                this._reset();
+                this._getChildren();
+                e.stopPropagation();
+            }
+        }
+
+        window.customElements.define(PoolPlotsView.is, PoolPlotsView);
+    </script>
+
+</dom-module>
