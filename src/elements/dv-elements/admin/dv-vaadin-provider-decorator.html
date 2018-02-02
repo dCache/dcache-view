@@ -1,0 +1,302 @@
+<link rel="import"
+      href="../../../bower_components/polymer/polymer-element.html">
+
+<!-- ------------------------------------------------------------------
+        Provides infrastructure for handling filtering, sorting and
+        selection on vaadin-grid components which use the data provider
+        to lazily load from a remote source in connection with infinite
+        scrolling.
+
+        Acts as stateful wrapper for a single vaadin-grid table.  Multiple
+        tables will require multiple instances of this decorator.
+     ------------------------------------------------------------------ -->
+<dom-module id="dv-vaadin-provider-decorator">
+    <script>
+        class DvVaadinProviderDecorator extends Polymer.Element {
+
+            static get is() {
+                return 'dv-vaadin-provider-decorator';
+            }
+
+            static get properties() {
+                return {
+                    selectAll: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    indeterminate: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    currentItems: {
+                        type: Array,
+                        value: []
+                    },
+
+                    currentOffset: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    currentFilters: {
+                        type: String,
+                        value: ""
+                    },
+
+                    currentSortOrders: {
+                        type: String,
+                        value: ""
+                    },
+
+                    vaadingrid: {
+                        type: Object
+                    }
+                }
+            }
+
+            constructor(vaadingrid) {
+                super();
+                this.vaadingrid = vaadingrid;
+                this.currentItems = [];
+                this.currentOffset = 0;
+            }
+
+            /*
+             *  ------------------------- Provider ---------------------------
+             *
+             *  parent should extend mixin Base and implement:
+             *
+             *      - setTableSize(size, index)
+             *      - handleItem(item, index): returns item
+             *      - providerUrl(index): returns string
+             *      - providerParams(index): returns string
+             *      - itemsArray(xhr, index):  returns items array
+             *      - resetTimeout (no parameters)
+             *
+             *
+             *  TODO:  redesign to use encapsulated functions
+             *
+             *  The current design depends on strong coupling between caller
+             *  and this class; from the standpoint of good OOD, this constitutes
+             *  a code smell.   What should be done is to make each of
+             *  these methods correspond to a property on this provider
+             *  whose type is function.   Initialization of this class should
+             *  define (set) those function properties as necessary.  All
+             *  calls in this class should then be to those internal functions.
+             *  In essence, this would constitute the creation of an anonymous
+             *  subclass of the provider for each instance that is constructed.
+             *  --------------------------------------------------------------
+             */
+
+            resetProvider(parent, index) {
+                this.currentOffset = 0;
+                this.currentItems = [];
+                parent.setTableSize(0, index);
+                this.vaadingrid.clearCache();
+            }
+
+            runProvider(params, callback, parent, index) {
+                if (this._paramsChanged(params)) {
+                    callback([]);
+                    this.resetProvider(parent);
+                    return;
+                }
+
+                if (this.currentOffset === -1) {
+                    callback([]);
+                    return;
+                }
+
+                new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+
+                    xhr.onload = () => {
+                        if (xhr.status == 200) {
+                            resolve(xhr);
+                        } else {
+                            reject(Error(xhr.statusText));
+                        }
+                    }
+
+                    xhr.onerror = () => {
+                        reject(Error("Network Error"));
+                    }
+
+                    this.currentOffset = params.page * params.pageSize;
+                    const url = parent.getUrl(
+                        parent.providerUrl(index),
+                        this._generateParams(
+                            this.currentOffset,
+                            params.pageSize,
+                            params.filters,
+                            params.sortOrders,
+                            parent,
+                            index));
+                    xhr.open('GET', url, true);
+                    parent.setXHRHeaders(xhr);
+
+                    xhr.send();
+                }).then((xhr) => {
+                    const items = parent.itemsArray(xhr, index);
+                    if (items && items.length > 0) {
+                        items.forEach(item => {
+                            this.currentItems.push(parent.handleItem(item, index));
+                        });
+
+                        if (items.length < params.pageSize) {
+                            this.currentOffset = -1;
+                            parent.setTableSize(this.currentItems.length, index);
+                        } else {
+                            parent.setTableSize(params.pageSize * (params.page + 2),
+                                index);
+                        }
+                        callback(items);
+                    } else {
+                        this.currentOffset = -1;
+                        parent.setTableSize(this.currentItems.length, index);
+                        callback([]);
+                    }
+
+                    parent.resetTimeout();
+                }, (error)=> {
+                    this.currentOffset = -1;
+                    parent.setTableSize(this.currentItems.length, index);
+                    callback([]);
+                    parent.resetTimeout();
+                    app.$.toast.text = error;
+                    app.$.toast.show();
+                });
+            }
+
+            /*
+             *  ---------------------- Filter & Sort -------------------------
+             */
+
+            _generateParams(offset, limit, filters, orders, parent, index) {
+                let params = `?offset=${offset}&limit=${limit}`;
+                params += parent.providerParams(index);
+                params += this._getFilterString(filters);
+                params += this._getSortString(orders);
+                return params;
+            }
+
+            _getFilterString(filters) {
+                let filterString = "";
+
+                if (filters.length > 0) {
+                    filters.forEach((filter) => {
+                        filterString += `&${filter.path}=${filter.value}`;
+                    });
+                }
+
+                return filterString
+            }
+
+            _getSortString(sortOrders) {
+                let sort = "";
+
+                const len = sortOrders.length;
+
+                if (len > 0) {
+                    switch (sortOrders[0].direction) {
+                        case 'asc':
+                            sort += `${sortOrders[0].path}`;
+                            break;
+                        case 'desc':
+                            sort += `-${sortOrders[0].path}`;
+                            break;
+                    }
+
+                    for (let i = 1; i < len; i++) {
+                        switch (sortOrders[i].direction) {
+                            case 'asc':
+                                sort += `,${sortOrders[i].path}`;
+                                break;
+                            case 'desc':
+                                sort += `,-${sortOrders[i].path}`;
+                                break;
+                        }
+                    }
+                }
+
+                return sort === "" ? sort : `&sort=${sort}`;
+            }
+
+            _paramsChanged(params) {
+                const filterString = this._getFilterString(params.filters);
+                const sortString = this._getSortString(params.sortOrders);
+
+                const changed = (this.currentFilters !== filterString) ||
+                    (this.currentSortOrders !== sortString);
+
+                this.currentFilters = filterString;
+                this.currentSortOrders = sortString;
+
+                return changed;
+            }
+
+
+            /*
+             *  ----------------- Selection Column Control -------------------
+             *
+             *  Callbacks (cb) should provide method 'signalChange()'.
+             */
+
+            clearSelected(cb) {
+                this.selectAll = false;
+                this.indeterminate = false;
+                this.vaadingrid.selectedItems = [];
+                cb.signalChange();
+            }
+
+            currentlySelected() {
+                return `${this.vaadingrid.selectedItems.length} / ${this.currentItems.length}`;
+            }
+
+            isChecked() {
+                /*
+                 * iOS needs indeterminate + checked at the same time
+                 */
+                return this.indeterminate || this.selectAll;
+            }
+
+            isIndeterminate() {
+                return this.indeterminate;
+            }
+
+            selectItem(e, cb) {
+                if (e.target.checked) {
+                    this.vaadingrid.selectItem(e.model.item);
+                } else {
+                    this.vaadingrid.deselectItem(e.model.item);
+                }
+                this._computeIndeterminate();
+                cb.signalChange();
+            }
+
+            toggleAll(cb) {
+                this.selectAll = !this.selectAll;
+                this.currentItems.forEach((item) => {
+                    if (this.selectAll) {
+                        this.vaadingrid.selectItem(item);
+                    } else {
+                        this.vaadingrid.deselectItem(item);
+                    }
+                });
+                this._computeIndeterminate();
+                cb.signalChange();
+            }
+
+            _computeIndeterminate() {
+                this.indeterminate = this.vaadingrid.selectedItems.length > 0 &&
+                    this.vaadingrid.selectedItems.length !== this.vaadingrid.size;
+            }
+        }
+
+        window.customElements.define(DvVaadinProviderDecorator.is, DvVaadinProviderDecorator);
+    </script>
+</dom-module>

@@ -1,0 +1,387 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-filter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-cell-click-behavior.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="restores-view">
+    <template>
+        <style>
+            :host {
+                display: block;
+                height: 80vh;
+                @apply(--layout-vertical);
+            }
+
+            vaadin-grid {
+                position: relative;
+                height: 100%;
+                -webkit-font-smoothing: antialiased;
+                --divider-color: #d4d4d4;
+
+                --vaadin-grid-cell: {
+                    padding: 0 8px;
+                    height: 32px;
+                    border-right: 1px solid #d4d4d4;
+                    box-sizing: border-box;
+                    font-size: 8pt;
+                    cursor: default;
+                };
+
+                --vaadin-grid-header-cell: {
+                    height: 36px;
+                    border-bottom: 1px solid #d4d4d4;
+                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                    font-size: 9pt;
+                    text-style: bold;
+                    text-align: center;
+                    cursor: default;
+                };
+
+                --vaadin-grid-body-row-odd-cell: {
+                    background-color: #f5f5f5;
+                };
+            }
+
+            paper-toolbar {
+                color: var(--dv-main-background);
+                background: var(--dv-charcoal-grey);
+            }
+
+            .tablediv {
+                height: 75%;
+                width: 100%;
+                margin-right: 10px;
+            }
+
+            input {
+                @apply(--layout-flex);
+                height: 95%;
+                width: 90%;
+                padding-right: 5px;
+            }
+
+            paper-checkbox {
+                --paper-checkbox-checked-color: var(--dv-charcoal-grey);
+                --paper-checkbox-checked-ink-color: var(--dv-charcoal-grey);
+                --paper-checkbox-unchecked-color: var(--dv-light-grey);
+                --paper-checkbox-unchecked-ink-color: var(--dv-light-grey);
+                --paper-checkbox-label-color: var(--dv-charcoal-grey);
+            }
+
+            .actionable {
+                cursor: pointer;
+                color: var(--dv-indigo-500);
+            }
+
+            .path {
+                margin: auto;
+                font-weight: bold;
+                font-size: 9pt;
+            }
+        </style>
+
+        <paper-toolbar id="title">
+            <div slot="top" class="title"><strong>Current Stages from
+                Tape</strong></div>
+        </paper-toolbar>
+        <hr/>
+        <div class="tablediv">
+            <vaadin-grid on-active-item-changed="_activeItemChanged"
+                         aria-label="Tape Restores" id="restores"
+                         active-item="{{activeItem}}"
+                         multi-sort="true" size="[[tableSize]]">
+
+                <template class="row-details">
+                    <div class="details">
+                        <table class="path">
+                            <tr>
+                                <td>Path:</td>
+                                <td>[[item.path]]</td>
+                            </tr>
+                            <tr>
+                                <td>Error:</td>
+                                <td>[[item.error]]</td>
+                            </tr>
+                            <tr>
+                                <td>Error Message:</td>
+                                <td>[[item.errorMessage]]</td>
+                            </tr>
+                        </table>
+                    </div>
+                </template>
+
+                <vaadin-grid-column-group>
+                    <template class="header">#</template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header">Filter on:</template>
+                        <template>[[index]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">Path</template>
+                    <vaadin-grid-column width="50px">
+                        <template class="header"></template>
+                        <template>
+                            <paper-checkbox aria-label="Path"
+                                            checked="{{expanded}}">
+                            </paper-checkbox>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="pnfsid">Pnfsid
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="250px">
+                        <template class="header">
+                            <vaadin-grid-filter id="idFilter"
+                                                aria-label="Pnfsid"
+                                                path="pnfsid"
+                                                value="[[_filterPnfsid]]">
+                                <input slot="filter"
+                                       id="idFilterInput"
+                                       placeholder="Pnfsid"
+                                       value="{{_filterPnfsid::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template><span
+                                class="actionable">[[item.pnfsId.id]]</span>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="subnet">Subnet
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="100px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Subnet"
+                                                path="subnet"
+                                                value="[[_filterSubnet]]">
+                                <input slot="filter"
+                                       placeholder="subnet"
+                                       value="{{_filterSubnet::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.subnet]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="pool">Pool
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="300px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Pool Candidate"
+                                                path="pool"
+                                                value="[[_filterPoolCandidate]]">
+                                <input slot="filter"
+                                       placeholder="Pool"
+                                       value="{{_filterPoolCandidate::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template><span
+                                class="actionable">[[item.poolCandidate]]</span>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="started">Started
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="150px">
+                        <template class="header"></template>
+                        <template>[[item.started.formatted]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="clients">Clients
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>[[item.clients]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="retries">Retries
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>[[item.retries]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="status">Status
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="200px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Status"
+                                                path="status"
+                                                value="[[_filterStatus]]">
+                                <input slot="filter"
+                                       placeholder="Status"
+                                       value="{{_filterStatus::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.status]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+            </vaadin-grid>
+        </div>
+    </template>
+
+    <script>
+        class RestoresView extends Polymer.mixinBehaviors([vaadin.elements.grid.CellClickBehavior],
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+
+            static get is() {
+                return 'restores-view';
+            }
+
+            static get properties() {
+                return {
+                    decorator: {
+                        type: Object,
+                    },
+
+                    currentItem: {
+                        type: Object
+                    },
+
+                    cell: {
+                        type: Number
+                    },
+
+                    tableSize: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    }
+                }
+            }
+
+            connectedCallback() {
+                if (super.connectedCallback) {
+                    super.connectedCallback();
+                }
+
+                this.$.restores.addEventListener('cell-focus', this._handleClick.bind(this));
+
+                this.decorator = new DvVaadinProviderDecorator(this.$.restores);
+
+                /*
+                 * This must be assigned only after the decorator has been
+                 * constructed; it is called immediately upon assignment.
+                 */
+                this.$.restores.dataProvider = this._remoteProvider.bind(this);
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback
+                this.$.restores.removeEventListener('cell-focus', this._handleClick.bind(this));
+            }
+
+            _handleClick(e) {
+                e.stopPropagation();
+                this.cell = 0;
+                const cell = e.composedPath()[0];
+                if (cell) {
+                    this.cell = parseInt(cell.order.toString().charAt(0));
+                }
+            }
+
+            /*
+             *  ------ Lazy Load & Infinite Scroll, with Filter & Sort -------
+             */
+
+            handleItem(item, index) {
+                item.started = this.convertDatestampToObject(item.started);
+                return item;
+            }
+
+            itemsArray(xhr, index) {
+                return JSON.parse(xhr.responseText).items;
+            }
+
+            providerParams(index) {
+                return "";
+            }
+
+            providerUrl(index) {
+                return 'restores';
+            }
+
+            resetTimeout() {
+                this.resetRefresh(this._refresh.bind(this), 60000);
+            }
+
+            setTableSize(size, index) {
+                this.tableSize = size;
+            }
+
+            _refresh() {
+                this.decorator.resetProvider(this);
+            }
+
+            _remoteProvider(params, callback) {
+                return this.decorator.runProvider(params, callback, this, null);
+            }
+
+
+            /* -------------------------- Dialogs -------------------------- */
+
+            _activeItemChanged(item) {
+                if (item && item.detail && item.detail.value) {
+                    this.currentItem = item.detail.value;
+                }
+
+                if (typeof this.currentItem === 'undefined' ||
+                    typeof this.cell === 'undefined' ) {
+                    return;
+                }
+
+                if (this.cell === 3) {
+                    this.openFileInfoDialog(this.currentItem.pnfsId.id,
+                        this.currentItem.poolCandidate);
+                } else if (this.cell === 5) {
+                    this.openPoolInfoDialog(this.currentItem.poolCandidate,
+                        this.currentItem.pnfsId.id);
+                }
+            }
+        }
+
+        window.customElements.define(RestoresView.is, RestoresView);
+    </script>
+</dom-module>

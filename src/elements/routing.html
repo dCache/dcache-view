@@ -68,6 +68,12 @@
                 app.$.poolPlotsContainer.appendChild(new PoolPlotsView());
                 return;
             }
+
+            isAdminView = app.$.restoresContainer.querySelector('restores-view') instanceof Polymer.Element;
+            if (app.params.component === "tape-transfer-queue" && !isAdminView) {
+                app.$.restoresContainer.appendChild(new RestoresView());
+                return;
+            }
         });
 
         page('/user-login', function(ctx) {
