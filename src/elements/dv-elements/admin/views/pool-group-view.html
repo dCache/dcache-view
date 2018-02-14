@@ -19,6 +19,8 @@
 <link rel="import"
       href="../../../../elements/dv-elements/admin/charts/layout-bar.html">
 <link rel="import"
+      href="../../../../elements/dv-elements/admin/dialogs/pools-of-group-dialog.html">
+<link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
 
 <dom-module id="pool-group-view">
@@ -320,9 +322,8 @@
             }
 
             _openPoolGroupInfoDialog(e) {
-                e.stopPropagation();
                 const group = e.target.innerText;
-                const dialog = new PoolGroupInfoDialog(group);
+                const dialog = new PoolsOfGroupDialog(group);
                 this.pushDialog(dialog);
                 dialog.open();
                 e.stopPropagation();
