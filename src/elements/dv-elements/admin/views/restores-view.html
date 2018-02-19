@@ -165,7 +165,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template><span
-                                class="actionable">[[item.pnfsId.id]]</span>
+                                class="actionable">[[item.pnfsId]]</span>
                         </template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
@@ -373,11 +373,11 @@
                 }
 
                 if (this.cell === 3) {
-                    this.openFileInfoDialog(this.currentItem.pnfsId.id,
+                    this.openFileInfoDialog(this.currentItem.pnfsId,
                         this.currentItem.poolCandidate);
                 } else if (this.cell === 5) {
                     this.openPoolInfoDialog(this.currentItem.poolCandidate,
-                        this.currentItem.pnfsId.id);
+                        this.currentItem.pnfsId);
                 }
             }
         }
