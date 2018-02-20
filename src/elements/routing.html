@@ -74,6 +74,12 @@
                 app.$.restoresContainer.appendChild(new RestoresView());
                 return;
             }
+
+            isAdminView = app.$.alarmsContainer.querySelector('alarms-view') instanceof Polymer.Element;
+            if (app.params.component === "alarms" && !isAdminView) {
+                app.$.alarmsContainer.appendChild(new AlarmsView());
+                return;
+            }
         });
 
         page('/user-login', function(ctx) {

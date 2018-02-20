@@ -1,0 +1,693 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/paper-input/paper-input.html">
+<link rel="import"
+      href="../../../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import"
+      href="../../../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import"
+      href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import"
+      href="../../../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import"
+      href="../../../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import"
+      href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-filter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="alarms-view">
+    <template>
+        <style>
+            :host {
+                display: block;
+                height: 70vh;
+                @apply(--layout-vertical);
+            }
+
+            vaadin-grid {
+                position: relative;
+                height: 100%;
+                -webkit-font-smoothing: antialiased;
+                --divider-color: #d4d4d4;
+
+                --vaadin-grid-cell: {
+                    padding: 0 8px;
+                    height: 32px;
+                    border-right: 1px solid #d4d4d4;
+                    box-sizing: border-box;
+                    font-size: 8pt;
+                    cursor: default;
+                };
+
+                --vaadin-grid-header-cell: {
+                    height: 36px;
+                    border-bottom: 1px solid #d4d4d4;
+                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                    font-size: 9pt;
+                    text-style: bold;
+                    text-align: center;
+                    cursor: default;
+                };
+
+                --vaadin-grid-body-row-odd-cell: {
+                    background-color: #f5f5f5;
+                };
+            }
+
+            paper-toolbar {
+                color: var(--dv-main-background);
+                background: var(--dv-charcoal-grey);
+            }
+
+            paper-toolbar#daterange {
+                background: var(--dv-main-background);
+                color: var(--dv-charcoal-grey);
+            }
+
+            paper-toolbar#fileinfo {
+                background: var(--dv-main-background);
+                color: var(--dv-charcoal-grey);
+            }
+
+            paper-input {
+                @apply(--layout-flex);
+                width: 300px;
+                padding-right: 10px;
+            }
+
+            .tablediv {
+                height: 70%;
+                width: 100%;
+            }
+
+            input {
+                @apply(--layout-flex);
+                height: 95%;
+                width: 90%;
+                padding-right: 5px;
+            }
+
+            paper-button {
+                min-width: 100px;
+                background: var(--dv-charcoal-grey);
+                color: var(--dv-main-background);
+                margin-right: 10px;
+                text-align: center;
+                font-size: 10pt;
+            }
+
+            paper-radio-button {
+                --paper-radio-button-checked-color: var(--dv-charcoal-grey);
+                --paper-radio-button-checked-ink-color: var(--dv-charcoal-grey);
+                --paper-radio-button-unchecked-color: var(--dv-light-grey);
+                --paper-radio-button-unchecked-ink-color: var(--dv-light-grey);
+                font-size: 10pt;
+            }
+
+            .level0 {
+                background: var(--dv-light-grey);
+                color: var(--dv-charcoal-grey);
+                width: 100%;
+            }
+
+            .level1 {
+                background: var(--paper-yellow-400);
+                color: var(--dv-charcoal-grey);
+                width: 100%;
+            }
+
+            .level2 {
+                background: var(--paper-yellow-800);
+                color: var(--dv-charcoal-grey);
+                width: 100%;
+            }
+
+            .level3 {
+                background: var(--paper-orange-900);
+                color: var(--dv-main-background);
+                width: 100%;
+            }
+
+            .level4 {
+                background: var(--paper-red-a700);
+                color: var(--dv-main-background);
+                width: 100%;
+            }
+
+            .detailinfo {
+                width: 90%;
+                margin: 20px auto;
+                overflow: auto;
+            }
+        </style>
+
+        <iron-ajax
+                id="AjaxPatch"
+                method="PATCH"
+                handle-as="json"
+                on-response="_handlePatchResponse"
+                on-error="_handlePatchError">
+        </iron-ajax>
+        <paper-toolbar id="title">
+            <div slot="top" class="title"><strong>Alarms</strong></div>
+        </paper-toolbar>
+        <paper-toolbar id="daterange">
+            <paper-button slot="top" id="delete" on-tap="_delete">Delete
+            </paper-button>
+            <paper-button slot="top" id="open" on-tap="_open">Open
+            </paper-button>
+            <paper-button slot="top" id="close" on-tap="_close">Close
+            </paper-button>
+            <paper-input slot="top" id="from"
+                         label="Select alarms after this date (YYYY-MM-DD hh:mm):"
+                         on-keyup="_ifEnterSetRange"></paper-input>
+            <paper-input slot="top" id="to"
+                         label="Select alarms before this date (YYYY-MM-DD hh:mm):"
+                         on-keyup="_ifEnterSetRange"></paper-input>
+        </paper-toolbar>
+        <br/>
+        <paper-toolbar id="fileinfo">
+            <paper-radio-group slot="top" selected="{{filter}}">
+                <paper-radio-button name="show">
+                    Show Closed
+                </paper-radio-button>
+                <paper-radio-button name="hide">
+                    Hide Closed
+                </paper-radio-button>
+            </paper-radio-group>
+            <paper-input slot="top" id="pnfsid"
+                         label="Get file information (pnfsid)"
+                         on-keyup="_ifEnterGetFileInfo"></paper-input>
+            <paper-input slot="top" id="pool" label="Get pool information"
+                         on-keyup="_ifEnterGetPoolInfo"></paper-input>
+        </paper-toolbar>
+        <div class="tablediv">
+            <vaadin-grid aria-label="Alarms" id="alarms"
+                         multi-sort="true" size="[[tableSize]]">
+                <template class="row-details">
+                    <div class="details">
+                        <p class="detailinfo"><strong>[[item.info]]</strong>
+                        </p>
+                    </div>
+                </template>
+                <vaadin-grid-selection-column>
+                    <template class="header">
+                        <input aria-label="Select All" type="checkbox"
+                               on-click="_toggleAll"
+                               checked="[[_isChecked(selectionAction)]]"
+                               indeterminate="[[_isIndeterminate(selectionAction)]]">
+                    </template>
+                    <template>
+                        <input aria-label="Select Row" type="checkbox"
+                               on-change="_selectItem"
+                               checked="{{selected::change}}">
+                    </template>
+                </vaadin-grid-selection-column>
+                <vaadin-grid-column-group>
+                    <template class="header">Details</template>
+                    <vaadin-grid-column width="50px">
+                        <template class="header"></template>
+                        <template>
+                            <paper-checkbox aria-label="Details"
+                                            checked="{{expanded}}">
+                            </paper-checkbox>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="severity">
+                            Severity
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="100px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Severity"
+                                                path="severity"
+                                                value="[[_filterSeverity]]">
+                                <input slot="filter"
+                                       placeholder="Severity"
+                                       value="{{_filterSeverity::input}}"
+                                       focus-target>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template><span
+                                class$="level[[item.severity.class]]">[[item.severity.name]]</span>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="first">
+                            First
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                        </template>
+                        <template>[[item.firstArrived.formatted]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="last">
+                            Last
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                        </template>
+                        <template>[[item.lastUpdate.formatted]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="type">
+                            Type
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Type"
+                                                path="type"
+                                                value="[[_filterType]]">
+                                <input slot="filter"
+                                       placeholder="Type"
+                                       value="{{_filterType::input}}"
+                                       focus-target>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.type]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="received">
+                            Received
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header">
+                        </template>
+                        <template>[[item.received]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="host">
+                            Host
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Host"
+                                                path="host"
+                                                value="[[_filterHost]]">
+                                <input slot="filter"
+                                       placeholder="Host"
+                                       value="{{_filterHost::input}}"
+                                       focus-target>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.host]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="domain">
+                            Domain
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Domain"
+                                                path="domain"
+                                                value="[[_filterDomain]]">
+                                <input slot="filter"
+                                       placeholder="Domain"
+                                       value="{{_filterDomain::input}}"
+                                       focus-target>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.domain]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="service">
+                            Service
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Service"
+                                                path="service"
+                                                value="[[_filterService]]">
+                                <input slot="filter"
+                                       placeholder="Service"
+                                       value="{{_filterService::input}}"
+                                       focus-target>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.service]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        Info
+                    </template>
+                    <vaadin-grid-column width="200px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Info"
+                                                path="info"
+                                                value="[[_filterInfo]]">
+                                <input slot="filter"
+                                       placeholder="Info"
+                                       value="{{_filterInfo::input}}"
+                                       focus-target>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template><span id="info">[[item.info]]</span>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+            </vaadin-grid>
+        </div>
+        <paper-dialog id="warning" modal
+                      on-iron-overlay-closed="_confirmDeletion">
+            <p><strong>You are about to delete [[deleteMessage]] alarm records
+                permanently.</strong></p>
+            <div class="buttons">
+                <paper-button raised dialog-confirm>Delete</paper-button>
+                <paper-button raised dialog-dismiss autofocus>Cancel
+                </paper-button>
+            </div>
+        </paper-dialog>
+    </template>
+
+    <script>
+        class AlarmsView extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)) {
+
+            static get is() {
+                return 'alarms-view';
+            }
+
+            static get properties() {
+                return {
+                    decorator: {
+                        type: Object,
+                    },
+
+                    filter: {
+                        type: String,
+                        value: 'show',
+                        notify: true,
+                        observer: '_refresh',
+                    },
+
+                    tableSize: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    deleteMessage: {
+                        type: String,
+                        value: '0 / 0',
+                        notify: true
+                    },
+
+                    afterDate: {
+                        type: Object,
+                    },
+
+                    beforeDate: {
+                        type: Object,
+                    },
+
+                    selectionAction: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
+                }
+            }
+
+            connectedCallback() {
+                if (super.connectedCallback) {
+                    super.connectedCallback();
+                }
+
+                this.afterDate = this._getInitialAfter();
+                this.shadowRoot.querySelector('#from').value
+                    = this.parseDate(this.afterDate);
+
+                this.decorator = new DvVaadinProviderDecorator(this.$.alarms);
+
+                /*
+                 * This must be assigned only after the decorator has been
+                 * constructed; it is called immediately upon assignment.
+                 */
+                this.$.alarms.dataProvider = this._remoteProvider.bind(this);
+            }
+
+            /*
+             *  ------------------------ Selection ---------------------------
+             */
+
+            signalChange() {
+                this.selectionAction = !this.selectionAction;
+            }
+
+            _isChecked(selectionAction) {
+                return this.decorator.isChecked();
+            }
+
+            _isIndeterminate(selectionAction) {
+                return this.decorator.isIndeterminate();
+            }
+
+            _selectItem(e) {
+                this.decorator.selectItem(e, this);
+            }
+
+            _toggleAll(e) {
+                this.decorator.toggleAll(this);
+            }
+
+            /*
+             *  ------ Lazy Load & Infinite Scroll, with Filter & Sort -------
+             */
+
+            handleItem(item, index) {
+                item.firstArrived
+                    = this.convertDatestampToObject(item.firstArrived);
+                item.lastUpdate
+                    = this.convertDatestampToObject(item.lastUpdate);
+                item.severity
+                    = this._convertSeverity(item.severity, item.closed);
+
+                return item;
+            }
+
+            itemsArray(xhr, index) {
+                return JSON.parse(xhr.responseText);
+            }
+
+            providerParams(index) {
+                let params = "";
+                let begin;
+                let end;
+
+                if (this.afterDate) {
+                    begin = this.afterDate.getTime();
+                    params += `&after=${begin}`;
+                }
+
+                if (this.beforeDate) {
+                    end = this.beforeDate.getTime();
+                    params += `&before=${end}`;
+                }
+
+                if (this.filter === 'hide') {
+                    params += '&includeClosed=false';
+                }
+
+                return params;
+            }
+
+            providerUrl(index) {
+                return 'alarms/logentries';
+            }
+
+            resetTimeout() {
+                this.resetRefresh(this._refresh.bind(this), 60000);
+            }
+
+            setTableSize(size, index) {
+                this.tableSize = size;
+            }
+
+            _convertSeverity(severity, closed) {
+                if (typeof severity === 'undefined') {
+                    severity = 0;
+                }
+
+                if (typeof closed === 'undefined') {
+                    closed = false;
+                }
+
+                let name;
+                const value = severity;
+                const clzz = closed ? 0 : severity + 1;
+
+                switch (value) {
+                    case 3:
+                        name = "CRITICAL";
+                        break;
+                    case 2:
+                        name = "HIGH";
+                        break;
+                    case 1:
+                        name = "MODERATE";
+                        break;
+                    case 0:
+                    default:
+                        name = "LOW";
+                        break;
+                }
+
+                return {'name': name, 'value': value, 'class': clzz};
+            }
+
+            _refresh() {
+                if (this.decorator) {
+                    this.decorator.resetProvider(this);
+                }
+            }
+
+            _remoteProvider(params, callback) {
+                return this.decorator.runProvider(params, callback, this, null);
+            }
+
+
+            /* ---------------------- Close & Delete ----------------------- */
+
+            _changeClosed(closed) {
+                this._interrupt();
+
+                const items = [];
+
+                this.$.alarms.selectedItems.forEach((item) => {
+                    items.push({'key': item.key, 'closed': closed});
+                });
+
+                this._sendPatch({'action': 'update', 'items': items});
+                this.decorator.clearSelected(this);
+            }
+
+            _close() {
+                this._changeClosed(true);
+            }
+
+            _confirmDeletion(e) {
+                if (e.detail.confirmed) {
+                    this._interrupt();
+
+                    const keys = [];
+
+                    this.$.alarms.selectedItems.forEach((item) => {
+                        keys.push(item.key);
+                    });
+
+                    this._sendPatch({'action': 'delete', 'items': keys});
+                    this.decorator.clearSelected(this);
+                }
+            }
+
+            _delete() {
+                this.deleteMessage = this.decorator.currentlySelected();
+                this.$.warning.open();
+            }
+
+            _getInitialAfter() {
+                const d = new Date();
+                d.setTime(d.getTime() - 1000 * 3600 * 24);
+                return d;
+            }
+
+            _handlePatchResponse(event) {
+                this.handleError("Request completed.");
+                this._refresh();
+            }
+
+            _handlePatchError(event) {
+                this.handleError(event.detail.error.message);
+                this._interrupt()
+                this._refresh();
+            }
+
+            _ifEnterGetFileInfo(e) {
+                if (e.keyCode === 13) {
+                    this._interrupt();
+                    const pnfsid = this.shadowRoot.querySelector('#pnfsid').value;
+                    this.openFileInfoDialog(pnfsid, null);
+                }
+            }
+
+            _ifEnterGetPoolInfo(e) {
+                if (e.keyCode === 13) {
+                    this._interrupt();
+                    const pool = this.shadowRoot.querySelector('#pool').value;
+                    this.openPoolInfoDialog(pool, null);
+                }
+            }
+
+            _ifEnterSetRange(e) {
+                if (e.keyCode === 13) {
+                    this.beforeDate
+                        = this.toDate(this.shadowRoot.querySelector('#to').value);
+                    this.afterDate
+                        = this.toDate(this.shadowRoot.querySelector('#from').value);
+                    this._refresh();
+                }
+            }
+
+            _interrupt() {
+                this.$.AjaxPatch.activeRequests = [];
+                if (this.$.AjaxPatch.lastRequest) {
+                    this.$.AjaxPatch.lastRequest.abort();
+                }
+            }
+
+            _open() {
+                this._changeClosed(false);
+            }
+
+            _sendPatch(items) {
+                this.$.AjaxPatch.url = this.getUrl(this.providerUrl(), null);
+                this.$.AjaxPatch.headers = this.getHeaders();
+                this.$.AjaxPatch.body = items;
+                this.$.AjaxPatch.generateRequest();
+            }
+        }
+
+        window.customElements.define(AlarmsView.is, AlarmsView);
+    </script>
+</dom-module>
