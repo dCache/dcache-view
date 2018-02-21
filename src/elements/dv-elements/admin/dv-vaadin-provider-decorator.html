@@ -12,7 +12,8 @@
      ------------------------------------------------------------------ -->
 <dom-module id="dv-vaadin-provider-decorator">
     <script>
-        class DvVaadinProviderDecorator extends Polymer.Element {
+        class DvVaadinProviderDecorator extends
+            DcacheViewMixins.Selection(Polymer.Element) {
 
             static get is() {
                 return 'dv-vaadin-provider-decorator';
@@ -258,10 +259,7 @@
             }
 
             isChecked() {
-                /*
-                 * iOS needs indeterminate + checked at the same time
-                 */
-                return this.indeterminate || this.selectAll;
+                return this.computeChecked(this.indeterminate, this.selectAll);
             }
 
             isIndeterminate() {
@@ -269,31 +267,18 @@
             }
 
             selectItem(e, cb) {
-                if (e.target.checked) {
-                    this.vaadingrid.selectItem(e.model.item);
-                } else {
-                    this.vaadingrid.deselectItem(e.model.item);
-                }
-                this._computeIndeterminate();
+                this.selectGridItem(e, this.vaadingrid);
+                this.indeterminate = this.computeIndeterminate(this.vaadingrid);
                 cb.signalChange();
             }
 
             toggleAll(cb) {
-                this.selectAll = !this.selectAll;
-                this.currentItems.forEach((item) => {
-                    if (this.selectAll) {
-                        this.vaadingrid.selectItem(item);
-                    } else {
-                        this.vaadingrid.deselectItem(item);
-                    }
-                });
-                this._computeIndeterminate();
+                this.selectAll
+                    = this.toggleAllGridItems(this.selectAll,
+                                              this.currentItems,
+                                              this.vaadingrid);
+                this.indeterminate = this.computeIndeterminate(this.vaadingrid);
                 cb.signalChange();
-            }
-
-            _computeIndeterminate() {
-                this.indeterminate = this.vaadingrid.selectedItems.length > 0 &&
-                    this.vaadingrid.selectedItems.length !== this.vaadingrid.size;
             }
         }
 

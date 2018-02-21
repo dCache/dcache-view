@@ -251,7 +251,18 @@
                     <vaadin-grid aria-label="Cell Info" id="cellinfo"
                                  items="[[pools]]" multi-sort="true"
                                  size="50">
-                        <vaadin-grid-selection-column auto-select>
+                        <vaadin-grid-selection-column>
+                            <template class="header">
+                                <input aria-label="Select All" type="checkbox"
+                                       on-click="_toggleAll"
+                                       checked="[[_isChecked(selectionAction)]]"
+                                       indeterminate="[[_isIndeterminate(selectionAction)]]">
+                            </template>
+                            <template>
+                                <input aria-label="Select Row" type="checkbox"
+                                       on-change="_selectItem"
+                                       checked="{{selected::change}}">
+                            </template>
                         </vaadin-grid-selection-column>
                         <vaadin-grid-column-group resizable>
                             <template class="header">
@@ -592,7 +603,7 @@
 
     <script>
         class PoolsOfGroupDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
-            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+            DcacheViewMixins.Selection(DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)))) {
 
             static get is() {
                 return 'pools-of-group-dialog';
@@ -637,6 +648,24 @@
                     selected: {
                         type: Number,
                         value: 0,
+                        notify: true
+                    },
+
+                    selectionAction: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    selectAll: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    indeterminate: {
+                        type: Boolean,
+                        value: false,
                         notify: true
                     }
                 }
@@ -925,6 +954,36 @@
                     default:
                         return 3;
                 }
+            }
+
+            /*
+             *  ------------------------ Selection ---------------------------
+             *
+             *  Borrowed from decorator, but must be implemented here because
+             *  it does not depend on the decorator's provider for the
+             *  the list of current items.
+             */
+            _isChecked(selectionAction) {
+                return this.computeChecked(this.indeterminate, this.selectAll);
+            }
+
+            _isIndeterminate(selectionAction) {
+                return this.indeterminate;
+            }
+
+            _selectItem(e, cb) {
+                this.selectGridItem(e, this.$.cellinfo);
+                this.indeterminate = this.computeIndeterminate(this.$.cellinfo);
+                this.selectionAction = !this.selectionAction;
+            }
+
+            _toggleAll(cb) {
+                this.selectAll
+                    = this.toggleAllGridItems(this.selectAll,
+                                              this.$.cellinfo.items,
+                                              this.$.cellinfo);
+                this.indeterminate = this.computeIndeterminate(this.$.cellinfo);
+                this.selectionAction = !this.selectionAction;
             }
         }
 

@@ -464,4 +464,45 @@
             }
         }
     }
+
+    /**
+     * Provides methods for handling check box selection.
+     */
+    DcacheViewMixins.Selection = (superClass) =>
+    {
+        return class extends superClass {
+            computeChecked(indeterminate, selectall) {
+                /*
+                 * iOS needs indeterminate + checked at the same time
+                 */
+                return indeterminate || selectall;
+            }
+
+            computeIndeterminate(grid) {
+                const numselected = grid.selectedItems.length;
+                return numselected > 0 && numselected !== grid.size;
+            }
+
+            selectGridItem(e, grid) {
+                if (e.target.checked) {
+                    grid.selectItem(e.model.item);
+                } else {
+                    grid.deselectItem(e.model.item);
+                }
+            }
+
+            toggleAllGridItems(selectall, selectedItems, grid) {
+                selectall = !selectall;
+                selectedItems.forEach((item) => {
+                    if (selectall) {
+                        grid.selectItem(item);
+                    } else {
+                        grid.deselectItem(item);
+                    }
+                });
+
+                return selectall;
+            }
+        }
+    }
 </script>
