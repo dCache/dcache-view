@@ -1,0 +1,1154 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/iron-pages/iron-pages.html">
+<link rel="import"
+      href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import"
+      href="../../../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import"
+      href="../../../../bower_components/paper-tabs/paper-tab.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-filter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-cell-click-behavior.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dialogs/file-info-dialog.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dialogs/pool-info-dialog.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="billing-records-dialog">
+    <template>
+        <style>
+            :host {
+                display: none;
+                @apply(--layout-vertical);
+                height: 100%;
+                width: 90%;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            paper-toolbar {
+                color: var(--dv-charcoal-grey);
+                background: var(--dv-light-grey);
+            }
+
+            paper-button {
+                background: var(--dv-charcoal-grey);
+                color: var(--dv-main-background);
+            }
+
+            paper-checkbox {
+                --paper-checkbox-checked-color: var(--dv-charcoal-grey);
+                --paper-checkbox-checked-ink-color: var(--dv-charcoal-grey);
+                --paper-checkbox-unchecked-color: var(--dv-light-grey);
+                --paper-checkbox-unchecked-ink-color: var(--dv-light-grey);
+                --paper-checkbox-label-color: var(--dv-charcoal-grey);
+            }
+
+            paper-tabs {
+                background-color: #afafaf;
+                color: #ffffff;
+                height: 30px;
+                padding: 5px 0px;
+            }
+
+            vaadin-grid {
+                position: relative;
+                height: 100%;
+                -webkit-font-smoothing: antialiased;
+                --divider-color: #d4d4d4;
+
+                --vaadin-grid-cell: {
+                    padding: 0 8px;
+                    height: 32px;
+                    border-right: 1px solid #d4d4d4;
+                    box-sizing: border-box;
+                    font-size: 8pt;
+                    cursor: default;
+                };
+
+                --vaadin-grid-header-cell: {
+                    height: 36px;
+                    border-bottom: 1px solid #d4d4d4;
+                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                    font-size: 9pt;
+                    text-style: bold;
+                    text-align: center;
+                    cursor: default;
+                };
+
+                --vaadin-grid-body-row-odd-cell: {
+                    background-color: #f5f5f5;
+                };
+            }
+
+            iron-pages {
+                height: 70%;
+                width: 100%;
+            }
+
+            input {
+                @apply(--layout-flex);
+                height: 95%;
+                width: 95%;
+                padding-right: 5px;
+            }
+
+            table {
+                margin: 0 100px;
+                font-size: 8pt;
+            }
+
+            .opaque {
+                height: 100%;
+                opacity: 1.0;
+                background: var(--dv-main-background);
+                color: var(--dv-main-foreground);
+                border: groove;
+                border-color: var(--dv-blue-500);
+                border-width: thick;
+            }
+
+            .filename {
+                color: var(--paper-grey-600);
+                margin-top: 20px;
+                margin-bottom: 20px;
+                padding-left: 10px;
+                font-size: 10pt;
+                cursor: default;
+            }
+
+            .spacer {
+                margin-left: 10px !important;
+                margin-bottom: 10px;
+            }
+
+            .actionable0 {
+                cursor: pointer;
+                color: var(--dv-indigo-500);
+            }
+
+            .actionable1 {
+                cursor: pointer;
+                color: var(--dv-red-500);
+            }
+
+            .tablediv {
+                height: 100%;
+            }
+        </style>
+
+        <div class="opaque">
+            <paper-toolbar>
+                <div slot="top" class="spacer title"><strong>Billing
+                    Info</strong>
+                </div>
+                <paper-button slot="top" dialog-dismiss>Close</paper-button>
+            </paper-toolbar>
+            <hr/>
+            <div class="filename"><strong>[[pnfsid]]</strong></div>
+            <hr/>
+            <paper-tabs selected="{{selected}}" noink="">
+                <paper-tab>Reads</paper-tab>
+                <paper-tab>Writes</paper-tab>
+                <paper-tab>P2Ps</paper-tab>
+                <paper-tab>Stores/Flushes</paper-tab>
+                <paper-tab>Restores/Stages</paper-tab>
+            </paper-tabs>
+            <iron-pages selected="{{selected}}">
+                <div class="tablediv">
+                    <vaadin-grid on-active-item-changed="_activeItemChanged"
+                                 aria-label="Reads" id="reads"
+                                 active-item="{{activeItem}}"
+                                 multi-sort="true" size="[[readsSize]]">
+
+                        <template class="row-details">
+                            <div class="details">
+                                <table>
+                                    <tr>
+                                        <td>FQAN:</td>
+                                        <td>[[item.fqan]]</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mapped UID:</td>
+                                        <td>[[item.mappedUID]]</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mapped GID:</td>
+                                        <td>[[item.mappedUID]]</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Owner:</td>
+                                        <td>[[item.owner]]</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </template>
+
+                        <vaadin-grid-column-group>
+                            <template class="header">#</template>
+                            <vaadin-grid-column width="75px">
+                                <template class="header">
+                                    Filter on:
+                                </template>
+                                <template>[[index]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">User</template>
+                            <vaadin-grid-column width="50px">
+                                <template class="header"></template>
+                                <template>
+                                    <paper-checkbox aria-label="UserInfo"
+                                                    checked="{{expanded}}">
+                                    </paper-checkbox>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="date">
+                                    Date
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="175px">
+                                <template class="header">
+                                </template>
+                                <template>[[item.datestamp.formatted]]
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="pool">
+                                    Pool
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="200px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Pool"
+                                                        path="pool"
+                                                        value="[[_filterPoolRead]]">
+                                        <input slot="filter"
+                                               placeholder="Pool"
+                                               value="{{_filterPoolRead::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>
+                                    <span class$="actionable[[item.pool.active]]">
+                                        [[item.pool.name]]
+                                    </span>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="door">
+                                    Door
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="400px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Door"
+                                                        path="door"
+                                                        value="[[_filterDoorRead]]">
+                                        <input slot="filter"
+                                               placeholder="Door"
+                                               value="{{_filterDoorRead::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>[[item.door]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="client">
+                                    Client
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Client"
+                                                        path="client"
+                                                        value="[[_filterClientRead]]">
+                                        <input slot="filter"
+                                               placeholder="Client"
+                                               value="{{_filterClientRead::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>[[item.client]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="connected">
+                                    Connected
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.connectiontime]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="queued">
+                                    Queued
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.queuedtime]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="transferred">
+                                    MB Transferred
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.transfersize.converted]]
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="error">
+                                    Error
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>
+                                    <div on-tap="_openAlert" class="actionable0">
+                                        [[item.errorcode]]
+                                    </div>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                    </vaadin-grid>
+                </div>
+                <div class="tablediv">
+                    <vaadin-grid on-active-item-changed="_activeItemChanged"
+                                 aria-label="Writes" id="writes"
+                                 active-item="{{activeItem}}"
+                                 multi-sort="true" size="[[writesSize]]">
+
+                        <template class="row-details">
+                            <div class="details">
+                                <table>
+                                    <tr>
+                                        <td><strong>FQAN:</strong></td>
+                                        <td><strong>[[item.fqan]]</strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Mapped UID:</strong>
+                                        </td>
+                                        <td>
+                                            <strong>[[item.mappedUID]]</strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Mapped GID:</strong>
+                                        </td>
+                                        <td>
+                                            <strong>[[item.mappedUID]]</strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Owner:</strong></td>
+                                        <td><strong>[[item.owner]]</strong>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </template>
+
+                        <vaadin-grid-column-group>
+                            <template class="header">#</template>
+                            <vaadin-grid-column width="75px">
+                                <template class="header">Filter on:
+                                </template>
+                                <template>[[index]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">User</template>
+                            <vaadin-grid-column width="50px">
+                                <template class="header"></template>
+                                <template>
+                                    <paper-checkbox aria-label="UserInfo"
+                                                    checked="{{expanded}}">
+                                    </paper-checkbox>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="date">
+                                    Date
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="175px">
+                                <template class="header">
+                                </template>
+                                <template>[[item.datestamp.formatted]]
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="pool">
+                                    Pool
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="200px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Pool"
+                                                        path="pool"
+                                                        value="[[_filterPoolWrite]]">
+                                        <input slot="filter"
+                                               placeholder="Pool"
+                                               value="{{_filterPoolWrite::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>
+                                    <span class$="actionable[[item.pool.active]]">
+                                        [[item.pool.name]]
+                                    </span>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="door">
+                                    Door
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="400px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Door"
+                                                        path="door"
+                                                        value="[[_filterDoorWrite]]">
+                                        <input slot="filter"
+                                               placeholder="Door"
+                                               value="{{_filterDoorWrite::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>[[item.door]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="client">
+                                    Client
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Client"
+                                                        path="client"
+                                                        value="[[_filterClientWrite]]">
+                                        <input slot="filter"
+                                               placeholder="Client"
+                                               value="{{_filterClientWrite::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>[[item.client]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="connected">
+                                    Connected
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.connectiontime]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="queued">
+                                    Queued
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.queuedtime]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="transferred">
+                                    MB Transferred
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.transfersize.converted]]
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="error">
+                                    Error
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>
+                                    <div on-tap="_openAlert" class="actionable0">
+                                        [[item.errorcode]]
+                                    </div>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                    </vaadin-grid>
+                </div>
+                <div class="tablediv">
+                    <vaadin-grid on-active-item-changed="_activeItemChanged"
+                                 aria-label="P2Ps" id="p2ps"
+                                 active-item="{{activeItem}}"
+                                 multi-sort="true" size="[[p2psSize]]">
+                        <vaadin-grid-column-group>
+                            <template class="header">#</template>
+                            <vaadin-grid-column width="75px">
+                                <template class="header">
+                                    Filter on:
+                                </template>
+                                <template>[[index]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="date">
+                                    Date
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="175px">
+                                <template class="header"></template>
+                                <template>[[item.datestamp.formatted]]
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="serverPool">
+                                    Server Pool
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="200px">
+                                <template class="header">
+                                    <vaadin-grid-filter
+                                            aria-label="ServerPool"
+                                            path="serverPool"
+                                            value="[[_filterServerPool]]">
+                                        <input slot="filter"
+                                               placeholder="ServerPool"
+                                               value="{{_filterServerPool::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>
+                                    <span class$="actionable[[item.serverPool.active]]">
+                                        [[item.serverPool.name]]
+                                    </span>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="clientPool">
+                                    Client Pool
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="225px">
+                                <template class="header">
+                                    <vaadin-grid-filter
+                                            aria-label="ClientPool"
+                                            path="clientPool"
+                                            value="[[_filterClientPool]]">
+                                        <input slot="filter"
+                                               placeholder="ClientPool"
+                                               value="{{_filterClientPool::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>
+                                    <span class$="actionable[[item.clientPool.active]]">
+                                        [[item.clientPool.name]]
+                                    </span>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="client">
+                                    Client
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Client"
+                                                        path="client"
+                                                        value="[[_filterClientP2P]]">
+                                        <input slot="filter"
+                                               placeholder="Domain"
+                                               value="{{_filterClientP2P::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>[[item.client]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="transferred">
+                                    MB Transferred
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.transfersize.converted]]
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="error">
+                                    Error
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>
+                                    <div on-tap="_openAlert" class="actionable0">
+                                        [[item.errorcode]]
+                                    </div>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                    </vaadin-grid>
+                </div>
+                <div class="tablediv">
+                    <vaadin-grid on-active-item-changed="_activeItemChanged"
+                                 aria-label="Stores" id="stores"
+                                 active-item="{{activeItem}}"
+                                 multi-sort="true" size="[[storesSize]]">
+                        <vaadin-grid-column-group>
+                            <template class="header">#</template>
+                            <vaadin-grid-column width="75px">
+                                <template class="header">
+                                    Filter on:
+                                </template>
+                                <template>[[index]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="date">
+                                    Date
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="175px">
+                                <template class="header"></template>
+                                <template>
+                                    [[item.datestamp.formatted]]
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="pool">
+                                    Pool
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="200px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Pool"
+                                                        path="pool"
+                                                        value="[[_filterPoolStore]]">
+                                        <input slot="filter"
+                                               placeholder="Pool"
+                                               value="{{_filterPoolStore::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>
+                                    <span class$="actionable[[item.pool.active]]">
+                                        [[item.pool.name]]
+                                    </span>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="connected">
+                                    Connected
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.connectiontime]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="queued">
+                                    Queued
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.queuedtime]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="error">
+                                    Error
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>
+                                    <div on-tap="_openAlert" class="actionable0">
+                                        [[item.errorcode]]
+                                    </div>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                    </vaadin-grid>
+                </div>
+                <div class="tablediv">
+                    <vaadin-grid on-active-item-changed="_activeItemChanged"
+                                 aria-label="Restores" id="restores"
+                                 active-item="{{activeItem}}"
+                                 multi-sort="true" size="[[restoresSize]]">
+                        <vaadin-grid-column-group>
+                            <template class="header">#</template>
+                            <vaadin-grid-column width="75px">
+                                <template class="header">
+                                    Filter on:
+                                </template>
+                                <template>[[index]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="date">
+                                    Date
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="175px">
+                                <template class="header"></template>
+                                <template>[[item.datestamp.formatted]]
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="pool">
+                                    Pool
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="200px">
+                                <template class="header">
+                                    <vaadin-grid-filter aria-label="Pool"
+                                                        path="pool"
+                                                        value="[[_filterPoolRestore]]">
+                                        <input slot="filter"
+                                               placeholder="Pool"
+                                               value="{{_filterPoolRestore::input}}"
+                                               focus-target>
+                                    </vaadin-grid-filter>
+                                </template>
+                                <template>
+                                    <span class$="actionable[[item.pool.active]]">
+                                        [[item.pool.name]]
+                                    </span>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="connected">
+                                    Connected
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.connectiontime]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group>
+                            <template class="header">
+                                <vaadin-grid-sorter path="queued">
+                                    Queued
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>[[item.queuedtime]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                        <vaadin-grid-column-group resizable>
+                            <template class="header">
+                                <vaadin-grid-sorter path="error">
+                                    Error
+                                </vaadin-grid-sorter>
+                            </template>
+                            <vaadin-grid-column width="100px">
+                                <template class="header"></template>
+                                <template>
+                                    <div on-tap="_openAlert" class="actionable0">
+                                        [[item.errorcode]]
+                                    </div>
+                                </template>
+                            </vaadin-grid-column>
+                        </vaadin-grid-column-group>
+                    </vaadin-grid>
+                </div>
+            </iron-pages>
+        </div>
+        <paper-toast slot="content" id="infoToast">
+                    <span class="toast-hide-button" role="button" tabindex="0"
+                          on-tap="_hideToast"><p class="ok"><strong>OK</strong></p></span>
+        </paper-toast>
+    </template>
+
+    <script>
+        class BillingRecordsDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior, vaadin.elements.grid.CellClickBehavior],
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+
+            static get is() {
+                return 'billing-records-dialog';
+            }
+
+            static get properties() {
+                return {
+                    decorators: {
+                        type: Array,
+                        value: [{}, {}, {}, {}, {}]
+                    },
+
+                    readsSize: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    writesSize: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    p2psSize: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    storesSize: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    restoresSize: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    pnfsid: {
+                        type: String
+                    },
+
+                    currentTransferPool: {
+                        type: String
+                    },
+
+                    cell: {
+                        type: Number
+                    },
+
+                    table: {
+                        type: String
+                    },
+
+                    selected: {
+                        type: Number,
+                        value: 0,
+                        notify: true,
+                    }
+                }
+            }
+
+            close() {
+                this.stopRefresh();
+                this.popDialog();
+                super.close();
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+
+                this.$.reads.addEventListener('cell-focus', this._handleReadsClick.bind(this));
+                this.$.writes.addEventListener('cell-focus', this._handleWritesClick.bind(this));
+                this.$.p2ps.addEventListener('cell-focus', this._handleP2psClick.bind(this));
+                this.$.stores.addEventListener('cell-focus', this._handleFlushesClick.bind(this));
+                this.$.restores.addEventListener('cell-focus', this._handleStagesClick.bind(this));
+
+                this.decorators[0] = new DvVaadinProviderDecorator(this.$.reads);
+                this.decorators[1] = new DvVaadinProviderDecorator(this.$.writes);
+                this.decorators[2] = new DvVaadinProviderDecorator(this.$.p2ps);
+                this.decorators[3] = new DvVaadinProviderDecorator(this.$.stores);
+                this.decorators[4] = new DvVaadinProviderDecorator(this.$.restores);
+
+                this.$.reads.dataProvider = this._remoteProvider(0).bind(this);
+                this.$.writes.dataProvider = this._remoteProvider(1).bind(this);
+                this.$.p2ps.dataProvider = this._remoteProvider(2).bind(this);
+                this.$.stores.dataProvider = this._remoteProvider(3).bind(this);
+                this.$.restores.dataProvider = this._remoteProvider(4).bind(this);
+            }
+
+            constructor(pnfsid, pool) {
+                super();
+                this.pnfsid = pnfsid;
+                this.currentTransferPool = pool;
+                /*
+                 *  This property belongs to the Polymer.DialogBehavior.
+                 *  We may need to revisit.
+                 */
+                this.modal = true;
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback();
+                this.$.reads.removeEventListener('cell-focus', this._handleReadsClick.bind(this));
+                this.$.writes.removeEventListener('cell-focus', this._handleWritesClick.bind(this));
+                this.$.p2ps.removeEventListener('cell-focus', this._handleP2psClick.bind(this));
+                this.$.stores.removeEventListener('cell-focus', this._handleFlushesClick.bind(this));
+                this.$.restores.removeEventListener('cell-focus', this._handleStagesClick.bind(this));
+            }
+
+            _handleReadsClick(e) {
+                e.stopPropagation();
+                this._handleCellFocus(e, "R");
+            }
+
+            _handleWritesClick(e) {
+                e.stopPropagation();
+                this._handleCellFocus(e, "W");
+            }
+
+            _handleP2psClick(e) {
+                e.stopPropagation();
+                this._handleCellFocus(e, "P");
+            }
+
+            _handleFlushesClick(e) {
+                e.stopPropagation();
+                this._handleCellFocus(e, "F");
+            }
+
+            _handleStagesClick(e) {
+                e.stopPropagation();
+                this._handleCellFocus(e, "S");
+            }
+
+            _handleCellFocus(event, table) {
+                this.cell = 0;
+                const cell = event.composedPath()[0];
+                if (cell) {
+                    this.cell = parseInt(cell.order.toString().charAt(0));
+                }
+                this.table = table;
+            }
+
+            /*
+             *  ------ Lazy Load & Infinite Scroll, with Filter & Sort -------
+             */
+
+            handleItem(item, index) {
+                const regex = new RegExp(this.currentTransferPool);
+                const mb = 1024 * 1024;
+
+                item.datestamp = this.convertDatestampToObject(item.datestamp);
+
+                switch (index) {
+                    case 0:
+                    case 1:
+                        item.pool = this.convertLocationToObject(item.pool, regex);
+                        item.transfersize = this.convertSize(item.transfersize, mb);
+                        break;
+                    case 2:
+                        item.serverPool = this.convertLocationToObject(item.serverPool, regex);
+                        item.clientPool = this.convertLocationToObject(item.clientPool, regex);
+                        item.transfersize = this.convertSize(item.transfersize, mb);
+                        break;
+                    case 3:
+                    case 4:
+                        item.pool = this.convertLocationToObject(item.pool, regex);
+                        break;
+                }
+
+                return item;
+            }
+
+            itemsArray(xhr, index) {
+                return JSON.parse(xhr.responseText);
+            }
+
+            providerParams(index) {
+                return "";
+            }
+
+            providerUrl(index) {
+                switch (index) {
+                    case 0:
+                        return `billing/reads/${this.pnfsid}`;
+                    case 1:
+                        return `billing/writes/${this.pnfsid}`;
+                    case 2:
+                        return `billing/p2ps/${this.pnfsid}`;
+                    case 3:
+                        return `billing/stores/${this.pnfsid}`;
+                    case 4:
+                        return `billing/restores/${this.pnfsid}`;
+                    default:
+                        return null;
+                }
+            }
+
+            resetTimeout() {
+                this.resetRefresh(this._refresh.bind(this), 60000);
+            }
+
+            setTableSize(size, index) {
+                switch (index) {
+                    case 0:
+                        this.readsSize = size;
+                        break;
+                    case 1:
+                        this.writesSize = size;
+                        break;
+                    case 2:
+                        this.p2psSize = size;
+                        break;
+                    case 3:
+                        this.storesSize = size;
+                        break;
+                    case 4:
+                        this.restoresSize = size;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            _refresh() {
+                this.decorators.forEach((d) => {
+                    d.resetProvider(this);
+                });
+            }
+
+            _remoteProvider(index) {
+                return (params, callback) => {
+                    return this.decorators[index].runProvider(params,
+                        callback,
+                        this,
+                        index);
+                };
+            }
+
+
+            /* -------------------------- Dialogs -------------------------- */
+
+            _activeItemChanged(item) {
+                if (item && item.detail && item.detail.value) {
+                    this.currentItem = item.detail.value;
+                }
+
+                if (typeof this.currentItem == 'undefined' ||
+                    typeof this.cell == 'undefined') {
+                    return;
+                }
+
+                let pool;
+
+                switch (this.table) {
+                    case 'R':
+                    case 'W':
+                        if (this.cell === 4) {
+                            pool = this.currentItem.pool.name.split('@')[0];
+                            this.openPoolInfoDialog(pool, this.pnfsid);
+                        }
+                        break;
+                    case 'F':
+                    case 'S':
+                        if (this.cell === 3) {
+                            pool = this.currentItem.pool.name.split('@')[0];
+                            this.openPoolInfoDialog(pool, this.pnfsid);
+                        }
+                        break;
+                    case 'P':
+                        if (this.cell === 3) {
+                            pool = this.currentItem.serverPool.name.split('@')[0];
+                            this.openPoolInfoDialog(pool, this.pnfsid);
+                        } else if (this.cell == 4) {
+                            const address = this.currentItem.clientPool.name.split(':')[1];
+                            pool = address.split('@')[0];
+                            this.openPoolInfoDialog(pool, this.pnfsid);
+                        }
+                        break;
+                }
+            }
+
+            _hideToast() {
+                this.$.infoToast.hide();
+            }
+
+            _openAlert(e) {
+                e.stopPropagation();
+                this.$.infoToast.duration = -1;
+                this.$.infoToast.text = e.model.item.errormessage;
+                this.$.infoToast.tabindex = 10;
+                this.$.infoToast.show();
+            }
+        }
+
+        window.customElements.define(BillingRecordsDialog.is, BillingRecordsDialog);
+    </script>
+</dom-module>

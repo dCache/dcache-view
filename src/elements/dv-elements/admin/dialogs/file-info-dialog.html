@@ -17,6 +17,8 @@
 <link rel="import"
       href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
 <link rel="import"
+      href="../../../../elements/dv-elements/admin/dialogs/billing-records-dialog.html">
+<link rel="import"
       href="../../../../elements/dv-elements/admin/dialogs/pool-info-dialog.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
@@ -450,7 +452,7 @@
                 e.stopPropagation();
                 const pnfsid = this.info.pnfsId;
                 const pool = this.currentTransferPool;
-                const dialog = new BillingInfoDialog(pnfsid, pool);
+                const dialog = new BillingRecordsDialog(pnfsid, pool);
                 this.pushDialog(dialog);
                 dialog.open();
             }
