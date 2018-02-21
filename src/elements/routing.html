@@ -75,6 +75,12 @@
                 return;
             }
 
+            isAdminView = app.$.transfersContainer.querySelector('transfers-view') instanceof Polymer.Element;
+            if (app.params.component === "active-transfers" && !isAdminView) {
+                app.$.transfersContainer.appendChild(new TransfersView());
+                return;
+            }
+
             isAdminView = app.$.restoresContainer.querySelector('restores-view') instanceof Polymer.Element;
             if (app.params.component === "tape-transfer-queue" && !isAdminView) {
                 app.$.restoresContainer.appendChild(new RestoresView());

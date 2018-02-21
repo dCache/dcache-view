@@ -1,0 +1,744 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-filter.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-cell-click-behavior.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="transfers-view">
+    <template>
+        <style>
+            :host {
+                display: block;
+                height: 70vh;
+                @apply(--layout-vertical);
+            }
+
+            vaadin-grid {
+                position: relative;
+                height: 100%;
+                -webkit-font-smoothing: antialiased;
+                --divider-color: #d4d4d4;
+
+                --vaadin-grid-cell: {
+                    padding: 0 8px;
+                    height: 32px;
+                    border-right: 1px solid #d4d4d4;
+                    box-sizing: border-box;
+                    font-size: 8pt;
+                    cursor: default;
+                };
+
+                --vaadin-grid-header-cell: {
+                    height: 36px;
+                    border-bottom: 1px solid #d4d4d4;
+                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                    font-size: 9pt;
+                    text-style: bold;
+                    text-align: center;
+                    cursor: default;
+                };
+
+                --vaadin-grid-body-row-odd-cell: {
+                    background-color: #f5f5f5;
+                };
+            }
+
+            paper-toolbar {
+                color: var(--dv-main-background);
+                background: var(--dv-charcoal-grey);
+            }
+
+            .tablediv {
+                height: 70%;
+                width: 100%;
+                margin-right: 10px;
+            }
+
+            input {
+                @apply(--layout-flex);
+                height: 95%;
+                width: 90%;
+                padding-right: 5px;
+            }
+
+            paper-checkbox {
+                padding: 8px 20px;
+                --paper-checkbox-checked-color: var(--dv-charcoal-grey);
+                --paper-checkbox-checked-ink-color: var(--dv-charcoal-grey);
+                --paper-checkbox-unchecked-color: var(--dv-main-background);
+                --paper-checkbox-unchecked-ink-color: var(--dv-main-background);
+                --paper-checkbox-label-color: var(--dv-charcoal-grey);
+                --paper-checkbox-label-spacing: 0;
+                --paper-checkbox-margin: 8px 20px 8px 0;
+                --paper-checkbox-vertical-align: middle;
+            }
+
+            .actionable {
+                cursor: pointer;
+                color: var(--dv-indigo-500);
+            }
+
+            #entrytoolbar {
+                background: var(--dv-main-background);
+            }
+
+            #pnfsidof {
+                width: 40%;
+                color: var(--dv-charcoal-grey);
+            }
+
+            #pnfsid {
+                margin-left: 20px;
+                width: 30%;
+                color: var(--dv-indigo-500);
+                cursor: pointer;
+            }
+
+            #clear {
+                text-align: center;
+                max-width: 10%;
+                background: var(--dv-charcoal-grey);
+                color: var(--dv-main-background);
+                margin-right: 50px;
+            }
+
+            #kill {
+                text-align: center;
+                max-width: 10%;
+                background: var(--dv-charcoal-grey);
+                color: var(--dv-main-background);
+            }
+
+            .mover {
+            }
+
+            .movercanceled {
+                background: lightgray;
+                color: white;
+            }
+
+            .movernotfound {
+                background: red;
+                color: white;
+            }
+
+            .moverrunning {
+                background: green;
+                color: white;
+            }
+
+            .moverstaging {
+                background: yellow;
+                color: white;
+            }
+
+            .renderingIndicator {
+                font-size: 16px;
+                text-align: center;
+                height: 60px;
+                margin-top: 10px;
+            }
+        </style>
+
+        <iron-ajax
+                id="AjaxId"
+                method="GET"
+                handle-as="json"
+                on-response="_handleIdResponse"
+                on-error="_handleIdError">
+        </iron-ajax>
+        <iron-ajax
+                id="AjaxDelete"
+                method="DELETE"
+                handle-as="json"
+                on-error="_handleDeleteError">
+        </iron-ajax>
+        <paper-toolbar id="title">
+            <div slot="top" class="title"><strong>Active Disk Transfers</strong></div>
+        </paper-toolbar>
+        <div class="renderingIndicator" hidden="[[!rendering]]">
+            <paper-spinner class="thick" active="[[rendering]]"></paper-spinner>
+            <br/>
+            <strong>Killing [[count]] movers ...</strong>
+        </div>
+        <hr/>
+        <paper-toolbar id="entrytoolbar">
+            <paper-button slot="top" id="kill"
+                          on-tap="_handleMoverKill">Kill Movers</paper-button>
+            <paper-button slot="top" id="clear" on-tap="_clear">Clear</paper-button>
+            <paper-input slot="top" id="pnfsidof" label="Find file id from path:"
+                         on-keyup="_ifEnterGetPnfsid"></paper-input>
+            <iron-label slot="top" on-tap="_openFileInfoDialogFromLabel"
+                        id="pnfsid"></iron-label>
+        </paper-toolbar>
+        <paper-checkbox checked="{{showall}}">Show All Columns</paper-checkbox>
+        <div class="tablediv">
+            <vaadin-grid on-active-item-changed="_activeItemChanged"
+                         aria-label="Disk Transfers" id="transfers"
+                         active-item="{{activeItem}}"
+                         multi-sort="true" size="[[tableSize]]">
+                <vaadin-grid-selection-column>
+                    <template class="header">
+                        <input aria-label="Select All" type="checkbox"
+                               on-click="_toggleAll"
+                               checked="[[_isChecked(selectionAction)]]"
+                               indeterminate="[[_isIndeterminate(selectionAction)]]">
+                    </template>
+                    <template>
+                        <input aria-label="Select Row" type="checkbox"
+                               on-change="_selectItem"
+                               checked="{{selected::change}}">
+                    </template>
+                </vaadin-grid-selection-column>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="state">
+                            State
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="100px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="State"
+                                                path="state"
+                                                value="[[_filterState]]">
+                                <input slot="filter"
+                                       placeholder="State"
+                                       value="{{_filterState::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>
+                            <span class$="mover[[_computeMoverStatusCSSClass(item)]]">
+                                [[item.moverStatus]]
+                            </span>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="door">
+                            Door
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Door"
+                                                path="door"
+                                                value="[[_filterCellName]]">
+                                <input slot="filter"
+                                       placeholder="Door"
+                                       value="{{_filterCellName::input}}"
+                                       focus-target>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.cellName]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="domain">
+                            Domain
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="175px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Domain"
+                                                path="domain"
+                                                value="[[_filterDomainName]]">
+                                <input slot="filter"
+                                       placeholder="Domain"
+                                       value="{{_filterDomainName::input}}"
+                                       focus-target>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.domainName]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]">
+                    <template class="header">
+                        Seq
+                    </template>
+                    <vaadin-grid-column width="125px">
+                        <template class="header"></template>
+                        <template>[[item.serialId]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="prot">
+                            Prot
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="100px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Prot"
+                                                path="prot"
+                                                value="[[_filterProtocol]]">
+                                <input slot="filter"
+                                       placeholder="Prot"
+                                       value="{{_filterProtocol::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.protocol]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]">
+                    <template class="header">
+                        <vaadin-grid-sorter path="uid">
+                            UID
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="UID"
+                                                path="uid"
+                                                value="[[_filterUID]]">
+                                <input slot="filter"
+                                       placeholder="UID"
+                                       value="{{_filterUID::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.userInfo.uid]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]">
+                    <template class="header">
+                        <vaadin-grid-sorter path="gid">
+                            GID
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="GID"
+                                                path="gid"
+                                                value="[[_filterGID]]">
+                                <input slot="filter"
+                                       placeholder="GID"
+                                       value="{{_filterGID::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.userInfo.gid]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]" resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter
+                                path="vomsgroup">
+                            VomsGroup
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="125px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="VomsGroup"
+                                                path="vomsgroup"
+                                                value="[[_filterVomsGroup]]">
+                                <input slot="filter"
+                                       placeholder="VomsGroup"
+                                       value="{{_filterVomsGroup::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>
+                            [[item.userInfo.primaryVOMSGroup]]
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="pnfsid">
+                            Pnfsid
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="250px">
+                        <template class="header">
+                            <vaadin-grid-filter id="idFilter"
+                                                aria-label="Pnfsid"
+                                                path="pnfsid"
+                                                value="[[_filterPnfsid]]">
+                                <input slot="filter"
+                                       id="idFilterInput"
+                                       placeholder="Pnfsid"
+                                       value="{{_filterPnfsid::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>
+                            <span class="actionable">[[item.pnfsId]]</span>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="pool">
+                            Pool
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="200px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Pool"
+                                                path="pool"
+                                                value="[[_filterPool]]">
+                                <input slot="filter"
+                                       placeholder="Pool"
+                                       value="{{_filterPool::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>
+                            <span class="actionable">[[item.pool]]</span>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]">
+                    <template class="header">
+                        Proc
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>[[item.process]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]">
+                    <template class="header">
+                        <vaadin-grid-sorter path="client">
+                            Client
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="100px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Client"
+                                                path="client"
+                                                value="[[_filterClient]]">
+                                <input slot="filter"
+                                       placeholder="Client"
+                                       value="{{_filterClient::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.replyHost]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]" resizable>
+                    <template class="header">
+                        Status
+                    </template>
+                    <vaadin-grid-column width="150px">
+                        <template class="header"></template>
+                        <template>[[item.sessionStatus]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="waiting">
+                            Waiting
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="100px">
+                        <template class="header"></template>
+                        <template>[[item.timeWaiting]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]">
+                    <template class="header">
+                        <vaadin-grid-sorter path="size">
+                            Size
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>[[item.bytesTransferred]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group hidden="[[!showall]]">
+                    <template class="header">
+                        <vaadin-grid-sorter path="mbsec">
+                            MB/sec
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="75px">
+                        <template class="header"></template>
+                        <template>[[item.transferRate]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+            </vaadin-grid>
+        </div>
+    </template>
+
+    <script>
+        class TransfersView extends
+            Polymer.mixinBehaviors([vaadin.elements.grid.CellClickBehavior],
+                DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+
+            static get is() {
+                return 'transfers-view';
+            }
+
+            static get properties() {
+                return {
+                    name: {
+                        type: String,
+                        value: "TRANFERS"
+                    },
+
+                    decorator: {
+                        type: Object,
+                    },
+
+                    currentItem: {
+                        type: Object
+                    },
+
+                    cell: {
+                        type: String
+                    },
+
+                    count: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    tableSize: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    rendering: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    selectionAction: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
+                }
+            }
+
+            connectedCallback() {
+                if (super.connectedCallback) {
+                    super.connectedCallback();
+                }
+
+                this.$.transfers.addEventListener('cell-focus', this._handleClick.bind(this));
+
+                this.decorator = new DvVaadinProviderDecorator(this.$.transfers);
+
+                /*
+                 * This must be assigned only after the decorator has been
+                 * constructed; it is called immediately upon assignment.
+                 */
+                this.$.transfers.dataProvider = this._remoteProvider.bind(this);
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback();
+                this.$.transfers.removeEventListener('cell-focus', this._handleClick.bind(this));
+            }
+
+            _handleClick(e) {
+                const cell = e.composedPath()[0];
+                this.cell = cell ? cell.order.toString().substring(0, 3): '0';
+                e.stopPropagation();
+            }
+
+            /*
+             *  ------------------------ Selection ---------------------------
+             */
+
+            signalChange() {
+                this.selectionAction = !this.selectionAction;
+            }
+
+            _isChecked(selectionAction) {
+                return this.decorator.isChecked();
+            }
+
+            _isIndeterminate(selectionAction) {
+                return this.decorator.isIndeterminate();
+            }
+
+            _selectItem(e) {
+                this.decorator.selectItem(e, this);
+            }
+
+            _toggleAll(e) {
+                this.decorator.toggleAll(this);
+            }
+
+            /*
+             *  ------ Lazy Load & Infinite Scroll, with Filter & Sort -------
+             */
+
+            handleItem(item, index) {
+                return item;
+            }
+
+            itemsArray(xhr, index) {
+                return JSON.parse(xhr.responseText).items;
+            }
+
+            providerParams(index) {
+                return "";
+            }
+
+            providerUrl(index) {
+                return 'transfers';
+            }
+
+            resetTimeout() {
+                this.resetRefresh(this._refresh.bind(this), 60000);
+            }
+
+            setTableSize(size, index) {
+                this.tableSize = size;
+            }
+
+            _computeMoverStatusCSSClass(transfer) {
+                if (!transfer) {
+                    return "";
+                }
+
+                switch (transfer.moverStatus) {
+                    case "NOTFOUND":
+                        return "notfound";
+                    case "STAGING":
+                        return "staging";
+                    case "RUNNING":
+                        return "running";
+                    case "CANCELED":
+                        return "canceled";
+                    default:
+                        return "";
+                }
+            }
+
+            _refresh() {
+                this.decorator.resetProvider(this);
+            }
+
+            _remoteProvider(params, callback) {
+                return this.decorator.runProvider(params, callback, this, null);
+            }
+
+
+            /* -------------------------- Dialogs -------------------------- */
+
+            _activeItemChanged(item) {
+                if (item && item.detail && item.detail.value) {
+                    this.currentItem = item.detail.value;
+                }
+
+                if (typeof this.currentItem === 'undefined' ||
+                    typeof this.cell === 'undefined' ) {
+                    return;
+                }
+
+                if (this.cell === '110') {
+                    this.openFileInfoDialog(this.currentItem.pnfsId,
+                        this.currentItem.pool);
+                } else if (this.cell === '111') {
+                    this.openPoolInfoDialog(this.currentItem.pool,
+                        this.currentItem.pnfsId);
+                }
+            }
+
+
+            /* --------------------- Path & Mover Kill --------------------- */
+
+            _clear() {
+                this.$.pnfsidof.value = "";
+                this.$.pnfsid.innerText = "";
+                this._setPnfsIdFilter("");
+            }
+
+            _getTransferId(transfer) {
+                return `${transfer.cellName}-${transfer.domainName}-${transfer.serialId}`;
+            }
+
+            _handleIdError(event) {
+                const message = `Could not process id request for ${this.$.pnfsidof.value}: `;
+                this.handleError(message + event.detail.error.message);
+            }
+
+            _handleIdResponse(event) {
+                this.$.pnfsid.innerText = event.detail.response.pnfsId;
+                this._setPnfsIdFilter(event.detail.response.pnfsId);
+            }
+
+            _handleMoverKill() {
+                this.count = this.$.transfers.selectedItems.length;
+                this.rendering = true;
+
+                this.$.transfers.selectedItems.forEach((item) => {
+                    if (item.pool) {
+                        this._sendMoverKill(item.pool, item.moverId);
+                    } else {
+                        this.handleError(`Cannot kill mover for transfer ${this._getTransferId(item)}: no pool.`);
+                    }
+                });
+
+                this.rendering = false;
+                this.decorator.clearSelected(this);
+                this._refresh();
+            }
+
+            _handleDeleteError(event) {
+                this.handleError(`Could not kill mover(s): ${event.detail.error.message}.`);
+            }
+
+            _ifEnterGetPnfsid(e) {
+                if (e.keyCode === 13) {
+                    this._sendIdRequest();
+                }
+            }
+
+            _openFileInfoDialogFromLabel(e) {
+                this.openFileInfoDialog(e.target.innerText, null);
+            }
+
+            _sendIdRequest() {
+                this.$.AjaxId.url
+                    = this.getUrl(`namespace${this.$.pnfsidof.value}`,
+                    null);
+                this.$.AjaxId.headers = this.getHeaders();
+                this.$.AjaxId.generateRequest();
+            }
+
+            _sendMoverKill(pool, id) {
+                this.$.AjaxDelete.url = this.getUrl(`pools/${pool}/movers/${id}`, null);
+                this.$.AjaxDelete.headers = this.getHeaders();
+                this.$.AjaxDelete.generateRequest();
+            }
+
+            _setPnfsIdFilter(text) {
+                this.shadowRoot.querySelector('#idFilterInput').value = text;
+                this.shadowRoot.querySelector('#idFilter').value = text;
+            }
+        }
+
+        window.customElements.define(TransfersView.is, TransfersView);
+    </script>
+</dom-module>
