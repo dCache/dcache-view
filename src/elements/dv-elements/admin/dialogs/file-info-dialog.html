@@ -1,0 +1,506 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toast/paper-toast.html">
+<link rel="import"
+      href="../../../../bower_components/iron-list/iron-list.html">
+<link rel="import"
+      href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import"
+      href="../../../../bower_components/file-icon/file-icon.html"/>
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dialogs/pool-info-dialog.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="file-info-dialog">
+    <template>
+        <style>
+            :host {
+                display: none;
+                @apply(--layout-vertical);
+                max-height: 80%;
+                max-width: 80%;
+                min-height: 80%;
+                min-width: 80%;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            vaadin-grid {
+                position: relative;
+                height: 20vh;
+                margin-bottom: 15px;
+                -webkit-font-smoothing: antialiased;
+                --divider-color: #d4d4d4;
+
+                --vaadin-grid-cell: {
+                    padding: 0 8px;
+                    height: 24px;
+                    border-right: 1px solid #d4d4d4;
+                    box-sizing: border-box;
+                    font-size: 8pt;
+                    cursor: default;
+                };
+
+                --vaadin-grid-header-cell: {
+                    height: 24px;
+                    border-bottom: 1px solid #d4d4d4;
+                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                    font-size: 9pt;
+                    text-style: bold;
+                    text-align: center;
+                    cursor: default;
+                };
+
+                --vaadin-grid-body-row-odd-cell: {
+                    background-color: #f5f5f5;
+                };
+            }
+
+            paper-scroll-header-panel {
+                height: 100%;
+            }
+
+            paper-toolbar {
+                color: var(--dv-charcoal-grey);
+                background: var(--dv-light-grey);
+            }
+
+            paper-toast {
+                background: var(--dv-main-background);
+                color: var(--dv-main-foreground);
+                max-width: 80%;
+                overflow: auto;
+            }
+
+            paper-button {
+                background: var(--dv-charcoal-grey);
+                color: var(--dv-main-background);
+            }
+
+            iron-list {
+                height: 15vh;
+                overflow: scroll;
+                padding: 10px;
+                border: 2px solid var(--dv-light-grey);
+                margin-bottom: 10px;
+            }
+
+            #header-panel {
+                width: 98%;
+                display: grid;
+                grid-template-columns: 25% 1fr;
+                grid-row-gap: 20px;
+                padding-left: 10px;
+            }
+
+            .banner {
+                background: var(--dv-light-grey);
+                color: var(--dv-charcoal-grey);
+            }
+
+            .outer {
+                width: 98%;
+                margin: 0 auto;
+                display: grid;
+                grid-gap: 10px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid-item {
+                justify-self: stretch;
+                align-self: stretch;
+            }
+
+            .flex {
+                @apply(--layout-flex);
+            }
+
+            .opaque {
+                opacity: 1.0;
+                background: var(--dv-main-background);
+                color: var(--dv-main-foreground);
+                border: groove;
+                border-color: var(--dv-blue-500);
+                border-width: thick;
+            }
+
+            .spacer {
+                margin-left: 10px !important;
+            }
+
+            .centered {
+                margin: 5px auto;
+                cursor: default;
+            }
+
+            .actionable0 {
+                color: var(--dv-indigo-500);
+                font-size: 9pt;
+                padding-top: 4px;
+                padding-bottom: 4px;
+                white-space: nowrap;
+                cursor: pointer;
+            }
+
+            .actionable1 {
+                color: var(--dv-red-500);
+                font-size: 9pt;
+                padding-top: 4px;
+                padding-bottom: 4px;
+                white-space: nowrap;
+                cursor: pointer;
+            }
+
+            .filename {
+                color: var(--paper-grey-600);
+                margin-top: 20px;
+                margin-bottom: 20px;
+                cursor: default;
+            }
+
+            .fileicon {
+                float: left;
+            }
+
+            .main {
+                font-size: 12pt;
+                cursor: default;
+            }
+
+            .chks {
+                font-size: 9pt;
+                padding-top: 4px;
+                padding-bottom: 4px;
+                white-space: nowrap;
+                cursor: default;
+            }
+
+            .rubric {
+                border-style: solid;
+                border-color: var(--dv-charcoal-grey);
+                border: 10px;
+                justify-self: center;
+                align-self: center;
+            }
+
+            .ok {
+                color: var(--dv-indigo-500);
+                font-size: 14pt;
+                cursor: pointer;
+            }
+        </style>
+
+        <iron-ajax
+                id="AjaxInfo"
+                method="GET"
+                handle-as="json"
+                on-response="_handleInfoResponse"
+                on-error="_handleInfoError">
+        </iron-ajax>
+        <paper-scroll-header-panel class="flex opaque" fixed>
+            <div slot="header">
+                <paper-toolbar slot="header">
+                    <div slot="top" class="spacer title"><strong>File
+                        Info</strong>
+                    </div>
+                    <paper-button slot="top" raised
+                                  on-tap="_displayBillingRecords">
+                        Billing
+                        Records
+                    </paper-button>
+                    <paper-button slot="top" dialog-dismiss>Close</paper-button>
+                </paper-toolbar>
+                <hr/>
+                <div class="filename">
+                    <div class="fileicon">
+                        <file-icon
+                                mime-type="[[info.fileMimeType]]"></file-icon>
+                    </div>
+                    <strong style="margin-left: 30px;">[[info.fileName]]</strong>
+                </div>
+                <hr/>
+            </div>
+            <div slot="content">
+                <br/>
+                <div id="header-panel">
+                    <div class="grid-item main">
+                        <span><strong>PNFSID</strong>:</span>
+                    </div>
+                    <div class="grid-item main">
+                        <span>[[info.pnfsId]]</span>
+                    </div>
+                    <div class="grid-item main">
+                        <span><strong>PATH</strong>:</span>
+                    </div>
+                    <div class="grid-item main">
+                        <span>[[info.path]]</span>
+                    </div>
+                    <div class="grid-item main">
+                        <span><strong>LOCALITY</strong>:</span>
+                    </div>
+                    <div class="grid-item main">
+                        <span>[[info.fileLocality]]</span>
+                    </div>
+                    <div class="grid-item main">
+                        <span><strong>QoS</strong>:</span>
+                    </div>
+                    <div class="grid-item main">
+                        <span>[[info.currentQos]]</span>
+                    </div>
+                </div>
+                <br/>
+                <div class="outer banner">
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>STAT</strong></span>
+                    </div>
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>DISK LOCATIONS</strong></span>
+                    </div>
+                </div>
+                <div class="outer">
+                    <div class="grid-item">
+                        <vaadin-grid aria-label="Stat" id="stat"
+                                     items="[[statInfo]]" size="15">
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.name]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.value]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid>
+                    </div>
+                    <div class="grid-item">
+                        <iron-list items="[[locations]]" as="location">
+                            <template>
+                                <div on-tap="_displayPoolInfo"
+                                     class$="actionable[[location.active]]">
+                                    [[location.name]]
+                                </div>
+                            </template>
+                        </iron-list>
+                    </div>
+                </div>
+                <div class="outer banner">
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>STORAGE INFO</strong></span>
+                    </div>
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>TAPE LOCATIONS</strong></span>
+                    </div>
+                </div>
+                <div class="outer">
+                    <div class="grid-item">
+                        <vaadin-grid aria-label="StorageInfo" id="storage"
+                                     items="[[storageInfo]]" size="10">
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.name]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.value]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid>
+                    </div>
+                    <div class="grid-item">
+                        <iron-list items="[[tapeuris]]" as="uri">
+                            <template>
+                                <div on-tap="_openAlert" class="actionable0">
+                                    [[uri]]
+                                </div>
+                            </template>
+                        </iron-list>
+                    </div>
+                </div>
+                <div class="outer banner">
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>CHECKSUMS</strong></span>
+                    </div>
+                </div>
+                <div class="outer">
+                    <div class="grid-item">
+                        <iron-list items="[[info.checksums]]"
+                                   as="checksum">
+                            <template>
+                                <div class="chks">[[checksum.type]]:&nbsp;&nbsp;&nbsp;&nbsp;[[checksum.value]]
+                                </div>
+                            </template>
+                        </iron-list>
+                    </div>
+                </div>
+            </div>
+            <paper-toast slot="content" id="infoToast">
+                    <span class="toast-hide-button" role="button" tabindex="0"
+                          on-tap="_hideToast"><p class="ok"><strong>OK</strong></p></span>
+            </paper-toast>
+        </paper-scroll-header-panel>
+    </template>
+
+    <script>
+        class FileInfoDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+
+            static get is() {
+                return 'file-info-dialog';
+            }
+
+            static get properties() {
+                return {
+                    pnfsid: {
+                        type: String
+                    },
+
+                    currentTransferPool: {
+                        type: String
+                    },
+
+                    info: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    statInfo: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    storageInfo: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    tapeuris: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    locations: {
+                        type: Array,
+                        notify: true
+                    },
+                }
+            }
+
+            constructor(pnfsid, pool) {
+                super();
+                this.pnfsid = pnfsid;
+                this.currentTransferPool = pool;
+                /*
+                 *  This property belongs to the Polymer.DialogBehavior.
+                 *  We may need to revisit.
+                 */
+                this.modal = true;
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.refreshAndReset(this._sendInfoRequest.bind(this), 60000);
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback();
+                this.stopRefresh();
+            }
+
+            close() {
+                this.stopRefresh();
+                this.popDialog();
+                super.close();
+            }
+
+            _convertStatInfoToNameValueList(info) {
+                const mode = info.mode.toString(8);
+                const atime = this.timeToLocaleString(info.atime);
+                const ctime = this.timeToLocaleString(info.ctime);
+                const mtime = this.timeToLocaleString(info.mtime);
+                const unix = this.convertToUnixPermissions(info.fileType, info.mode);
+                return [this.convertToNameValueObject('Type', info.fileType),
+                        this.convertToNameValueObject('Owner (UID)', info.owner),
+                        this.convertToNameValueObject('Group (GID)', info.group),
+                        this.convertToNameValueObject('Size (bytes)', info.size),
+                        this.convertToNameValueObject('Mode', mode + ' : ' + unix),
+                        this.convertToNameValueObject('Access Time', atime),
+                        this.convertToNameValueObject('Created Time', ctime),
+                        this.convertToNameValueObject('Modified Time', mtime),
+                        this.convertToNameValueObject('Nlinks', info.nlink),
+                        this.convertToNameValueObject('ACL', info.acl)];
+            }
+
+            _convertStorageInfoToNameValueList(info) {
+                return [this.convertToNameValueObject('Retention Policy', info.retentionPolicy),
+                        this.convertToNameValueObject('Access Latency', info.accessLatency),
+                        this.convertToNameValueObject('Storage Class', info.storageClass),
+                        this.convertToNameValueObject('HSM', info.hsm),
+                        this.convertToNameValueObject('Cache Class', info.cacheClass)];
+            }
+
+            _displayPoolInfo(e) {
+                e.stopPropagation();
+                this.openPoolInfoDialog(e.model.location.name, this.pnfsid);
+            }
+
+            _displayBillingRecords(e) {
+                e.stopPropagation();
+                const pnfsid = this.info.pnfsId;
+                const pool = this.currentTransferPool;
+                const dialog = new BillingInfoDialog(pnfsid, pool);
+                this.pushDialog(dialog);
+                dialog.open();
+            }
+
+            _handleInfoError(event) {
+                const message = `Could not process info for ${this.pnfsid}`;
+                this.handleError(message + event.detail.error.message);
+            }
+
+            _handleInfoResponse(event) {
+                const result = event.detail.response;
+                this.info = result;
+                this.statInfo = this._convertStatInfoToNameValueList(result);
+                this.storageInfo = this._convertStorageInfoToNameValueList(result);
+                const uris = [];
+                if (result.suris) {
+                    result.suris.forEach((uri) => {
+                        uris.push(uri);
+                    });
+                }
+                this.tapeuris = uris;
+                const locations = [];
+                var current = this.currentTransferPool;
+                result.locations.forEach((location) => {
+                    let active = current === location ? 1 : 0;
+                    locations.push({"active": active, "name": location});
+                });
+                this.locations = locations;
+            }
+
+            _hideToast() {
+                this.$.infoToast.hide();
+            }
+
+            _openAlert(e) {
+                e.stopPropagation();
+                this.$.infoToast.duration = -1;
+                this.$.infoToast.text = e.model.uri;
+                this.$.infoToast.tabindex = 10;
+                this.$.infoToast.show();
+            }
+
+            _sendInfoRequest() {
+                this.$.AjaxInfo.url
+                    = this.getUrl(`id/${this.pnfsid}`, null);
+                this.$.AjaxInfo.headers = this.getHeaders();
+                this.$.AjaxInfo.generateRequest();
+            }
+        }
+
+        window.customElements.define(FileInfoDialog.is, FileInfoDialog);
+    </script>
+</dom-module>

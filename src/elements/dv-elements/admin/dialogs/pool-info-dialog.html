@@ -1,0 +1,898 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import"
+      href="../../../../bower_components/iron-list/iron-list.html">
+<link rel="import"
+      href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import"
+      href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/charts/pool-info-chart.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dialogs/file-info-dialog.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="pool-info-dialog">
+    <template>
+        <style>
+            :host {
+                display: none;
+                @apply(--layout-vertical);
+                max-height: 80%;
+                max-width: 80%;
+                min-height: 80%;
+                min-width: 80%;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            paper-scroll-header-panel {
+                height: 100%;
+            }
+
+            paper-toolbar {
+                color: var(--dv-charcoal-grey);
+                background: var(--dv-light-grey);
+            }
+
+            paper-button {
+                background: var(--dv-charcoal-grey);
+                color: var(--dv-main-background);
+            }
+
+            vaadin-grid {
+                position: relative;
+                height: 20vh;
+                margin-bottom: 15px;
+                -webkit-font-smoothing: antialiased;
+                --divider-color: #d4d4d4;
+
+                --vaadin-grid-cell: {
+                    padding: 0 8px;
+                    height: 24px;
+                    border-right: 1px solid #d4d4d4;
+                    box-sizing: border-box;
+                    font-size: 8pt;
+                    cursor: default;
+                };
+
+                --vaadin-grid-header-cell: {
+                    height: 24px;
+                    border-bottom: 1px solid #d4d4d4;
+                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                    font-size: 9pt;
+                    text-style: bold;
+                    text-align: center;
+                    cursor: default;
+                };
+
+                --vaadin-grid-body-row-odd-cell: {
+                    background-color: #f5f5f5;
+                };
+            }
+
+            iron-list {
+                height: 8vh;
+                overflow: scroll;
+                padding: 10px;
+                border: 2px solid var(--dv-light-grey);
+                margin-bottom: 10px;
+            }
+
+            #header-panel {
+                width: 98%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-row-gap: 20px;
+                padding-left: 10px;
+            }
+
+            .banner {
+                background: var(--dv-light-grey);
+                color: var(--dv-charcoal-grey);
+            }
+
+            .outer {
+                width: 98%;
+                margin: 0 auto;
+                display: grid;
+                grid-gap: 10px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .inner {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .flex {
+                @apply(--layout-flex);
+            }
+
+            .opaque {
+                opacity: 1.0;
+                background: var(--dv-main-background);
+                color: var(--dv-main-foreground);
+                border: groove;
+                border-color: var(--dv-blue-500);
+                border-width: thick;
+            }
+
+            .spacer {
+                margin-left: 10px !important;
+            }
+
+            .grid-item {
+                justify-self: stretch;
+                align-self: stretch;
+            }
+
+            .rubric {
+                border-style: solid;
+                border-color: var(--dv-charcoal-grey);
+                border: 10px;
+                justify-self: center;
+                align-self: center;
+            }
+
+            .main {
+                font-size: 9pt;
+                padding-top: 4px;
+                padding-bottom: 4px;
+                white-space: nowrap;
+                cursor: default;
+            }
+
+            .subtitle {
+                justify-self: center;
+                align-self: center;
+                font-size: 10pt;
+                padding-bottom: 10px;
+            }
+
+            .centered {
+                margin: 5px auto;
+                text-align: center;
+                cursor: default;
+            }
+
+            .poolname {
+                color: var(--paper-grey-600);
+                font-size: 12pt;
+                padding-left: 10px;
+                margin-bottom: 15px;
+                cursor: default;
+            }
+
+            .filename {
+                color: var(--dv-red-500);
+                font-size: 10pt;
+                padding-left: 10px;
+                margin-bottom: 15px;
+                cursor: pointer;
+            }
+        </style>
+
+        <iron-ajax
+                id="AjaxInfo"
+                method="GET"
+                handle-as="json"
+                on-response="_handleInfoResponse"
+                on-error="_handleInfoError">
+        </iron-ajax>
+        <iron-ajax
+                id="AjaxQueues"
+                method="GET"
+                handle-as="json"
+                on-response="_handleQueuesResponse"
+                on-error="_handleQueuesError">
+        </iron-ajax>
+        <iron-ajax
+                id="AjaxFiles"
+                method="GET"
+                handle-as="json"
+                on-response="_handleFilesResponse"
+                on-error="_handleFilesError">
+        </iron-ajax>
+        <iron-ajax
+                id="AjaxPnfsid"
+                method="GET"
+                handle-as="json"
+                on-response="_handlePnfsidResponse"
+                on-error="_handlePnfsidError">
+        </iron-ajax>
+        <paper-scroll-header-panel class="flex opaque" fixed>
+            <paper-toolbar slot="header">
+                <div slot="top" class="spacer title"><strong>Pool Info</strong>
+                </div>
+                <paper-button slot="top" raised on-tap="_displayActivity">
+                    Activity
+                </paper-button>
+                <paper-button slot="top" dialog-dismiss>Close</paper-button>
+            </paper-toolbar>
+            <div slot="content">
+                <hr/>
+                <div id="header-panel">
+                    <div class="grid-item">
+                        <span class="poolname"><strong>[[poolData.cellData.cellName]]</strong></span>
+                    </div>
+                    <div class="grid-item">
+                        <span class="poolname"><strong>[[poolData.detailsData.poolMode]]</strong></span>
+                    </div>
+                    <div><span hidden="[[!pnfsidInfo]]"
+                               on-tap="_openFileInfoDialog"
+                               on-tap="_openFileInfoDialog"
+                               class="filename"><strong>[[repositoryListing]]</strong></span>
+                    </div>
+                    <div><span hidden="[[!pnfsidInfo]]"
+                               class="filename"><strong>Last Access: [[pnfsidInfo.lastAccessTime]]</strong></span>
+                    </div>
+                </div>
+                <hr/>
+                <div class="outer banner">
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>SERVICE</strong></span>
+                    </div>
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>CONFIGURATION</strong></span>
+                    </div>
+                </div>
+                <div class="outer">
+                    <div class="grid-item">
+                        <vaadin-grid aria-label="Service" id="service"
+                                     items="[[cellData]]" size="25">
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.name]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.value]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid>
+                    </div>
+                    <div class="grid-item">
+                        <vaadin-grid aria-label="Configuration"
+                                     id="configuration"
+                                     items="[[configData]]" size="25">
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.name]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.value]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid>
+                    </div>
+                    <div class="grid-item">
+                        <div class="inner">
+                            <div class="grid-item subtitle">
+                                <span class="main centered"><strong>Pool Groups</strong></span>
+                            </div>
+                            <div class="grid-item">
+                                <iron-list items="[[poolData.poolGroups]]"
+                                           as="group">
+                                    <template>
+                                        <div class="main">[[group]]</span></div>
+                                    </template>
+                                </iron-list>
+                            </div>
+                            <div class="grid-item subtitle">
+                                <span class="main centered"><strong>Links</strong></span>
+                            </div>
+                            <div class="grid-item">
+                                <iron-list items="[[poolData.links]]" as="link">
+                                    <template>
+                                        <div class="main">[[link]]</span></div>
+                                    </template>
+                                </iron-list>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid-item">
+                        <div class="inner">
+                            <div class="grid-item subtitle">
+                                <span class="main centered"><strong>Tag Map</strong></span>
+                            </div>
+                            <div class="grid-item">
+                                <vaadin-grid aria-label="Tags" id="tags"
+                                             items="[[tagmap]]" size="25">
+                                    <vaadin-grid-column width="50%"
+                                                        flex-grow="0">
+                                        <template>[[item.name]]</template>
+                                    </vaadin-grid-column>
+                                    <vaadin-grid-column width="50%"
+                                                        flex-grow="0">
+                                        <template>[[item.value]]</template>
+                                    </vaadin-grid-column>
+                                </vaadin-grid>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="outer banner">
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>QUEUES</strong></span>
+                    </div>
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>POOL ACTIVITY</strong></span>
+                    </div>
+                </div>
+                <div class="outer">
+                    <div class="grid-item">
+                        <vaadin-grid aria-label="Pool Queues" id="queues"
+                                     items="[[queues]]" size="20">
+                            <vaadin-grid-column width="55%" flex-grow="0">
+                                <template class="header">
+                                    Queue Name
+                                </template>
+                                <template>[[item.name]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="15%" flex-grow="0">
+                                <template class="header">
+                                    Active
+                                </template>
+                                <template>[[item.active]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="15%" flex-grow="0">
+                                <template class="header">
+                                    Max
+                                </template>
+                                <template>[[item.maxActive]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="15%" flex-grow="0">
+                                <template class="header">
+                                    Queued
+                                </template>
+                                <template>[[item.queued]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid>
+                    </div>
+                    <div class="grid-item">
+                        <pool-info-chart title="[[queueActivity.title]]"
+                                         input-data="[[queueActivity]]"/>
+                    </div>
+                </div>
+                <div class="outer banner">
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>SWEEPER & REPOSITORY</strong></span>
+                    </div>
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>FILE LIFETIME</strong></span>
+                    </div>
+                </div>
+                <div class="outer">
+                    <div class="grid-item">
+                        <vaadin-grid aria-label="Repository & Sweeper"
+                                     id="repository"
+                                     items="[[repositoryData]]" size="20">
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.name]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.value]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid>
+                    </div>
+                    <div class="grid-item">
+                        <pool-info-chart title="[[lastAccess.title]]"
+                                         input-data="[[lastAccess]]"/>
+                    </div>
+                    <div class="grid-item">
+                        <pool-info-chart title="[[poolSpace.title]]"
+                                         input-data="[[poolSpace]]"/>
+                    </div>
+                    <div class="grid-item">
+                        <pool-info-chart title="[[fileLifetime.title]]"
+                                         input-data="[[fileLifetime]]"/>
+                    </div>
+                </div>
+                <div class="outer banner">
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>TRANSFER SERVICES</strong></span>
+                    </div>
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>MIGRATION</strong></span>
+                    </div>
+                </div>
+                <div class="outer">
+                    <div class="grid-item">
+                        <vaadin-grid aria-label="Transfer Services"
+                                     id="transferServices"
+                                     items="[[transferServices]]" size="20">
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.name]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.value]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid>
+                    </div>
+                    <div class="grid-item">
+                        <div class="inner">
+                            <div class="grid-item subtitle">
+                                <span class="main"><strong>Server Requests:</strong></span>
+                            </div>
+                            <div class="grid-item">
+                                <span class="main">[[data.poolData.migrationData.serverRequests]]</span>
+                                <br/>
+                            </div>
+                            <div class="grid-item subtitle">
+                                <span class="main centered"><strong>Job Info</strong></span>
+                            </div>
+                            <div class="grid-item">
+                                <iron-list
+                                        items="[[poolData..migrationData.jobInfo]]"
+                                        as="job">
+                                    <template>
+                                        <div class="main">[[job]]</span></div>
+                                    </template>
+                                </iron-list>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="outer banner">
+                    <div class="grid-item rubric">
+                        <span class="centered"><strong>NEARLINE</strong></span>
+                    </div>
+                </div>
+                <div class="outer">
+                    <div class="grid-item">
+                        <vaadin-grid aria-label="Flush Data" id="flush"
+                                     items="[[flushData]]" size="25">
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.name]]</template>
+                            </vaadin-grid-column>
+                            <vaadin-grid-column width="50%" flex-grow="0">
+                                <template>[[item.value]]</template>
+                            </vaadin-grid-column>
+                        </vaadin-grid>
+                    </div>
+                </div>
+            </div>
+        </paper-scroll-header-panel>
+    </template>
+
+    <script>
+        class PoolInfoDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+
+            static get is() {
+                return 'pool-info-dialog';
+            }
+
+            static get properties() {
+                return {
+                    pool: {
+                        type: String
+                    },
+
+                    pnfsid: {
+                        type: String
+                    },
+
+                    cellData: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    configData: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    fileStat: {
+                        type: Object,
+                    },
+
+                    flushData: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    tagmap: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    repositoryData: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    transferServices: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    queues: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    queueActivity: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    queueStat: {
+                        type: Object,
+                    },
+
+                    lastAccess: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    fileLifetime: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    poolData: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    poolSpace: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    pnfsidInfo: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    repositoryListing: {
+                        type: Object,
+                        notify: true
+                    }
+                }
+            }
+
+            constructor(pool, pnfsid) {
+                super();
+                this.pool = pool;
+                this.pnfsid = pnfsid;
+                /*
+                 *  This property belongs to the Polymer.DialogBehavior.
+                 *  We may need to revisit.
+                 */
+                this.modal = true;
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.refreshAndReset(this._sendInfoRequests.bind(this), 60000);
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback();
+                this.stopRefresh();
+            }
+
+            close() {
+                this.stopRefresh();
+                this.popDialog();
+                super.close();
+            }
+
+            _convertCellDataToNameValueList(data) {
+                const list = [];
+                list.push(this.convertToNameValueObject('Domain', data.cellData.domainName));
+                data.detailsData.inetAddresses.forEach((address) => {
+                    if (address !== '0:0:0:0:0:0:0:1' && address !== '127.0.0.1') {
+                        list.push(this.convertToNameValueObject('IP', address));
+                    }
+                });
+                list.push(this.convertToNameValueObject('Created', this.timeToLocaleString(data.cellData.creationTime)));
+                list.push(this.convertToNameValueObject('Version', data.detailsData.poolVersion));
+                list.push(this.convertToNameValueObject('State', this._getStateName(data.cellData.state)));
+                list.push(this.convertToNameValueObject('Event Queue', data.cellData.eventQueueSize));
+                list.push(this.convertToNameValueObject('Expected Queue Time', data.cellData.expectedQueueTime));
+                list.push(this.convertToNameValueObject('Threads', data.cellData.threadCount));
+                list.push(this.convertToNameValueObject('Base Dir', data.detailsData.baseDir));
+                return list;
+            }
+
+            _convertConfigDataToNameValueList(data) {
+                return [this.convertToNameValueObject('Checksum Module', data.csmData.type),
+                        this.convertToNameValueObject('Clean Precious Files', data.detailsData.cleanPreciousFiles),
+                        this.convertToNameValueObject('Report Removals', data.detailsData.reportRemovals),
+                        this.convertToNameValueObject('Suppress HSM Load', data.detailsData.suppressHsmLoad),
+                        this.convertToNameValueObject('Ping Heartbeat (secs)', data.detailsData.pingHeartbeatInSecs),
+                        this.convertToNameValueObject('Large File Store (lfs)', data.detailsData.largeFileStore),
+                        this.convertToNameValueObject('Duplicate Requests', data.detailsData.duplicateRequests),
+                        this.convertToNameValueObject('P2P Mode', data.detailsData.p2pFileMode),
+                        this.convertToNameValueObject('Break Even', data.detailsData.costData.space.breakEven),
+                        this.convertToNameValueObject('Mover Cost Factor', data.detailsData.costData.moverCostFactor),
+                        this.convertToNameValueObject('Default Queue', data.detailsData.costData.defaultQueueName)];
+            }
+
+            _convertFlushDataToNameValueList(data) {
+                return [this.convertToNameValueObject('HSM Flush Interval', data.flushData.flushInterval),
+                        this.convertToNameValueObject('HSM Max Active', data.flushData.maxActive),
+                        this.convertToNameValueObject('HSM Flush Delay On Error', data.flushData.flushDelayOnError),
+                        this.convertToNameValueObject('HSM Next Flush', this.timeToLocaleString(data.flushData.nextFlush)),
+                        this.convertToNameValueObject('HSM Flush Queue Classes', data.hsmFlushQMData.classCount),
+                        this.convertToNameValueObject('HSM Flush Queue Requests', data.hsmFlushQMData.requestCount),
+                        this.convertToNameValueObject('Handler Store Timeout (secs)', data.storageHandlerData.storeTimeoutInSeconds),
+                        this.convertToNameValueObject('Handler Restore Timeout (secs)', data.storageHandlerData.restoreTimeoutInSeconds),
+                        this.convertToNameValueObject('Handler Remove Timeout (secs)', data.storageHandlerData.removeTimeoutInSeconds)];
+            }
+
+            _convertMapToNameValueList(map) {
+                const list = [];
+                Object.keys(map).forEach((k) => {
+                    list.push(this.convertToNameValueObject(k, map[k]));
+                });
+                return list;
+            }
+
+            _convertPoolCostToQueueList(costData) {
+                const list = [{
+                    "name": "mover",
+                    "maxActive": costData.mover.maxActive,
+                    "active": costData.mover.active,
+                    "queued": costData.mover.queued
+                }, {
+                    "name": "p2p",
+                    "maxActive": costData.p2p.maxActive,
+                    "active": costData.p2p.active,
+                    "queued": costData.p2p.queued
+                }, {
+                    "name": "p2pClient",
+                    "maxActive": costData.p2pClient.maxActive,
+                    "active": costData.p2pClient.active,
+                    "queued": costData.p2pClient.queued
+                }, {
+                    "name": "store",
+                    "active": costData.store.active,
+                    "queued": costData.store.queued
+                }, {
+                    "name": "restore",
+                    "active": costData.restore.active,
+                    "queued": costData.restore.queued
+                }];
+
+                const map = costData.extendedMoverHash;
+                Object.keys(map).forEach((k) => {
+                    list.push(map[k]);
+                });
+
+                return list;
+            }
+
+            _convertRepositoryDataToNameValueList(data) {
+                return [this.convertToNameValueObject('Repository State', data.repositoryData.state),
+                        this.convertToNameValueObject('Number of Files', data.repositoryData.files),
+                        this.convertToNameValueObject('Total Disk Space', data.repositoryData.totalDiskSpace),
+                        this.convertToNameValueObject('Free Disk Space', data.repositoryData.freeDiskSpace),
+                        this.convertToNameValueObject('Used Disk Space', data.repositoryData.usedDiskSpace),
+                        this.convertToNameValueObject('Precious Disk Space', data.repositoryData.preciousDiskSpace),
+                        this.convertToNameValueObject('Removable Disk Space', data.repositoryData.removableDiskSpace),
+                        this.convertToNameValueObject('Used Disk Space Ratio', data.repositoryData.usedDiskSpaceRatio),
+                        this.convertToNameValueObject('Precious Disk Space Ratio', data.repositoryData.preciousDiskSpaceRatio),
+                        this.convertToNameValueObject('Removable Disk Space Ratio', data.repositoryData.removableDiskSpaceRatio),
+                        this.convertToNameValueObject('File System Size', data.repositoryData.fileSystemSize),
+                        this.convertToNameValueObject('File System Free', data.repositoryData.fileSystemFree),
+                        this.convertToNameValueObject('File System Ratio Free to Total', data.repositoryData.fileSystemRatioFreeToTotal),
+                        this.convertToNameValueObject('File System Max Space', data.repositoryData.fileSystemMaxSpace),
+                        this.convertToNameValueObject('Statistically Configured Max', data.repositoryData.staticallyConfiguredMax),
+                        this.convertToNameValueObject('Runtime Configured Max', data.repositoryData.runtimeConfiguredMax),
+                        this.convertToNameValueObject('Gap', data.repositoryData.gap),
+                        this.convertToNameValueObject('LRU Timestamp', data.sweeperData.lruTimestamp),
+                        this.convertToNameValueObject('LRU Queue Size', data.sweeperData.lruQueueSize)];
+            }
+
+            _displayActivity(e) {
+                e.stopPropagation();
+                const pnfsid = this.pnfsid;
+                const pool = this.pool;
+                const dialog = new PoolActivityDialog(pool, pnfsid);
+                this.pushDialog(dialog);
+                dialog.open();
+            }
+
+            _drawCharts() {
+                this.queueActivity = {
+                    'title': this.pool,
+                    'type': 'queues',
+                    'seriesData': this.queueStat
+                };
+                this.lastAccess = {
+                    'title': this.pool,
+                    'type': 'access',
+                    'seriesData': this.fileStat
+                };
+                this.fileLifetime = {
+                    'title': this.pool,
+                    'type': 'lifetime',
+                    'seriesData': this.fileStat
+                };
+                this.poolSpace = {
+                    'title': this.pool,
+                    'type': 'space',
+                    'seriesData': this._getSpaceData()
+                };
+            }
+
+            _getSpaceData() {
+                const data = this.poolData.detailsData.costData.space;
+                const total = data.total;
+                const free = data.free;
+                const removable = data.removable;
+                const precious = data.precious;
+                const pinned = total - free - removable - precious;
+
+                return {
+                    'free': free,
+                    'removable': removable,
+                    'precious': precious,
+                    'pinned': pinned
+                };
+            }
+
+            _getStateName(state) {
+                switch (state) {
+                    case 0:
+                        return "INITIAL";
+                    case 1:
+                        return "ACTIVE";
+                    case 2:
+                        return "REMOVING";
+                    case 3:
+                        return "DEAD";
+                    default:
+                        return "UNKNOWN";
+                }
+            }
+
+            _handleFilesError(event) {
+                this._handleError(event, "files");
+            }
+
+            _handleInfoError(event) {
+                this._handleError(event, "info");
+            }
+
+            _handleQueuesError(event) {
+                this._handleError(event, "queues");
+            }
+
+            _handlePnfsidError(event) {
+                this._handleError(event, "pnfsid");
+            }
+
+            _handleError(event, type) {
+                this.handleError(`Could not process ${type} for ${this.pool}: ${event.detail.error.message}`);
+            }
+
+            _handleFilesResponse(event) {
+                const result = event.detail.response;
+                this.fileStat = result.fileStat;
+                this._handleGoogleCharts();
+            }
+
+            _handleGoogleCharts() {
+                if (this.poolData && this.fileStat && this.queueStat) {
+                    google.charts.load('current', {'packages': ['corechart', 'bar']});
+                    google.charts.setOnLoadCallback(this._drawCharts.bind(this));
+                }
+            }
+
+            _handleInfoResponse(event) {
+                const result = event.detail.response;
+                if (result.poolData) {
+                    this.cellData
+                        = this._convertCellDataToNameValueList(result.poolData);
+                    this.configData
+                        = this._convertConfigDataToNameValueList(result.poolData);
+                    this.tagmap
+                        = this._convertMapToNameValueList(result.poolData.detailsData.tagMap);
+                    this.queues
+                        = this._convertPoolCostToQueueList(result.poolData.detailsData.costData);
+                    this.repositoryData
+                        = this._convertRepositoryDataToNameValueList(result.poolData);
+                    this.transferServices
+                        = this._convertMapToNameValueList(result.poolData.transferServicesData.transferServices);
+                    this.flushData
+                        = this._convertFlushDataToNameValueList(result.poolData);
+                    result.poolData.cellData.creationTime
+                        = this.timeToLocaleString(result.poolData.cellData.creationTime);
+                    result.poolData.sweeperData.lruTimestamp
+                        = this.timeToLocaleString(result.poolData.sweeperData.lruTimestamp);
+                    result.poolData.flushData.nextFlush
+                        = this.timeToLocaleString(result.poolData.flushData.nextFlush);
+
+                    this.poolData = result.poolData;
+                }
+
+                this._handleGoogleCharts();
+            }
+
+            _handleQueuesResponse(event) {
+                const result = event.detail.response;
+                this.queueStat = result.queueStat;
+                this._handleGoogleCharts();
+            }
+
+            _handlePnfsidResponse(event) {
+                const result = event.detail.response;
+                if (result.pnfsidInfo) {
+                    result.pnfsidInfo.lastAccessTime
+                        = this.timeToLocaleString(result.pnfsidInfo.lastAccessTime);
+                    this.pnfsidInfo = result.pnfsidInfo;
+                    this.repositoryListing = result.repositoryListing;
+                }
+            }
+
+            _magnify(e) {
+                const chartId = e.target.id;
+                let chart;
+
+                switch (chartId) {
+                    case 'queues':
+                        chart = this.queueActivity;
+                        break;
+                    case 'access':
+                        chart = this.lastAccess;
+                        break;
+                    case 'lifetime':
+                        chart = this.fileLifetime;
+                        break;
+                    default:
+                        e.stopPropagation();
+                        return;
+                }
+
+                chart.magnify(e);
+            }
+
+            _openFileInfoDialog() {
+                if (!this.pnfsid) {
+                    return;
+                }
+
+                this.openFileInfoDialog(this.pnfsid, this.pool);
+            }
+
+            _sendInfoRequests() {
+                this.poolData = null;
+                this.fileStat = null;
+                this.queueStat = null;
+                this.pnfsidInfo = null;
+
+                this.$.AjaxInfo.url
+                    = this.getUrl(`pools/${this.pool}/usage`, null);
+                this.$.AjaxInfo.headers = this.getHeaders();
+                this.$.AjaxInfo.generateRequest();
+
+                this.$.AjaxQueues.url
+                    = this.getUrl(`pools/${this.pool}/histograms/queues`, null);
+                this.$.AjaxQueues.headers = this.getHeaders();
+                this.$.AjaxQueues.generateRequest();
+
+                this.$.AjaxFiles.url
+                    = this.getUrl(`pools/${this.pool}/histograms/files`, null);
+                this.$.AjaxFiles.headers = this.getHeaders();
+                this.$.AjaxFiles.generateRequest();
+
+                if (this.pnfsid) {
+                    this.$.AjaxPnfsid.url
+                        = this.getUrl(`pools/${this.pool}/${this.pnfsid}`, null);
+                    this.$.AjaxPnfsid.headers = this.getHeaders();
+                    this.$.AjaxPnfsid.generateRequest();
+                }
+            }
+        }
+
+        window.customElements.define(PoolInfoDialog.is, PoolInfoDialog);
+    </script>
+</dom-module>
