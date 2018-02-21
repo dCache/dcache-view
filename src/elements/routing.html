@@ -45,7 +45,13 @@
             app.route = 'admin-component-page';
             app.params = data.params;
 
-            let isAdminView = app.$.billingPlotsContainer.querySelector('billing-plots-view') instanceof Polymer.Element;
+            let isAdminView = app.$.alarmsContainer.querySelector('alarms-view') instanceof Polymer.Element;
+            if (app.params.component === "alarms" && !isAdminView) {
+                app.$.alarmsContainer.appendChild(new AlarmsView());
+                return;
+            }
+
+            isAdminView = app.$.billingPlotsContainer.querySelector('billing-plots-view') instanceof Polymer.Element;
             if (app.params.component === "billing-plots" && !isAdminView) {
                 app.$.billingPlotsContainer.appendChild(new BillingPlotsView());
                 return;
@@ -75,9 +81,9 @@
                 return;
             }
 
-            isAdminView = app.$.alarmsContainer.querySelector('alarms-view') instanceof Polymer.Element;
-            if (app.params.component === "alarms" && !isAdminView) {
-                app.$.alarmsContainer.appendChild(new AlarmsView());
+            isAdminView = app.$.selectionUnitContainer.querySelector('selection-unit-view') instanceof Polymer.Element;
+            if (app.params.component === "pool-selection" && !isAdminView) {
+                app.$.selectionUnitContainer.appendChild(new SelectionUnitView());
                 return;
             }
         });
