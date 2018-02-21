@@ -134,11 +134,25 @@
             .actionable {
                 cursor: pointer;
                 color: var(--dv-indigo-500);
+                -webkit-transition: background 2s; /* Safari */
+                transition: background 2s;
+            }
+
+            .actionable:active {
+                color: var(--dv-main-background);
+                background: var(--dv-indigo-900);
             }
 
             .actionableselected {
                 cursor: pointer;
                 color: var(--dv-red-500);
+                -webkit-transition: background 2s; /* Safari */
+                transition: background 2s;
+            }
+
+            .actionableselected:active {
+                color: var(--dv-main-background);
+                background: var(--dv-red-900);
             }
 
             #top-panel {

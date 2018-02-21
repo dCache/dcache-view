@@ -143,11 +143,25 @@
             .actionable0 {
                 cursor: pointer;
                 color: var(--dv-indigo-500);
+                -webkit-transition: background 2s; /* Safari */
+                transition: background 2s;
             }
 
             .actionable1 {
                 cursor: pointer;
                 color: var(--dv-red-500);
+                -webkit-transition: background 2s; /* Safari */
+                transition: background 2s;
+            }
+
+            .actionable0:active {
+                color: var(--dv-main-background);
+                background: var(--dv-indigo-900);
+            }
+
+            .actionable1:active {
+                color: var(--dv-main-background);
+                background: var(--dv-red-900);
             }
 
             .tablediv {
