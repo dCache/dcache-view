@@ -600,8 +600,16 @@
             }
 
             _setCols() {
-                this.cols = (Math.max(1, Math.min(8, Math.floor(
-                    Math.sqrt(this.currentChildren.length))))).toFixed(0) / 1;
+                if (this.gridLevel === 0) {
+                    this.cols = 1;
+                } else {
+                    this.cols =  this.currentChildren === 1 ? 1 :
+                        (Math.max
+                        (2, Math.min
+                            (8, Math.floor
+                                (Math.sqrt(this.currentChildren.length)))))
+                                        .toFixed(0) / 1;
+                }
             }
 
             _setNameFilter(expression) {
