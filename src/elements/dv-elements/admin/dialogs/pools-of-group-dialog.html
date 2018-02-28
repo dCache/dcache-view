@@ -741,8 +741,11 @@
             _handlePoolInfoResponse(event) {
                 const result = event.detail.response;
                 if (!result.poolData) {
-                    const pool = this.getNameFromUrl(event.detail.url);
-                    result.poolData = {'deadPool': pool};
+                    /*
+                     *  the name of the pool is the 5th element (index 4) in the path
+                     */
+                    const pool = this.getSubpathFromUrl(event.detail.url, 4);
+                    result.poolData = {"deadPool": pool};
                 }
                 this.incoming.push(result.poolData);
                 if (this.incoming.length === this.numberOfPools) {
