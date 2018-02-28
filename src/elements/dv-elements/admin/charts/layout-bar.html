@@ -100,12 +100,12 @@
                 const p = data.precious ? parseFloat(data.precious) : 0.0;
                 const r = data.removable ? parseFloat(data.removable) : 0.0;
                 const f = data.free ? parseFloat(data.free) : 0.0;
-                const rest = total - (p + r + f);
+                const rest = total === 0.0 ? 0.0 : total - (p + r + f);
 
-                let precious = (100 * p / total).toFixed(1) * 1;
-                let removable = (100 * r / total).toFixed(1) * 1;
-                let free = (100 * f / total).toFixed(1) * 1;
-                let pinned = (100 * rest / total).toFixed(1) * 1;
+                let precious = total === 0.0 ? 0.0 : (100 * p / total).toFixed(1) * 1;
+                let removable = total === 0.0 ? 0.0 : (100 * r / total).toFixed(1) * 1;
+                let free = total === 0.0 ? 0.0 : (100 * f / total).toFixed(1) * 1;
+                let pinned = total === 0.0 ? 0.0 : (100 * rest / total).toFixed(1) * 1;
 
                 const totalpercent = (precious + removable + free + pinned) * 1;
                 const remainder = (totalpercent - 100.0) * 1;
@@ -122,37 +122,32 @@
                     }
                 }
 
-                const sections = [];
-
-                sections.push({
-                    type: 'free',
-                    width: free,
-                    space: f,
-                    display: free >= 0.1
-                });
-
-                sections.push({
-                    type: 'precious',
-                    width: precious,
-                    space: p,
-                    display: precious >= 0.1
-                });
-
-                sections.push({
-                    type: 'pinned',
-                    width: pinned,
-                    space: rest,
-                    display: pinned >= 0.1
-                });
-
-                sections.push({
-                    type: 'removable',
-                    width: removable,
-                    space: r,
-                    display: removable >= 0.1
-                });
-
-                this.spaceData = sections;
+                this.spaceData = [
+                    {
+                        type: 'free',
+                        width: free,
+                        space: f,
+                        display: free > 0.0
+                    },
+                    {
+                        type: 'precious',
+                        width: precious,
+                        space: p,
+                        display: precious > 0.0
+                    },
+                    {
+                        type: 'pinned',
+                        width: pinned,
+                        space: rest,
+                        display: pinned > 0.0
+                    },
+                    {
+                        type: 'removable',
+                        width: removable,
+                        space: r,
+                        display: removable > 0.0
+                    }
+                ];
             }
         }
 
