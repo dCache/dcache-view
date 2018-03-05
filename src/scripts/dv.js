@@ -204,27 +204,47 @@
      */
     app.drop = function(e)
     {
-        let event = e || event;
-        event.preventDefault && event.preventDefault();
-        let path = app.$.homedir.querySelector('view-file').path;
-        if (event.dataTransfer.types.includes('text/plain')) {
-            app.dragNdropMoveFiles(path, false);
+        let event = e || event, iC = true, path, flag = false;
+        if (event.detail === 0) {
+            event.preventDefault && event.preventDefault();
+            dndCounter = 0;
+            path = app.$.homedir.querySelector('view-file').path;
         } else {
-            app.$.dropZoneToast.close();
-            let upload = new DndUpload(path);
-            upload.start(event);
+            const targetNode = event.detail.file;
+            path = event.detail.filePath;
+            iC = path === app.$.homedir.querySelector('view-file').path;
+            targetNode.removeAttribute('in-drop-zone');
+            event = event.detail.evt;
+            app.clearDelayedLs();
+            flag = true;
         }
 
-        dndCounter = 0;
+        if (event.dataTransfer.types.includes('text/plain')) {
+            app.dragNdropMoveFiles(path, flag);
+        } else {
+            app.$.dropZoneToast.close();
+            const upload = new DndUpload(path);
+            upload.isCurrentView = iC;
+            upload.start(event);
+        }
     };
     app.dragenter = function(e)
     {
         let event = e || event;
-        event.preventDefault && event.preventDefault();
-        dndCounter++;
+
+        let name;
+        if (event.detail === 0) {
+            event.preventDefault && event.preventDefault();
+            dndCounter++;
+            name = app.getfileName(app.$.homedir.querySelector('view-file').path);
+        } else {
+            name = event.detail.file.fileMData ?
+                event.detail.file.fileMData.fileName: event.detail.file.name;
+            event = event.detail.evt;
+        }
+
         if (!event.dataTransfer.types.includes('text/plain')) {
-            app.$.dropZoneContent.querySelector('drag-enter-toast').directoryName =
-                app.getfileName(app.$.homedir.querySelector('view-file').path);
+            app.$.dropZoneContent.querySelector('drag-enter-toast').directoryName = name;
             if (!app.$.dropZoneToast.opened){
                 app.$.dropZoneToast.open();
             }
@@ -237,6 +257,19 @@
     app.dragend = function()
     {
         dndCounter = 0;
+
+        //Remove all the in-drop-zone and is-dragging attributes of list-row(s)
+        const vf = app.$.homedir.querySelector('view-file');
+        const allListRows = [...vf.$.feList.querySelectorAll('list-row')];
+        const len = allListRows.length;
+        for (let i=0; i<len; i++) {
+            if (allListRows[i].hasAttribute('in-drop-zone')) {
+                allListRows[i].removeAttribute('in-drop-zone');
+            }
+            if (allListRows[i].hasAttribute('is-dragging')) {
+                allListRows[i].removeAttribute('is-dragging');
+            }
+        }
     };
     app.dragexit = function()
     {
@@ -499,5 +532,37 @@
     });
     window.addEventListener('admin-component-url-path', (evt)=>{
         page(evt.detail.path);
+    });
+    window.addEventListener('dv-namespace-dragstart', function (e) {
+        app.mvObj = {};
+        app.notifyPath('mvObj');
+
+        const vf = app.$.homedir.querySelector('view-file');
+        app.mvObj.files= vf._xSelectedItems;
+        app.mvObj.source = vf.path;
+
+        const allListRows = [...vf.$.feList.querySelectorAll('list-row')];
+        const len = vf._xSelectedItems.length;
+
+        for (let i=0; i<len; i++) {
+            const listRow = allListRows.find(function(lr) {
+                return (lr.fileMData.fileName === vf._xSelectedItems[i].fileName);
+            });
+            listRow.setAttribute('is-dragging', true);
+        }
+
+        app.notifyPath('mvObj');
+
+        e.detail.evt.dataTransfer.setData('text/plain', 'draggable');
+    });
+    window.addEventListener('dv-namespace-dragenter', (e)=>{
+        app.dragenter(e);
+        app.delayTact(e.detail.file);
+    });
+    window.addEventListener('dv-namespace-dragleave', (e)=>{
+        app.clearDelayedLs();
+    });
+    window.addEventListener('dv-namespace-drop', (e)=>{
+        app.drop(e);
     });
 })(document);

@@ -1,7 +1,6 @@
 <link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../utils/ajax-ls/view-file.html">
-<link rel="import" href="../drag-and-drop/dnd-upload.html">
 
 <dom-module id="pagination-button">
     <template>
@@ -14,8 +13,10 @@
                  -khtml-user-select: none; /* webkit (konqueror) browsers */
                  -ms-user-select: none; /* IE10+ */
             }
-            div {
+            :host div {
                 display: inline;
+                width: 100%;
+                height: 100%;
             }
             a {
                 color: black;
@@ -126,17 +127,10 @@
                 event.stopPropagation();
                 event.preventDefault && event.preventDefault();
                 this.counter = 0;
-                app.clearDelayedLs();
-                if (event.dataTransfer.getData("text") === "draggable") {
-                    app.dragNdropMoveFiles(this.filePath, true);
-                } else {
-                    app.$.dropZoneToast.close();
-                    let upload = new DndUpload(this.filePath);
-                    upload.isCurrentView = this.filePath === app.$.homedir.querySelector('view-file').path;
-                    upload.start(event);
-                }
                 this.shadowRoot.querySelector('a').classList.remove('dragEnter');
-                event.stopPropagation();
+                this.dispatchEvent(new CustomEvent('dv-namespace-drop', {
+                    detail: {file: this, evt: event, filePath: this.filePath}, bubbles: true, composed: true
+                }));
             }
 
             _dragenter(event)
@@ -144,13 +138,10 @@
                 event.stopPropagation();
                 event.preventDefault && event.preventDefault();
                 this.counter++;
-                app.$.dropZoneContent.querySelector('drag-enter-toast').directoryName = this.name;
-                if (!app.$.dropZoneToast.opened) {
-                    app.$.dropZoneToast.open();
-                }
                 this.shadowRoot.querySelector('a').classList.add('dragEnter');
-                app.delayTact(this);
-                event.stopPropagation();
+                this.dispatchEvent(new CustomEvent('dv-namespace-dragenter', {
+                    detail: {file: this, evt: event}, bubbles: true, composed: true
+                }));
             }
 
             _dragleave(event)
@@ -159,11 +150,11 @@
                 event.preventDefault && event.preventDefault();
                 this.counter--;
                 if (this.counter === 0) {
-                    //app.$.dropZoneToast.close();
                     this.shadowRoot.querySelector('a').classList.remove('dragEnter');
-                    app.clearDelayedLs();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-dragleave', {
+                        detail: {}, bubbles: true, composed: true
+                    }));
                 }
-                event.stopPropagation();
             }
         }
         window.customElements.define(PaginationButton.is, PaginationButton);
