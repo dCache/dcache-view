@@ -92,6 +92,12 @@
                 app.$.selectionUnitContainer.appendChild(new SelectionUnitView());
                 return;
             }
+
+            isAdminView = app.$.spaceManagementContainer.querySelector('space-management-view') instanceof Polymer.Element;
+            if (app.params.component === "space-tokens" && !isAdminView) {
+                app.$.spaceManagementContainer.appendChild(new SpaceManagementView());
+                return;
+            }
         });
 
         page('/user-login', function(ctx) {
