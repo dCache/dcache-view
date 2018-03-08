@@ -1,12 +1,7 @@
 <link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
-
-<link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
-
 <link rel="import" href="../../../bower_components/file-icon/file-icon.html">
-
-<link rel="import" href="../utils/ajax-ls/view-file.html">
 
 <dom-module id="list-row">
     <template>
@@ -70,37 +65,32 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                padding-left:5px;
             }
             #nameContainer {
                 display: flex;
                 align-items: center;
                 padding-right: 24px;
             }
-
-            paper-icon-button {
-                width: 34px !important;
-                height: 34px !important;
-                color: rgba(0, 0, 0, 0.54);
-                --paper-icon-button-hover: {
-                    color: #f09300 !important;
-                };
+            file-icon {
+                padding-left: 15px;
+                padding-right: 10px
             }
             .none {
                 display: none;
             }
         </style>
         <div id="row" class="row">
-            <file-icon mime-type="{{fileMimeType}}"
-                       style="padding-left: 15px; padding-right: 10px"></file-icon>
+            <file-icon mime-type="[[fileMetaData.fileMimeType]]"></file-icon>
             <div class="cell name">
                 <div id="nameContainer">
-                    <span id="fileName" style="padding-left:5px;">{{name}}</span>
+                    <span id="fileName">[[fileMetaData.fileName]]</span>
                 </div>
             </div>
-            <div class="cell ctime">{{computedCTime}}</div>
-            <div class="cell qos"><i>{{qosValue}}</i></div>
+            <div class="cell ctime">[[creationTime]]</div>
+            <div class="cell qos"><i>[[qosValue]]</i></div>
             <div class="cell size" id="hovering">
-                <span>{{computedSize}}</span>
+                <span>[[formattedSize]]</span>
             </div>
         </div>
     </template>
@@ -115,78 +105,35 @@
             static get properties()
             {
                 return {
-                    name: {
-                        type: String,
+                    fileMetaData: {
+                        type: Object,
                         notify: true
                     },
-
-                    fileType: {
+                    creationTime: {
                         type: String,
-                        notify: true
+                        computed:'_formattedDateTime(fileMetaData.creationTime)'
                     },
-
-                    fileMimeType: {
+                    formattedSize: {
                         type: String,
-                        notify: true
+                        computed:'_computeSize(fileMetaData)'
                     },
-
-                    ctime: {
-                        type: String,
-                        notify: true
-                    },
-
-                    computedCTime: {
-                        type: String,
-                        computed:'_computedCTime(ctime)'
-                    },
-
-                    mtime: {
-                        type: String,
-                        notify: true
-                    },
-
-                    size: {
-                        type: String,
-                        notify: true
-                    },
-
-                    computedSize: {
-                        type: String,
-                        computed:'_computeSize(fileType, size)'
-                    },
-
                     parentPath: {
                         type: String,
                         notify: true
                     },
-
                     filePath: {
                         type: String,
-                        computed:'_computeFilePath(parentPath, name)'
+                        computed:'_computeFilePath(parentPath, fileMetaData.fileName)'
                     },
-
-                    currentQos: {
-                        type: String,
-                        notify: true
-                    },
-
                     qosValue: {
                         type: String,
-                        notify: true,
-                        computed: '_computeQoSValue(currentQos)'
-                    },
-
-                    fileMData: {
-                        type: Object,
                         notify: true
                     },
-
                     counter: {
                         type: Number,
                         value: 0,
                         notify: true
                     },
-
                     xSelected: {
                         type: Boolean,
                         notify: true,
@@ -203,6 +150,13 @@
                         reflectToAttribute: true
                     }
                 }
+            }
+
+            static get observers()
+            {
+                return [
+                    '_fileCurrentQOSValue(fileMetaData.currentQos)'
+                ];
             }
 
             connectedCallback()
@@ -233,7 +187,7 @@
             {
                 event.stopPropagation();
                 event.preventDefault();
-                if (this.fileType === 'DIR'
+                if (this.fileMetaData.fileType === 'DIR'
                     && (this.xSelected === undefined || this.xSelected === false)) {
                     this.counter = 0;
                     this.dispatchEvent(new CustomEvent('dv-namespace-drop', {
@@ -246,7 +200,7 @@
             {
                 event.stopPropagation();
                 event.preventDefault();
-                if (this.fileType === "DIR"
+                if (this.fileMetaData.fileType === "DIR"
                     && (this.xSelected === undefined || this.xSelected === false)) {
                     this.counter++;
                     this.setAttribute('in-drop-zone', true);
@@ -260,7 +214,7 @@
             {
                 event.stopPropagation();
                 event.preventDefault();
-                if (this.fileType === "DIR"
+                if (this.fileMetaData.fileType === "DIR"
                     && (this.xSelected === undefined || this.xSelected === false)) {
                     this.counter--;
                     if (this.counter === 0) {
@@ -278,69 +232,52 @@
                     detail: {file: this, evt: event}, bubbles: true, composed: true}));
             }
 
-            _computeFilePath(parentPath, name)
+            _computeFilePath(parentPath, fileName)
             {
-                return parentPath + name;
+                return parentPath.endsWith("/") ?
+                    `${parentPath}${fileName}`: `${parentPath}/${fileName}`;
             }
 
-            _computeQoSValue(qos)
+            _fileCurrentQOSValue(qos)
             {
                 switch (qos) {
                     case "disk":
-                        return "Disk";
+                        this.qosValue = "Disk";
+                        break;
                     case "tape":
-                        return "Tape";
+                        this.qosValue = "Tape";
+                        break;
                     case "disk+tape":
-                        return "Disk & Tape";
-                    case "unavailable":
-                        return "unavailable";
+                        this.qosValue = "Disk & Tape";
+                        break;
+                    default:
+                        this.qosValue = "unavailable";
                 }
             }
 
-            _computedCTime(ctime)
+            _formattedDateTime(dateTimeValue)
             {
-                var x = new Date(ctime);
+                const x = new Date(dateTimeValue);
                 return x.toLocaleString();
             }
 
-            _computeSize(fileType, size)
+            _computeSize(file)
             {
-                if ( fileType == "DIR" ) {
-                    return  "--";
-                } else {
-                    if (size == 0) {
-                        return "0 Byte";
-                    }
+                if (file.fileType === "DIR") return "--";
+                if (file.size === 0) return "0 Byte";
 
-                    var k = 1000;
-                    var dm = 1 || 3;
-                    var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-                    var i = Math.floor(Math.log(size) / Math.log(k));
+                const k = 1000, dm = 1 || 3;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+                const i = Math.floor(Math.log(file.size) / Math.log(k));
 
-                    return parseFloat((size / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-                }
+                return parseFloat((file.size / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
             }
 
             _openFileLoc()
             {
-                if ( this.fileType == "DIR" ) {
-                    app.ls(this.filePath);
-                    Polymer.dom.flush();
-                } else {
-                    //Download a file
-                    let path;
-                    const webdav = window.CONFIG["dcache-view.endpoints.webdav"];
-                    if (webdav == "") {
-                        path = window.location.protocol + "//" + window.location.hostname + ":2880" + this.filePath;
-                    } else {
-                        if (webdav.endsWith("/")) {
-                            path = webdav.substring(0, webdav.length-1) + this.filePath;
-                        } else {
-                            path = webdav + this.filePath;
-                        }
-                    }
-                    window.open(path);
-                }
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-namespace-open-file', {
+                        detail: {file: this}, bubbles: true, composed: true}));
             }
 
             _openContextMenu(event)

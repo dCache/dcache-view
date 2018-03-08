@@ -113,7 +113,6 @@
             h = 340;
         } else {
             const path = vf.path;
-            const name = path === "/" ? 'ROOT' : path.slice(path.lastIndexOf("/"));
             cc = new NamespaceContextualContent({"name":name,
                 "filePath":path, "fileType":"DIR"}, 2);
         }
@@ -238,8 +237,8 @@
             dndCounter++;
             name = app.getfileName(app.$.homedir.querySelector('view-file').path);
         } else {
-            name = event.detail.file.fileMData ?
-                event.detail.file.fileMData.fileName: event.detail.file.name;
+            name = event.detail.file.fileMetaData ?
+                event.detail.file.fileMetaData.fileName: event.detail.file.name;
             event = event.detail.evt;
         }
 
@@ -546,7 +545,7 @@
 
         for (let i=0; i<len; i++) {
             const listRow = allListRows.find(function(lr) {
-                return (lr.fileMData.fileName === vf._xSelectedItems[i].fileName);
+                return (lr.fileMetaData.fileName === vf._xSelectedItems[i].fileName);
             });
             listRow.setAttribute('is-dragging', true);
         }
@@ -564,5 +563,19 @@
     });
     window.addEventListener('dv-namespace-drop', (e)=>{
         app.drop(e);
+    });
+    window.addEventListener('dv-namespace-namespace-open-file', function (e) {
+        if (e.detail.file.fileMetaData.fileType === "DIR") {
+            app.ls(e.detail.file.filePath);
+            Polymer.dom.flush();
+        } else {
+            //Download the file
+            const webdav = window.CONFIG["dcache-view.endpoints.webdav"];
+            const path = webdav === "" ?
+                `${window.location.protocol}//${window.location.hostname}:2880${e.detail.file.filePath}` :
+                webdav.endsWith("/") ? `${webdav.substring(0, webdav.length - 1)}${e.detail.file.filePath}` :
+                `${webdav}${e.detail.file.filePath}`;
+            window.open(path);
+        }
     });
 })(document);
