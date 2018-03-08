@@ -3,8 +3,6 @@
 <link rel="import"
       href="../../../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import"
-      href="../../../../bower_components/iron-pages/iron-pages.html">
-<link rel="import"
       href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import"
       href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
@@ -67,11 +65,6 @@
                 background: var(--dv-charcoal-grey);
             }
 
-            iron-pages {
-                height: 70%;
-                width: 100%;
-            }
-
             .tablediv {
                 height: 100%;
             }
@@ -122,81 +115,80 @@
             <div slot="top" class="title"><strong>Pool Group Information</strong></div>
         </paper-toolbar>
         <hr/>
-        <iron-pages selected="0">
-            <div class="tablediv">
-                <vaadin-grid aria-label="Pool Groups" id="groups"
-                             items="[[groups]]" multi-sort="true" size="20">
-                    <vaadin-grid-column-group>
+        <div class="tablediv">
+            <vaadin-grid aria-label="Pool Groups" id="groups"
+                         items="[[groups]]" multi-sort="true" size="20">
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="group">
+                            Pool Group
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="300px">
                         <template class="header">
-                            <vaadin-grid-sorter path="group">
-                                Pool Group
-                            </vaadin-grid-sorter>
+                            <vaadin-grid-filter aria-label="Pool Group"
+                                                path="group"
+                                                value="[[_filterGroup]]">
+                                <input slot="filter"
+                                       placeholder="Pool Group"
+                                       value="{{_filterGroup::input}}"
+                                       focus-target="">
+                            </vaadin-grid-filter>
                         </template>
-                        <vaadin-grid-column width="300px">
-                            <template class="header">
-                                <vaadin-grid-filter aria-label="Pool Group"
-                                                    path="group"
-                                                    value="[[_filterGroup]]">
-                                    <input placeholder="Pool Group"
-                                           value="{{_filterGroup::input}}"
-                                           focus-target="">
-                                </vaadin-grid-filter>
-                            </template>
-                            <template>
+                        <template>
                                 <span class="actionable"
                                       on-tap="_openPoolGroupInfoDialog">
                                     [[item.group]]
                                 </span>
-                            </template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
-                    <vaadin-grid-column-group>
-                        <template class="header">
-                            <vaadin-grid-sorter path="total">
-                                Total Space (MB)
-                            </vaadin-grid-sorter>
                         </template>
-                        <vaadin-grid-column width="150px">
-                            <template class="header"></template>
-                            <template>[[item.total]]</template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
-                    <vaadin-grid-column-group>
-                        <template class="header">
-                            <vaadin-grid-sorter path="free">
-                                Free Space (MB)
-                            </vaadin-grid-sorter>
-                        </template>
-                        <vaadin-grid-column width="150px">
-                            <template class="header"></template>
-                            <template>[[item.free]]</template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
-                    <vaadin-grid-column-group>
-                        <template class="header">
-                            <vaadin-grid-sorter path="precious">
-                                Precious Space (MB)
-                            </vaadin-grid-sorter>
-                        </template>
-                        <vaadin-grid-column width="150px">
-                            <template class="header"></template>
-                            <template>[[item.precious]]</template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
-                    <vaadin-grid-column-group>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="total">
+                            Total Space (MB)
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="150px">
                         <template class="header"></template>
-                        <vaadin-grid-column width="150px">
-                            <template class="header"></template>
-                            <template>
-                                <layout-bar class="disk"
-                                            diskspace$="[[item.disk]]">
-                                </layout-bar>
-                            </template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
-                </vaadin-grid>
-            </div>
-        </iron-pages>
+                        <template>[[item.total]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="free">
+                            Free Space (MB)
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="150px">
+                        <template class="header"></template>
+                        <template>[[item.free]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="precious">
+                            Precious Space (MB)
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="150px">
+                        <template class="header"></template>
+                        <template>[[item.precious]]</template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header"></template>
+                    <vaadin-grid-column width="150px">
+                        <template class="header"></template>
+                        <template>
+                            <layout-bar class="disk"
+                                        diskspace$="[[item.disk]]">
+                            </layout-bar>
+                        </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+            </vaadin-grid>
+        </div>
     </template>
 
     <script>
