@@ -92,12 +92,13 @@
          * a. https://caniuse.com/#search=Shadow%20DOM
          * b. https://caniuse.com/#search=Custom%20Elements
          */
+        app.$.centralSubContextMenu.close();
         const contextMenu = app.$.centralContextMenu;
-        if (contextMenu.opened) contextMenu.close();
+        contextMenu.close();
         app.removeAllChildren(contextMenu);
 
         const vf = app.$.homedir.querySelector('view-file');
-        let x = 0, y = 0, h = 176, cc;
+        let x = 0, y = 0, h = 110, cc;
         if (e.screenX === 0 & e.screenY === 0) {
             const arr = e.path || (e.composedPath && e.composedPath());
             const lr = arr.find(function (el) {
@@ -105,19 +106,16 @@
             });
 
             if (lr.xSelected && vf._xSelectedItems.length > 1) {
-                cc = new NamespaceContextualContent({files: vf._xSelectedItems,
-                    parentPath: this.path}, 1);
+                cc = new NamespaceContextualContent({files: vf._xSelectedItems}, 1);
             } else {
                 cc = new NamespaceContextualContent(lr, 0);
             }
-            h = 340;
+            h = 245;
         } else {
-            const path = vf.path;
-            cc = new NamespaceContextualContent({"name":name,
-                "filePath":path, "fileType":"DIR"}, 2);
+            cc = new NamespaceContextualContent(vf, 2);
         }
 
-        const w = 250;
+        const w = 200;
         if (e.pageX || e.pageY) {
             x = e.pageX;
             y = e.pageY;
@@ -145,8 +143,25 @@
         app.notifyPath('x');
         app.notifyPath('y');
         contextMenu.appendChild(cc);
-        contextMenu.resetFit();
         contextMenu.open();
+    };
+
+    app.subContextMenu = function(e)
+    {
+        if (!app.$.centralSubContextMenu.opened) {
+            app.removeAllChildren(app.$.centralSubContextMenu);
+            const content = new ChangeQosContextualMenu(e.detail.targetNode);
+
+            const vx = window.innerWidth;
+            const w = 198;
+
+            app.a = vx - app.x < w * 2.1 ? app.x - w : w + app.x;
+            app.b = app.y + 15;
+            app.notifyPath('a');
+            app.notifyPath('b');
+            app.$.centralSubContextMenu.appendChild(content);
+            app.$.centralSubContextMenu.open();
+        }
     };
 
     app.click = function (e) {
@@ -577,5 +592,23 @@
                 `${webdav}${e.detail.file.filePath}`;
             window.open(path);
         }
+    });
+    window.addEventListener('dv-namespace-namespace-open-subcontextmenu', e => app.subContextMenu(e));
+    window.addEventListener('dv-namespace-namespace-open-filemetadata-panel', e => {
+        app.removeAllChildren(app.$.metadataDrawer);
+        const file = e.detail.file;
+        const fm = file.fileMetaData ?
+            new FileMetadata(file.fileMetaData, file.filePath, 0) :
+            new FileMetadata({}, file.path, 1);
+        app.$.metadataDrawer.appendChild(fm);
+        app.$.metadata.openDrawer();
+    });
+    window.addEventListener('dv-namespace-namespace-open-central-dialogbox',(e)=>{
+        app.removeAllChildren(app.$.centralDialogBox);
+        app.$.centralDialogBox.appendChild(e.detail.node);
+        app.$.centralDialogBox.open()
+    });
+    window.addEventListener('dv-namespace-namespace-close-central-dialogbox',()=>{
+        app.$.centralDialogBox.close();
     });
 })(document);
