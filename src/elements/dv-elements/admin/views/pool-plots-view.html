@@ -420,10 +420,14 @@
                     removable = data.poolData.detailsData.costData.space.removable;
                     precious = data.poolData.detailsData.costData.space.precious;
                 } else {
-                    total = data.groupSpaceData.total;
-                    free = data.groupSpaceData.free;
-                    removable = data.groupSpaceData.removable;
-                    precious = data.groupSpaceData.precious;
+                    if (data.groupSpaceData) {
+                        total = data.groupSpaceData.total;
+                        free = data.groupSpaceData.free;
+                        removable = data.groupSpaceData.removable;
+                        precious = data.groupSpaceData.precious;
+                    } else {
+                        return null;
+                    }
                 }
 
                 pinned = total - free - removable - precious;
@@ -464,15 +468,18 @@
                 const histogram = event.detail.response;
 
                 if (Object.keys(histogram).length > 0) {
-                    const plot = new PoolInfoChart();
-                    plot.title = name;
-                    plot.inputData = {
-                        'type': this.plotType,
-                        'seriesData': this._getSeriesData(histogram)
-                    };
-                    this.shadowRoot.querySelector('#chart-placeholders')
-                        .appendChild(plot);
-                    this.push('charts', plot);
+                    const seriesData = this._getSeriesData(histogram);
+                    if (seriesData) {
+                        const plot = new PoolInfoChart();
+                        plot.title = name;
+                        plot.inputData = {
+                            'type': this.plotType,
+                            'seriesData': seriesData
+                        };
+                        this.shadowRoot.querySelector('#chart-placeholders')
+                            .appendChild(plot);
+                        this.push('charts', plot);
+                    }
                 }
 
                 this.plotDataResponses += 1;
