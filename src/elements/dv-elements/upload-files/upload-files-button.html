@@ -37,11 +37,17 @@
             {
                 super.connectedCallback();
                 this.$.files.addEventListener('change', this.handleFileSelection.bind(this));
+                window.addEventListener('dv-namespace-upload-files', ()=>{
+                    this.$.files.click();
+                });
             }
             disconnectedCallback()
             {
                 super.disconnectedCallback();
                 this.$.files.removeEventListener('change', this.handleFileSelection);
+                window.removeEventListener('dv-namespace-upload-files', ()=>{
+                    this.$.files.click();
+                });
             }
 
             handleFileSelection(e)
@@ -71,13 +77,11 @@
                     el.setAttribute("id", i.toString());
                     uploadList.appendChild(el);
                     const upLs = el;
-                    var uploadURL;
-                    if (window.CONFIG["dcache-view.endpoints.webdav"] == "") {
-                        uploadURL = window.location.protocol + "//" + window.location.hostname
-                                + ":2880" + path + f.name;
-                    } else {
-                        uploadURL = window.CONFIG["dcache-view.endpoints.webdav"] + path + f.name;
-                    }
+                    const uploadURL = window.CONFIG["dcache-view.endpoints.webdav"] === "" ?
+                        `${window.location.protocol}//${window.location.hostname}:2880${path}${f.name}` :
+                        path.startsWith('/') ?
+                        `${window.CONFIG["dcache-view.endpoints.webdav"]}${path.slice(1)}${f.name}` :
+                        `${window.CONFIG["dcache-view.endpoints.webdav"]}${path}${f.name}`;
                     var uploader = new UploadHandler({
                         file: f,
                         upauth: app.getAuthValue(),
