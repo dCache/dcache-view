@@ -493,10 +493,10 @@
 
             _upload()
             {
+                //FIXME: context menu stay opened even long after the file picker appears.
                 app.$.centralContextMenu.close();
-
-                let uploadButton = document.createElement('upload-files-button');
-                uploadButton.querySelector('#files').click();
+                this.dispatchEvent(new CustomEvent('dv-namespace-upload-files', {
+                    detail:{}, bubbles: true, composed: true}));
             }
 
             _qosInfo()
