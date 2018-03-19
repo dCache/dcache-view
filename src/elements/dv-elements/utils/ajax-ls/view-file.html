@@ -7,6 +7,7 @@
 
 <link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../../../bower_components/paper-styles/element-styles/paper-material-styles.html">
 
 <link rel="import" href="../../../../bower_components/dcache-namespace/dcache-namespace.html">
 
@@ -17,17 +18,30 @@
 
 <dom-module id="view-file">
     <template>
-        <style>
+        <style include="paper-material-styles">
             :host {
                 display: block;
-                max-height: 100vh;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -khtml-user-select: none;
+                -ms-user-select: none;
+            }
+            :host, #content {
+                height: 100%;
+            }
+            #content {
+                overflow: auto;
+                padding-right: 10px;
+                padding-bottom: 5px;
                 display: flex;
                 flex-direction: column;
-                /*Prevent text selection after double click*/
-                -webkit-user-select: none; /* webkit (safari, chrome) browsers */
-                -moz-user-select: none; /* mozilla browsers */
-                -khtml-user-select: none; /* webkit (konqueror) browsers */
-                -ms-user-select: none; /* IE10+ */
+                box-sizing: border-box;
+            }
+            #content[elevation="1"] {
+                background: #fff;
+            }
+            #content[elevation="0"] {
+                background: transparent;
             }
             .item {
                 text-decoration: none !important;
@@ -38,17 +52,27 @@
             .item:focus {
                 outline: 0 solid transparent !important;
             }
-            iron-list {
-                flex: 1 1 auto;
-            }
             .loading {
+                display: none;
+            }
+            .loading[is-loading]{
+                position: absolute;
+                height: 50px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0, 0, 0, 0.14);
+                margin-bottom: 2px;
                 text-align: center;
-                height: 40px;
+                font-size: 0.8em;
             }
             .loading paper-spinner {
                 width: 20px;
                 height: 20px;
-                margin-right: 10px;
             }
         </style>
         <iron-ajax id="ajax"
@@ -57,7 +81,7 @@
                    handle-as="json" on-response="handleResponse"
                    on-error="handleError" loading="{{loading}}">
         </iron-ajax>
-        <paper-material id="content" elevation="1">
+        <div id="content" class="paper-material" elevation="1">
             <iron-list id="feList" items="[]"
                        selected-item="{{selectedItem}}"
                        selection-enabled>
@@ -70,7 +94,7 @@
                     </div>
                 </template>
             </iron-list>
-        </paper-material>
+        </div>
         <paper-dialog id="dialog"
                       horizontal-align="left" vertical-align="top"
                       style="margin:0; width:400px; background-color:#eee;">
@@ -84,8 +108,8 @@
                 </paper-input>
             </div>
         </paper-dialog>
-        <div class="loading" id="loading">
-            <paper-spinner alt="Loading data" active="{{loading}}"></paper-spinner>
+        <div class="loading" id="loading" is-loading$="[[loading]]">
+            <paper-spinner active="[[loading]]"></paper-spinner> Fetching data
         </div>
 
         <iron-scroll-threshold id="threshold"
@@ -109,9 +133,8 @@
             ready()
             {
                 super.ready();
-                var target = app.$.homedir.parentNode;
-                this.$.feList.scrollTarget = target;
-                this.$.threshold.scrollTarget = target;
+                this.$.feList.scrollTarget = this.$.content;
+                this.$.threshold.scrollTarget = this.$.content;
                 this.target = this.$.input;
             }
             connectedCallback()
@@ -128,11 +151,9 @@
 
                 window.addEventListener('dv-namespace-reset-element-internal-parameters', (e)=>{this._reset(e)});
 
-                this.addEventListener('click', (e)=>{
+                this.$.feList.addEventListener('click', (e)=>{
                     e.stopPropagation();
                 });
-
-                this.$.loading.addEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
             }
             disconnectedCallback()
             {
@@ -147,11 +168,9 @@
 
                 window.removeEventListener('dv-namespace-reset-element-internal-parameters', (e)=>{this._reset(e)});
 
-                this.removeEventListener('click', (e)=>{
+                this.$.feList.removeEventListener('click', (e)=>{
                     e.stopPropagation();
                 });
-
-                this.$.loading.removeEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
             }
             static get is()
             {
@@ -251,7 +270,8 @@
                     'selectedItemChanged(selectedItem)',
                     '_temporarySelectedItemsHolderModified(_temporarySelectedItemsHolder.splices)',
                     '__xSelectedItemsChanged(_xSelectedItems.splices)',
-                    '_sendCurrentPath(path)'
+                    '_sendCurrentPath(path)',
+                    '_setSequentRequestStatus(__counter__)'
                 ];
             }
 
@@ -308,25 +328,23 @@
 
             handleResponse(e)
             {
-                var children = e.detail.response.children;
-                var d = this;
+                const children = e.detail.response.children;
 
-                if ( children.length == 0 && this.__counter__ == 0 ) {
-                    var content = this.$.content;
-                    var el1 = new EmptyDirectory();
-                    content.appendChild(el1);
+                if ( children.length === 0 && this.__counter__ === 0 ) {
+                    this.$.content.setAttribute("elevation", 0);
+                    const el1 = new EmptyDirectory();
+                    this.$.content.appendChild(el1);
                 } else {
-                    children.forEach(function (child) {
-                        d.$.feList.push('items', child)
+                    this.$.content.setAttribute("elevation", 1);
+                    children.forEach((child) => {
+                        this.$.feList.push('items', child)
                     });
                     this.$.threshold.clearTriggers();
-                    this.__counter__++;
+                    if (children.length > 0) {
+                        this.__counter__++;
+                        this.$.feList.fire('iron-resize');
+                    }
                 }
-
-                Polymer.dom.flush();
-                this.updateStyles();
-
-                e.stopPropagation();
             }
 
             handleError(request)
@@ -334,6 +352,7 @@
                 let msg = request.detail.error.message;
                 let code = request.detail.request.__data.status;
                 let content = this.$.content;
+                content.setAttribute("elevation", 0);
 
                 switch (parseInt(code)) {
                     case 401:
@@ -361,7 +380,7 @@
             changedItems(changedRecord)
             {
                 if (changedRecord.path) {
-                    this.querySelector('iron-list').fire('iron-resize');
+                    this.$.feList.fire('iron-resize');
                 }
             }
 
@@ -432,7 +451,6 @@
                 } else {
                     window.addEventListener('WebComponentsReady', () => {
                         this.__listDirectory();
-                        this._isSubsequentRequest = true;
                     });
                 }
             }
@@ -750,29 +768,14 @@
                 }
             }
 
-            _openContextMenu(event)
-            {
-                event.preventDefault();
-                event.stopPropagation();
-                /**
-                 * A WORKAROUND for firefox
-                 * TODO: When firefox support web components fully, revisit.
-                 */
-                this.dispatchEvent(new MouseEvent('contextmenu', {
-                    view: window,
-                    bubbles: true,
-                    composed: true,
-                    cancelable: true,
-                    clientX: event.clientX,
-                    clientY: event.clientY,
-                    screenX: event.screenX,
-                    screenY: event.screenY
-                }));
-            }
-
             _computeCurrentDirName(path)
             {
                 return path === "/" ? 'ROOT' : path.slice(path.lastIndexOf("/")+1);
+            }
+
+            _setSequentRequestStatus(c)
+            {
+                this._isSubsequentRequest = c !== 0;
             }
         }
         window.customElements.define(ViewFile.is, ViewFile);
