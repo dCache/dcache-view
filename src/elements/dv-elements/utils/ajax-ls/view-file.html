@@ -65,12 +65,8 @@
                     <div>
                         <list-row class$="[[_computedClass(selected)]]" tabindex$="[[tabIndex]]"
                                   x-selected$="[[__computedXselected(item.xSelected)]]"
-                                  name="{{item.fileName}}" file-type="{{item.fileType}}"
-                                  ctime="{{item.creationTime}}" mtime="{{item.mtime}}"
-                                  size="{{item.size}}" current-qos="{{item.currentQos}}"
-                                  file-mime-type="{{item.fileMimeType}}" file-m-data="{{item}}"
-                                  parent-path="[[parent]]" draggable="[[_computedDraggable(item.xSelected)]]">
-                        </list-row>
+                                  file-meta-data="{{item}}" parent-path="[[parent]]"
+                                  draggable="[[_computedDraggable(item.xSelected)]]"></list-row>
                     </div>
                 </template>
             </iron-list>
