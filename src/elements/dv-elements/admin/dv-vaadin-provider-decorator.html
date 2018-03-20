@@ -152,8 +152,8 @@
                             this.currentOffset = -1;
                             parent.setTableSize(this.currentItems.length, index);
                         } else {
-                            parent.setTableSize(params.pageSize * (params.page + 2),
-                                index);
+                            parent.setTableSize(this.currentItems.length
+                                                + params.pageSize, index);
                         }
                         callback(items);
                     } else {
