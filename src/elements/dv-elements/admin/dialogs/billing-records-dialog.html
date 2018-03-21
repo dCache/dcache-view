@@ -29,7 +29,7 @@
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dialogs/pool-info-dialog.html">
 <link rel="import"
-      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
+      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator-alt.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
 
@@ -944,11 +944,14 @@
                 this.$.stores.addEventListener('cell-focus', this._handleFlushesClick.bind(this));
                 this.$.restores.addEventListener('cell-focus', this._handleStagesClick.bind(this));
 
-                this.decorators[0] = new DvVaadinProviderDecorator(this.$.reads);
-                this.decorators[1] = new DvVaadinProviderDecorator(this.$.writes);
-                this.decorators[2] = new DvVaadinProviderDecorator(this.$.p2ps);
-                this.decorators[3] = new DvVaadinProviderDecorator(this.$.stores);
-                this.decorators[4] = new DvVaadinProviderDecorator(this.$.restores);
+                window.addEventListener('dv-vaadin-provider-reset-timeout-billing', this.resetTimeout.bind(this));
+                window.addEventListener('dv-vaadin-provider-update-table-size-billing', this.setTableSize.bind(this));
+
+                this.decorators[0] = this._createDecorator(this.$.reads, 0);
+                this.decorators[1] = this._createDecorator(this.$.writes, 1);
+                this.decorators[2] = this._createDecorator(this.$.p2ps, 2);
+                this.decorators[3] = this._createDecorator(this.$.stores, 3);
+                this.decorators[4] = this._createDecorator(this.$.restores, 4);
 
                 this.$.reads.dataProvider = this._remoteProvider(0).bind(this);
                 this.$.writes.dataProvider = this._remoteProvider(1).bind(this);
@@ -975,6 +978,19 @@
                 this.$.p2ps.removeEventListener('cell-focus', this._handleP2psClick.bind(this));
                 this.$.stores.removeEventListener('cell-focus', this._handleFlushesClick.bind(this));
                 this.$.restores.removeEventListener('cell-focus', this._handleStagesClick.bind(this));
+
+                window.removeEventListener('dv-vaadin-provider-reset-timeout-billing', this.resetTimeout.bind(this));
+                window.removeEventListener('dv-vaadin-provider-update-table-size-billing', this.setTableSize.bind(this));
+            }
+
+            _createDecorator(table, index) {
+                return new DvVaadinProviderDecoratorAlt(table,
+                                                        index,
+                                                        this.handleItem.bind(this),
+                                                        (xhr) => JSON.parse(xhr.responseText),
+                                                        this.providerUrl.bind(this),
+                                                        (index) => '',
+                                                        'billing');
             }
 
             _handleReadsClick(e) {
@@ -1041,14 +1057,6 @@
                 return item;
             }
 
-            itemsArray(xhr, index) {
-                return JSON.parse(xhr.responseText);
-            }
-
-            providerParams(index) {
-                return "";
-            }
-
             providerUrl(index) {
                 switch (index) {
                     case 0:
@@ -1070,22 +1078,22 @@
                 this.resetRefresh(this._refresh.bind(this), 60000);
             }
 
-            setTableSize(size, index) {
-                switch (index) {
+            setTableSize(e) {
+                switch (e.detail.index) {
                     case 0:
-                        this.readsSize = size;
+                        this.readsSize = e.detail.size;
                         break;
                     case 1:
-                        this.writesSize = size;
+                        this.writesSize = e.detail.size;
                         break;
                     case 2:
-                        this.p2psSize = size;
+                        this.p2psSize = e.detail.size;
                         break;
                     case 3:
-                        this.storesSize = size;
+                        this.storesSize = e.detail.size;
                         break;
                     case 4:
-                        this.restoresSize = size;
+                        this.restoresSize = e.detail.size;
                         break;
                     default:
                         break;
@@ -1094,16 +1102,13 @@
 
             _refresh() {
                 this.decorators.forEach((d) => {
-                    d.resetProvider(this);
+                    d.resetProvider();
                 });
             }
 
             _remoteProvider(index) {
                 return (params, callback) => {
-                    return this.decorators[index].runProvider(params,
-                        callback,
-                        this,
-                        index);
+                    return this.decorators[index].runProvider(params, callback);
                 };
             }
 
