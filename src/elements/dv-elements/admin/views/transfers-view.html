@@ -17,7 +17,7 @@
 <link rel="import"
       href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
 <link rel="import"
-      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
+      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator-alt.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
 <link rel="import" href="../dialogs/pool-info-dialog.html"/>
@@ -547,13 +547,21 @@
             }
 
             connectedCallback() {
-                if (super.connectedCallback) {
-                    super.connectedCallback();
-                }
+                super.connectedCallback();
+
+                window.addEventListener('dv-vaadin-provider-selection-column-clear-transfers', this.signalChange.bind(this));
+                window.addEventListener('dv-vaadin-provider-reset-timeout-transfers', this.resetTimeout.bind(this));
+                window.addEventListener('dv-vaadin-provider-update-table-size-transfers', this.setTableSize.bind(this));
 
                 this.$.transfers.addEventListener('cell-focus', this._handleClick.bind(this));
 
-                this.decorator = new DvVaadinProviderDecorator(this.$.transfers);
+                this.decorator = new DvVaadinProviderDecorator(this.$.transfers,
+                                                               null,
+                                                               this.handleItem.bind(this),
+                                                               (xhr) => JSON.parse(xhr.responseText).items,
+                                                               (index) => 'transfers',
+                                                               (index) => '',
+                                                               'transfers');
 
                 /*
                  * This must be assigned only after the decorator has been
@@ -565,6 +573,9 @@
             disconnectedCallback() {
                 super.disconnectedCallback();
                 this.$.transfers.removeEventListener('cell-focus', this._handleClick.bind(this));
+                window.removeEventListener('dv-vaadin-provider-selection-column-clear-transfers', this.signalChange.bind(this));
+                window.removeEventListener('dv-vaadin-provider-reset-timeout-transfers', this.resetTimeout.bind(this));
+                window.removeEventListener('dv-vaadin-provider-update-table-size-transfers', this.setTableSize.bind(this));
             }
 
             _handleClick(e) {
@@ -577,7 +588,7 @@
              *  ------------------------ Selection ---------------------------
              */
 
-            signalChange() {
+            signalChange(e) {
                 this.selectionAction = !this.selectionAction;
             }
 
@@ -605,24 +616,12 @@
                 return item;
             }
 
-            itemsArray(xhr, index) {
-                return JSON.parse(xhr.responseText).items;
-            }
-
-            providerParams(index) {
-                return "";
-            }
-
-            providerUrl(index) {
-                return 'transfers';
-            }
-
-            resetTimeout() {
+            resetTimeout(e) {
                 this.resetRefresh(this._refresh.bind(this), 60000);
             }
 
-            setTableSize(size, index) {
-                this.tableSize = size;
+            setTableSize(e) {
+                this.tableSize = e.detail.size;
             }
 
             _computeMoverStatusCSSClass(transfer) {
@@ -645,11 +644,11 @@
             }
 
             _refresh() {
-                this.decorator.resetProvider(this);
+                this.decorator.resetProvider();
             }
 
             _remoteProvider(params, callback) {
-                return this.decorator.runProvider(params, callback, this, null);
+                return this.decorator.runProvider(params, callback);
             }
 
 
