@@ -10,13 +10,13 @@
         Acts as stateful wrapper for a single vaadin-grid table.  Multiple
         tables will require multiple instances of this decorator.
      ------------------------------------------------------------------ -->
-<dom-module id="dv-vaadin-provider-decorator">
+<dom-module id="dv-vaadin-provider-decorator-alt">
     <script>
-        class DvVaadinProviderDecorator extends
-            DcacheViewMixins.Selection(Polymer.Element) {
+        class DvVaadinProviderDecoratorAlt extends
+            DcacheViewMixins.Selection(DcacheViewMixins.AdminBase(Polymer.Element)) {
 
             static get is() {
-                return 'dv-vaadin-provider-decorator';
+                return 'dv-vaadin-provider-decorator-alt';
             }
 
             static get properties() {
@@ -55,60 +55,97 @@
 
                     vaadingrid: {
                         type: Object
+                    },
+
+                    eventId: {
+                        type: String
+                    },
+
+                    /*
+                     * Optional.  Indicates which
+                     * of possibly multiple vaadingrid tables
+                     * the event is intended for.
+                     */
+                    index: {
+                        type: Number
+                    },
+
+                    /*
+                     * A function of two parameters (item, index),
+                     * the second of which should be the index property.
+                     *
+                     * The function allows for any special manipulation
+                     * of the raw data item that was received.
+                     */
+                    postProcessItem: {
+                        type: Object
+                    },
+
+                    /*
+                     * A function of one parameter (xhr),
+                     * which should be the response object.
+                     *
+                     * The function encapsulates how to derive the
+                     * actual data object from the response.
+                     */
+                    itemsArray: {
+                        type: Object
+                    },
+
+                    /*
+                     * A function of one parameter (index),
+                     * which should be the index property.
+                     *
+                     * The function encapsulates the specific RESTful
+                     * path to be used in fetching the data.
+                     */
+                    urlPath: {
+                        type: Object
+                    },
+
+                    /*
+                     * A function of one parameter (index),
+                     * which should be the index property.
+                     *
+                     * The function encapsulates the specific RESTful
+                     * parameters to be used in fetching the data.
+                     */
+                    parameters: {
+                        type: Object
                     }
                 }
             }
 
-            constructor(vaadingrid) {
+            constructor(vaadingrid, index, postprocess,
+                        itemsArray, urlPath, parameters, eventId) {
                 super();
                 this.vaadingrid = vaadingrid;
+                this.index = index;
+                this.postProcessItem = postprocess;
+                this.itemsArray = itemsArray;
+                this.urlPath = urlPath;
+                this.parameters = parameters;
+                this.eventId = eventId;
                 this.currentItems = [];
                 this.currentOffset = 0;
             }
 
-            /*
-             *  ------------------------- Provider ---------------------------
-             *
-             *  parent should extend mixin Base and implement:
-             *
-             *      - setTableSize(size, index)
-             *      - handleItem(item, index): returns item
-             *      - providerUrl(index): returns string
-             *      - providerParams(index): returns string
-             *      - itemsArray(xhr, index):  returns items array
-             *      - resetTimeout (no parameters)
-             *
-             *
-             *  TODO:  redesign to use encapsulated functions
-             *
-             *  The current design depends on strong coupling between caller
-             *  and this class; from the standpoint of good OOD, this constitutes
-             *  a code smell.   What should be done is to make each of
-             *  these methods correspond to a property on this provider
-             *  whose type is function.   Initialization of this class should
-             *  define (set) those function properties as necessary.  All
-             *  calls in this class should then be to those internal functions.
-             *  In essence, this would constitute the creation of an anonymous
-             *  subclass of the provider for each instance that is constructed.
-             *  --------------------------------------------------------------
-             */
-
-            resetProvider(parent, index) {
+            resetProvider() {
                 this.currentOffset = 0;
                 this.currentItems = [];
-                parent.setTableSize(0, index);
+                this._notifyTableSizeChanged(0);
                 this.vaadingrid.clearCache();
             }
 
-            runProvider(params, callback, parent, index) {
+            runProvider(params, vaadincallback) {
                 if (this._paramsChanged(params)) {
-                    callback([]);
-                    this.resetProvider(parent);
+                    vaadincallback([]);
+                    this.resetProvider();
                     return;
                 }
 
                 if (this.currentOffset === -1) {
-                    callback([]);
+                    vaadincallback([]);
                     return;
                 }
 
@@ -128,46 +165,47 @@
                     }
 
                     this.currentOffset = params.page * params.pageSize;
-                    const url = parent.getUrl(
-                        parent.providerUrl(index),
-                        this._generateParams(
-                            this.currentOffset,
-                            params.pageSize,
-                            params.filters,
-                            params.sortOrders,
-                            parent,
-                            index));
-                    xhr.open('GET', url, true);
-                    parent.setXHRHeaders(xhr);
+
+                    xhr.open('GET',
+                             this.getUrl(this.urlPath(this.index),
+                                         this._generateParams(this.currentOffset,
+                                                              params.pageSize,
+                                                              params.filters,
+                                                              params.sortOrders),
+                             true));
+
+                    this.setXHRHeaders(xhr);
 
                     xhr.send();
                 }).then((xhr) => {
-                    const items = parent.itemsArray(xhr, index);
+                    const items = this.itemsArray(xhr);
+
                     if (items && items.length > 0) {
                         items.forEach(item => {
-                            this.currentItems.push(parent.handleItem(item, index));
+                            this.currentItems.push(this.postProcessItem(item, this.index));
                         });
 
                         if (items.length < params.pageSize) {
                             this.currentOffset = -1;
-                            parent.setTableSize(this.currentItems.length, index);
+                            this._notifyTableSizeChanged(this.currentItems.length);
                         } else {
-                            parent.setTableSize(this.currentItems.length
-                                                + params.pageSize, index);
+                            this._notifyTableSizeChanged(this.currentItems.length
+                                                        + params.pageSize);
                         }
-                        callback(items);
+
+                        vaadincallback(items);
                     } else {
                         this.currentOffset = -1;
-                        parent.setTableSize(this.currentItems.length, index);
-                        callback([]);
+                        this._notifyTableSizeChanged(this.currentItems.length);
+                        vaadincallback([]);
                     }
 
-                    parent.resetTimeout();
+                    this._notifyTimeoutReset();
                 }, (error)=> {
                     this.currentOffset = -1;
-                    parent.setTableSize(this.currentItems.length, index);
-                    callback([]);
-                    parent.resetTimeout();
+                    this._notifyTableSizeChanged(this.currentItems.length);
+                    vaadincallback([]);
+                    this._notifyTimeoutReset();
                     app.$.toast.text = error;
                     app.$.toast.show();
                 });
@@ -176,10 +214,9 @@
             /*
              *  ---------------------- Filter & Sort -------------------------
              */
-
-            _generateParams(offset, limit, filters, orders, parent, index) {
+            _generateParams(offset, limit, filters, orders) {
                 let params = `?offset=${offset}&limit=${limit}`;
-                params += parent.providerParams(index);
+                params += this.parameters(this.index);
                 params += this._getFilterString(filters);
                 params += this._getSortString(orders);
                 return params;
@@ -243,15 +280,13 @@
 
             /*
              *  ----------------- Selection Column Control -------------------
-             *
-             *  Callbacks (cb) should provide method 'signalChange()'.
              */
 
-            clearSelected(cb) {
+            clearSelected() {
                 this.selectAll = false;
                 this.indeterminate = false;
                 this.vaadingrid.selectedItems = [];
-                cb.signalChange();
+                this._notifySelectionCleared();
             }
 
             currentlySelected() {
@@ -266,22 +301,45 @@
                 return this.indeterminate;
             }
 
-            selectItem(e, cb) {
+            selectItem(e) {
                 this.selectGridItem(e, this.vaadingrid);
                 this.indeterminate = this.computeIndeterminate(this.vaadingrid);
-                cb.signalChange();
+                this._notifySelectionCleared();
             }
 
-            toggleAll(cb) {
+            toggleAll() {
                 this.selectAll
                     = this.toggleAllGridItems(this.selectAll,
                                               this.currentItems,
                                               this.vaadingrid);
                 this.indeterminate = this.computeIndeterminate(this.vaadingrid);
-                cb.signalChange();
+                this._notifySelectionCleared();
+            }
+
+
+            /*
+             *  ----------------- Table update events -------------------
+             */
+
+            _notifySelectionCleared() {
+                window.dispatchEvent(
+                    new CustomEvent(`dv-vaadin-provider-selection-column-clear-${this.eventId}`, {
+                        detail: {index: this.index}, composed: true}));
+            }
+
+            _notifyTimeoutReset() {
+                window.dispatchEvent(
+                    new CustomEvent(`dv-vaadin-provider-reset-timeout-${this.eventId}`, {
+                        detail: {index: this.index}, composed: true}));
+            }
+
+            _notifyTableSizeChanged(size) {
+                window.dispatchEvent(
+                    new CustomEvent(`dv-vaadin-provider-update-table-size-${this.eventId}`, {
+                        detail: {index: this.index, size: size}, composed: true}));
             }
         }
 
-        window.customElements.define(DvVaadinProviderDecorator.is, DvVaadinProviderDecorator);
+        window.customElements.define(DvVaadinProviderDecoratorAlt.is, DvVaadinProviderDecoratorAlt);
     </script>
 </dom-module>

@@ -29,7 +29,7 @@
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dialogs/pool-info-dialog.html">
 <link rel="import"
-      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator-alt.html">
+      href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
 
@@ -1123,13 +1123,13 @@
             }
 
             _createDecorator(table, index) {
-                return new DvVaadinProviderDecoratorAlt(table,
-                                                        index,
-                                                        this.handleItem.bind(this),
-                                                        (xhr) => JSON.parse(xhr.responseText),
-                                                        this.providerUrl.bind(this),
-                                                        this.providerParams.bind(this),
-                                                        'pool');
+                return new DvVaadinProviderDecorator(table,
+                                                    index,
+                                                    this.handleItem.bind(this),
+                                                    (xhr) => JSON.parse(xhr.responseText),
+                                                    this.providerUrl.bind(this),
+                                                    this.providerParams.bind(this),
+                                                    'pool');
             }
 
             _handleCellFocus(event) {
