@@ -10,13 +10,13 @@
         Acts as stateful wrapper for a single vaadin-grid table.  Multiple
         tables will require multiple instances of this decorator.
      ------------------------------------------------------------------ -->
-<dom-module id="dv-vaadin-provider-decorator-alt">
+<dom-module id="dv-vaadin-provider-decorator">
     <script>
-        class DvVaadinProviderDecoratorAlt extends
+        class DvVaadinProviderDecorator extends
             DcacheViewMixins.Selection(DcacheViewMixins.AdminBase(Polymer.Element)) {
 
             static get is() {
-                return 'dv-vaadin-provider-decorator-alt';
+                return 'dv-vaadin-provider-decorator';
             }
 
             static get properties() {
@@ -340,6 +340,6 @@
             }
         }
 
-        window.customElements.define(DvVaadinProviderDecoratorAlt.is, DvVaadinProviderDecoratorAlt);
+        window.customElements.define(DvVaadinProviderDecorator.is, DvVaadinProviderDecorator);
     </script>
 </dom-module>
