@@ -373,45 +373,21 @@
 
             namespace.promise.then( () => {
                 if (currentViewPath === sourcePath) {
-                    let vf = app.$.homedir.querySelector('view-file');
-                    let list = vf.shadowRoot.querySelector('iron-list');
-                    let arr = list.items;
-                    const len = arr.length;
-
-                    /**
-                     * TODO: use associate-array or map or just the index number to
-                     * remove the file from the list.
-                     */
-                    for (let i=0; i<len; i++) {
-                        if (arr[i].fileName === file.fileName) {
-                            list.splice('items', i, 1);
-                            break;
-                        }
-                    }
+                    window.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
+                        detail: {files: [file]},bubbles: true, composed: true}));
                 } else {
                     if (!dropFlag) {
-                        let vf = app.$.homedir.querySelector('view-file');
-                        let list = vf.shadowRoot.querySelector('iron-list');
-
-                        let ed = vf.shadowRoot.querySelector('empty-directory');
-                        if (!(ed === null || ed === undefined)) {
-                            vf.shadowRoot.querySelector('#content').removeChild(ed);
-                        }
-
-                        if (list !== null || list !== undefined) {
-                            list.unshift('items',
-                                {
-                                    "fileName" : file.fileName,
-                                    "fileMimeType" : file.fileMimeType,
-                                    "currentQos" : file.currentQos,
-                                    "size" : file.fileType === "DIR"? "--": file.size,
-                                    "fileType" : file.fileType,
-                                    "mtime" : file.mtime,
-                                    "creationTime" : file.creationTime
-                                }
-                            );
-                            vf.shadowRoot.querySelector('iron-list').fire('iron-resize');
-                        }
+                        const item = {
+                            "fileName" : file.fileName,
+                            "fileMimeType" : file.fileMimeType,
+                            "currentQos" : file.currentQos,
+                            "size" : file.fileType === "DIR"? "--": file.size,
+                            "fileType" : file.fileType,
+                            "mtime" : file.mtime,
+                            "creationTime" : file.creationTime
+                        };
+                        window.dispatchEvent(new CustomEvent('dv-namespace-add-items', {
+                            detail: {files: [item]},bubbles: true, composed: true}));
                     }
                 }
             }).catch((err)=>{
