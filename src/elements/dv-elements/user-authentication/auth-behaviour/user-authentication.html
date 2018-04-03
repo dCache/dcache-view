@@ -142,11 +142,13 @@
                 } else {
                     page("/"+this.redirectTo.page);
                 }
-                this.dispatchEvent(new CustomEvent('successful', {detail: {message: 'login successful'}}));
+                window.dispatchEvent(new CustomEvent('dv-authentication-successful', {
+                    detail: {message: 'login successful'}}));
             } else if (request.target.response.status === "ANONYMOUS") {
                 const errMsg = 'Login failed. Please check that you have supplied ' +
                     'the correct credentials. ';
-                this.dispatchEvent(new CustomEvent('error', {detail: {message: errMsg}}));
+                window.dispatchEvent(new CustomEvent('dv-authentication-error', {
+                    detail: {message: errMsg}}));
             }
         }
         _delayNotification(message)
