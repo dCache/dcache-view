@@ -17,6 +17,11 @@
     // See https://github.com/Polymer/polymer/issues/1381
     window.addEventListener('WebComponentsReady', function() {
         // imports are loaded and elements have been registered
+        app.getQosInformation();
+    });
+
+    app.getQosInformation = function()
+    {
         const isSomebody = !(app.getAuthValue() ===
             `Basic ${window.btoa('anonymous:nopassword')}`);
         if (window.CONFIG.qos === undefined && isSomebody) {
@@ -28,7 +33,7 @@
             });
             qos.trigger();
         }
-    });
+    };
 
     app.menuAction = function(){
         app.$.dvDrawerPanel.togglePanel();
@@ -610,5 +615,8 @@
     });
     window.addEventListener('dv-namespace-namespace-close-central-dialogbox',()=>{
         app.$.centralDialogBox.close();
+    });
+    window.addEventListener('dv-authentication-successful', (e) => {
+        app.getQosInformation();
     });
 })(document);

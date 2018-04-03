@@ -144,7 +144,7 @@
                 let redirectInfoObj = JSON.parse(sessionStorage.getItem('redirect'));
                 let userAuth = new UserAuthentication(redirectInfoObj, oidcProviderResponse.access_token, "", "");
 
-                userAuth.addEventListener('error', (e) => {
+                window.addEventListener('error', (e) => {
                     const a = '"page":'+ redirectInfoObj.page + ',"path":"' + redirectInfoObj.path + '"';
                     let pathName = '/user-login?r=' + encodeURIComponent(a);
                     page(pathName);

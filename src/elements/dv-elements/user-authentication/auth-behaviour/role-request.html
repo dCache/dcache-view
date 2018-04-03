@@ -59,10 +59,10 @@
 
                 let userAuth = new UserAuthentication(redirectTo, auth, sessionStorage.listOfPossibleRoles, "");
 
-                userAuth.addEventListener('error', (e) => {
+                window.addEventListener('dv-authentication-error', (e) => {
                     this.rejectAssertion(e.detail.message);
                 });
-                userAuth.addEventListener('successful', (e) => {
+                window.addEventListener('dv-authentication-successful', (e) => {
                     this.resolveAssertion(listOfRolesToAssert);
                 });
                 userAuth.send("Basic");
