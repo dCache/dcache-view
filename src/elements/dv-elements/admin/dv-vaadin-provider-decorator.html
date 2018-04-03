@@ -112,12 +112,29 @@
                      */
                     parameters: {
                         type: Object
+                    },
+
+                    /*
+                     * An issue has been reported on the vaadin-grid
+                     * GitHub repository regarding the fact that
+                     * multiple calls are made to the provider
+                     * on load if there are column filters (N+1 calls,
+                     * where N is the number of filters).
+                     *
+                     * Once this issue is fixed, we will need to revisit
+                     * this. TODO
+                     *
+                     * See https://github.com/vaadin/vaadin-grid/issues/1267
+                     */
+                    numberOfFilters: {
+                        type: Number,
+                        value: 0
                     }
                 }
             }
 
-            constructor(vaadingrid, index, postprocess,
-                        itemsArray, urlPath, parameters, eventId) {
+            constructor(vaadingrid, index, postprocess, itemsArray,
+                        urlPath, parameters, eventId, numberOfFilters) {
                 super();
                 this.vaadingrid = vaadingrid;
                 this.index = index;
@@ -128,6 +145,12 @@
                 this.eventId = eventId;
                 this.currentItems = [];
                 this.currentOffset = 0;
+
+                /**
+                 * See the comments to the numberOfFilters property.
+                 * TODO revisit if the issue is fixed by vaadin-grid
+                 */
+                this.numberOfFilters = numberOfFilters;
             }
 
             resetProvider() {
@@ -138,14 +161,20 @@
             }
 
             runProvider(params, vaadincallback) {
+                /**
+                 * See the comments to the numberOfFilters property.
+                 * TODO revisit if the issue is fixed by vaadin-grid
+                 */
+                if (params.filters.length !== this.numberOfFilters) {
+                    return;
+                }
+
                 if (this._paramsChanged(params)) {
-                    vaadincallback([]);
                     this.resetProvider();
                     return;
                 }
 
                 if (this.currentOffset === -1) {
-                    vaadincallback([]);
                     return;
                 }
 
@@ -164,15 +193,13 @@
                         reject(Error("Network Error"));
                     }
 
-                    this.currentOffset = params.page * params.pageSize;
-
                     xhr.open('GET',
-                             this.getUrl(this.urlPath(this.index),
-                                         this._generateParams(this.currentOffset,
-                                                              params.pageSize,
-                                                              params.filters,
-                                                              params.sortOrders),
-                             true));
+                        this.getUrl(this.urlPath(this.index),
+                            this._generateParams(this.currentOffset,
+                                                 params.pageSize,
+                                                 params.filters,
+                                                 params.sortOrders),
+                            true));
 
                     this.setXHRHeaders(xhr);
 
@@ -189,22 +216,21 @@
                             this.currentOffset = -1;
                             this._notifyTableSizeChanged(this.currentItems.length);
                         } else {
+                            this.currentOffset = this.currentItems.length;
                             this._notifyTableSizeChanged(this.currentItems.length
-                                                        + params.pageSize);
+                                 + params.pageSize);
                         }
 
                         vaadincallback(items);
                     } else {
                         this.currentOffset = -1;
                         this._notifyTableSizeChanged(this.currentItems.length);
-                        vaadincallback([]);
                     }
 
                     this._notifyTimeoutReset();
-                }, (error)=> {
+                }, (error) => {
                     this.currentOffset = -1;
                     this._notifyTableSizeChanged(this.currentItems.length);
-                    vaadincallback([]);
                     this._notifyTimeoutReset();
                     app.$.toast.text = error;
                     app.$.toast.show();
@@ -214,6 +240,7 @@
             /*
              *  ---------------------- Filter & Sort -------------------------
              */
+
             _generateParams(offset, limit, filters, orders) {
                 let params = `?offset=${offset}&limit=${limit}`;
                 params += this.parameters(this.index);
@@ -276,7 +303,6 @@
 
                 return changed;
             }
-
 
             /*
              *  ----------------- Selection Column Control -------------------

@@ -1,0 +1,55 @@
+<dom-module id="dv-vaadin-grid-main" theme-for="vaadin-grid">
+    <template>
+        <style>
+            :host {
+                position: relative;
+                height: var(--dv-vaadin-grid-height, 100%);
+                -webkit-font-smoothing: antialiased;
+                border: 1px solid #d4d4d4;
+            }
+
+            [part~="cell"] {
+                padding: 0 8px;
+                height: var(--dv-vaadin-grid-cell-height, 32px);
+                border-right: 1px solid #d4d4d4;
+                box-sizing: border-box;
+                font-size: var(--dv-vaadin-grid-cell-font-size, 8pt);
+                cursor: default;
+                background-color: #ffffff;
+            }
+
+            [part~="header-cell"] {
+                height: var(--dv-vaadin-grid-header-cell-height, 36px);
+                border-top: 1px solid #d4d4d4;
+                border-bottom: 1px solid #d4d4d4;
+                background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                font-size: 9pt;
+                text-style: bold;
+                text-align: center;
+                cursor: default;
+            }
+
+            [part~="footer-cell"] {
+                height: var(--dv-vaadin-grid-footer-cell-height, 36px);
+                border-bottom: 1px solid #d4d4d4;
+                background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
+                font-size: 8pt;
+                text-style: bold;
+                cursor: default;
+            }
+
+            [part~="details-cell"] {
+                width: 95%;
+                overflow: auto;
+                font-size: 10pt;
+                font-weight: bold;
+            }
+
+            [part~="row"][odd] [part~="body-cell"]{
+                background-color: #f2f2f2;
+            }
+        </style>
+    </template>
+</dom-module>
+
+
