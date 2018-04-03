@@ -33,7 +33,7 @@
     "qos-backend-information": "dCacheElements/qos-backend-information#0.0.7",
     "google-apis": "#2.0.0",
     "google-chart": "#2.0.0",
-    "vaadin-grid": "#3.0.2",
+    "vaadin-grid": "#4.1.7",
     "web-animations-js": "#2.3.1"
   },
   "resolutions": {

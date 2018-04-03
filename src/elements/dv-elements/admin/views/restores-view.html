@@ -13,11 +13,9 @@
 <link rel="import"
       href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
 <link rel="import"
-      href="../../../../bower_components/vaadin-grid/vaadin-grid-cell-click-behavior.html">
-<link rel="import"
-      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
-<link rel="import"
       href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-vaadin-theme.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
 <link rel="import" href="../dialogs/pool-info-dialog.html"/>
@@ -32,39 +30,14 @@
                 @apply(--layout-vertical);
             }
 
-            vaadin-grid {
-                position: relative;
-                height: 100%;
-                -webkit-font-smoothing: antialiased;
-                --divider-color: #d4d4d4;
-
-                --vaadin-grid-cell: {
-                    padding: 0 8px;
-                    height: 32px;
-                    border-right: 1px solid #d4d4d4;
-                    box-sizing: border-box;
-                    font-size: 8pt;
-                    cursor: default;
-                };
-
-                --vaadin-grid-header-cell: {
-                    height: 36px;
-                    border-bottom: 1px solid #d4d4d4;
-                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
-                    font-size: 9pt;
-                    text-style: bold;
-                    text-align: center;
-                    cursor: default;
-                };
-
-                --vaadin-grid-body-row-odd-cell: {
-                    background-color: #f5f5f5;
-                };
-            }
-
             paper-toolbar {
                 color: var(--dv-main-background);
                 background: var(--dv-charcoal-grey);
+            }
+
+            table {
+                margin: 0 100px;
+                font-size: 8pt;
             }
 
             .tablediv {
@@ -99,12 +72,6 @@
                 color: var(--dv-main-background);
                 background: var(--dv-indigo-900);
             }
-
-            .path {
-                margin: auto;
-                font-weight: bold;
-                font-size: 9pt;
-            }
         </style>
 
         <paper-toolbar id="title">
@@ -120,7 +87,7 @@
 
                 <template class="row-details">
                     <div class="details">
-                        <table class="path">
+                        <table>
                             <tr>
                                 <td>Path:</td>
                                 <td>[[item.path]]</td>
@@ -150,7 +117,7 @@
                         <template class="header"></template>
                         <template>
                             <paper-checkbox aria-label="Path"
-                                            checked="{{expanded}}">
+                                            checked="{{detailsOpened}}">
                             </paper-checkbox>
                         </template>
                     </vaadin-grid-column>
@@ -173,8 +140,9 @@
                                        focus-target/>
                             </vaadin-grid-filter>
                         </template>
-                        <template><span
-                                class="actionable">[[item.pnfsId]]</span>
+                        <template>
+                            <span onclick="sendRestoresTableCellClick('1')"
+                                    class="actionable">[[item.pnfsId]]</span>
                         </template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
@@ -213,7 +181,8 @@
                                        focus-target/>
                             </vaadin-grid-filter>
                         </template>
-                        <template><span
+                        <template>
+                            <span onclick="sendRestoresTableCellClick('2')"
                                 class="actionable">[[item.poolCandidate]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -272,8 +241,13 @@
     </template>
 
     <script>
-        class RestoresView extends Polymer.mixinBehaviors([vaadin.elements.grid.CellClickBehavior],
-            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+        function sendRestoresTableCellClick(cell) {
+            window.dispatchEvent(
+                new CustomEvent(`dv-restores-table-cell-click`, {
+                    detail: {cell: parseInt(cell)}}));
+        }
+
+        class RestoresView extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)) {
 
             static get is() {
                 return 'restores-view';
@@ -290,7 +264,8 @@
                     },
 
                     cell: {
-                        type: Number
+                        type: Number,
+                        value: 0
                     },
 
                     tableSize: {
@@ -304,17 +279,18 @@
             connectedCallback() {
                 super.connectedCallback();
 
-                this.$.restores.addEventListener('cell-focus', this._handleClick.bind(this));
                 window.addEventListener('dv-vaadin-provider-reset-timeout-restores', this.resetTimeout.bind(this));
                 window.addEventListener('dv-vaadin-provider-update-table-size-restores', this.setTableSize.bind(this));
+                window.addEventListener('dv-restores-table-cell-click', this.setCell.bind(this));
 
                 this.decorator = new DvVaadinProviderDecorator(this.$.restores,
-                                                               null,
-                                                               this.handleItem.bind(this),
-                                                               (xhr) => JSON.parse(xhr.responseText).items,
-                                                               (index) => 'restores',
-                                                               (index) => '',
-                                                               'restores');
+                    null,
+                    this.handleItem.bind(this),
+                    (xhr) => JSON.parse(xhr.responseText).items,
+                    (index) => 'restores',
+                    (index) => '',
+                    'restores',
+                    4);
 
                 /*
                  * This must be assigned only after the decorator has been
@@ -325,18 +301,15 @@
 
             disconnectedCallback() {
                 super.disconnectedCallback
-                this.$.restores.removeEventListener('cell-focus', this._handleClick.bind(this));
+
                 window.removeEventListener('dv-vaadin-provider-reset-timeout-restores', this.resetTimeout.bind(this));
                 window.removeEventListener('dv-vaadin-provider-update-table-size-restores', this.setTableSize.bind(this));
+                window.removeEventListener('dv-restores-table-cell-click', this.setCell.bind(this));
+
             }
 
-            _handleClick(e) {
-                e.stopPropagation();
-                this.cell = 0;
-                const cell = e.composedPath()[0];
-                if (cell) {
-                    this.cell = parseInt(cell.order.toString().charAt(0));
-                }
+            setCell(event) {
+                this.cell = event.detail.cell;
             }
 
             /*
@@ -373,16 +346,18 @@
                 }
 
                 if (typeof this.currentItem === 'undefined' ||
-                    typeof this.cell === 'undefined' ) {
+                    typeof this.cell === 'undefined') {
                     return;
                 }
 
-                if (this.cell === 3) {
+                if (this.cell === 1) {
                     this.openFileInfoDialog(this.currentItem.pnfsId,
                         this.currentItem.poolCandidate);
-                } else if (this.cell === 5) {
+                    this.cell = 0;
+                } else if (this.cell === 2) {
                     this.openPoolInfoDialog(this.currentItem.poolCandidate,
                         this.currentItem.pnfsId);
+                    this.cell = 0;
                 }
             }
         }

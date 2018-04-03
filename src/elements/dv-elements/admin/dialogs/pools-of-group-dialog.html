@@ -31,9 +31,7 @@
 <link rel="import"
       href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
 <link rel="import"
-      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
-<link rel="import"
-      href="../../../../bower_components/vaadin-grid/vaadin-grid-cell-click-behavior.html">
+      href="../../../../elements/dv-elements/admin/dv-vaadin-theme.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
 <link rel="import" href="pool-info-dialog.html"/>
@@ -81,44 +79,6 @@
 
             paper-dropdown-menu {
                 padding: 0px 55px;
-            }
-
-            vaadin-grid {
-                position: relative;
-                height: 100%;
-                --divider-color: #d4d4d4;
-
-                --vaadin-grid-cell: {
-                    padding: 0 8px;
-                    height: 32px;
-                    border-right: 1px solid #d4d4d4;
-                    box-sizing: border-box;
-                    font-size: 8pt;
-                    cursor: default;
-                };
-
-                --vaadin-grid-header-cell: {
-                    height: 36px;
-                    border-bottom: 1px solid #d4d4d4;
-                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
-                    font-size: 9pt;
-                    text-style: bold;
-                    text-align: center;
-                    cursor: default;
-                };
-
-                --vaadin-grid-footer-cell: {
-                    height: 36px;
-                    border-bottom: 1px solid #d4d4d4;
-                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
-                    font-size: 8pt;
-                    text-style: bold;
-                    cursor: default;
-                };
-
-                --vaadin-grid-body-row-odd-cell: {
-                    background-color: #f5f5f5;
-                };
             }
 
             .opaque {
