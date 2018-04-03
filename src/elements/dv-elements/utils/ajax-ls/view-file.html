@@ -154,6 +154,8 @@
                 this.$.feList.addEventListener('click', (e)=>{
                     e.stopPropagation();
                 });
+
+                window.addEventListener('dv-namespace-namespace-open-rename-dialogbox', (e)=>{this.openDialog(e)});
             }
             disconnectedCallback()
             {
@@ -171,6 +173,8 @@
                 this.$.feList.removeEventListener('click', (e)=>{
                     e.stopPropagation();
                 });
+
+                window.removeEventListener('dv-namespace-namespace-open-rename-dialogbox', (e)=>{this.openDialog(e)});
             }
             static get is()
             {
@@ -207,6 +211,11 @@
                         notify: true
                     },
 
+                    currentDirMetaData: {
+                        type: Object,
+                        value: ()=>{return {};}
+                    },
+
                     name: {
                         type:String,
                         notify: true
@@ -225,11 +234,6 @@
                     loading: {
                         type: Boolean,
                         value: true,
-                        notify: true
-                    },
-
-                    multiSelection: {
-                        type: Boolean,
                         notify: true
                     },
 
@@ -345,6 +349,12 @@
                         this.$.feList.fire('iron-resize');
                     }
                 }
+                if (Object.keys(this.currentDirMetaData).length === 0) {
+                    const a = JSON.parse(JSON.stringify(e.detail.response));
+                    delete a['children'];
+                    this.currentDirMetaData = a;
+                    this.currentDirMetaData.fileName = this.currentDirName;
+                }
             }
 
             handleError(request)
@@ -373,6 +383,8 @@
                 let dle = new DirectoryLsError(msg, code);
                 content.appendChild(dle);
 
+                this.currentDirMetaData = {"fileName": this.currentDirName, "fileType": "DIR", "size" : 512};
+
                 Polymer.dom.flush();
                 this.updateStyles();
             }
@@ -400,13 +412,14 @@
                 }
             }
 
-            openDialog(targetNode, name)
+            openDialog(e)
             {
-                this.name = name;
-                this._previousName = name;
+
+                this.name = e.detail.file.fileName;
+                this._previousName = e.detail.file.fileName;
                 const dialog = this.$.dialog;
-                dialog.positionTarget = targetNode.$.nameContainer;
-                this._renameTargetNode = targetNode;
+                dialog.positionTarget = e.detail.file.$.nameContainer;
+                this._renameTargetNode = e.detail.file;
                 dialog.open();
             }
 

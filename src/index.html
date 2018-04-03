@@ -198,6 +198,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             float:right;
                             color: white;
                         }
+                        .contextmenu {
+                            margin:0;
+                            width:200px;
+                            border: 1px solid #ccc;
+                            border-radius: 5px;
+                            background: #e8e8e8;
+                        }
                     </style>
                 </custom-style>
                 <paper-header-panel class="flex" mode="standard" shadow id="dv-main-header">
@@ -362,14 +369,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <paper-dialog id="centralContextMenu" vertical-align="top"
                               horizontal-align="left" dynamic-align
                               vertical-offset="[[y]]" horizontal-offset="[[x]]"
-                              style="margin:0; width:250px;">
+                              class="contextmenu">
                 </paper-dialog>
 
                 <!-- HERE IS A CUSTOM SUB-CONTEXT MENU BOX -->
                 <paper-dialog id="centralSubContextMenu" vertical-align="top"
                               horizontal-align="left" dynamic-align
                               vertical-offset="[[b]]" horizontal-offset="[[a]]"
-                              style="margin:0; width:250px;">
+                              class="contextmenu">
                 </paper-dialog>
 
                 <!-- HERE IS A CENTRAL TOAST -->

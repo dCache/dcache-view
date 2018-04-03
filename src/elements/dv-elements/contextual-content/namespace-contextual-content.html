@@ -4,22 +4,42 @@
 <link rel="import" href="../../../bower_components/paper-item/paper-icon-item.html">
 
 <link rel="import" href="../qbi-dialog-content/qbi-dialog-content.html">
-<link rel="import" href="change-qos-context-menu.html">
 <dom-module id="namespace-contextual-content">
     <template>
         <style>
+            :host {
+                display: block;
+                box-sizing: border-box;
+                max-width:100%;
+            }
             :host paper-listbox {
-                margin-top: -20px;
-                margin-bottom: -20px;
+                margin: -20px;
+                padding: 0;
+                background: transparent;
             }
             paper-icon-item:hover{
-                background: #0e5aff;
-                color: #fff !important;
+                background: #1565C0;
+                color: #fff;
+                border-radius: 4px;
+                --paper-item-icon: {
+                    color: #fff;
+                }
             }
             paper-icon-item {
-                font-size: 0.8em;
-                min-height: 40px !important;
-                font-weight: normal !important;
+                font-size: 0.7em;
+                min-height: 30px;
+                font-weight: normal;
+                padding-right: 0;
+                padding-left: 5px;
+                --paper-item-icon: {
+                    width: 20px;
+                    height: 20px;
+                    margin-right: 10px;
+                    color: #4e4e4e;
+                }
+            }
+            paper-icon-item[disabled] > iron-icon {
+                color: #b7b7b7;
             }
             .none {
                 display: none;
@@ -29,6 +49,11 @@
             }
             #delete, #download {
                 border-top: 1px solid #cacaca;
+            }
+            #arrow {
+                --iron-icon-width: 20px;
+                --iron-icon-height: 20px;
+                margin-left: 75px;
             }
         </style>
         <paper-listbox>
@@ -43,7 +68,8 @@
                              class$="[[_computedClass('changeQos' , singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
                 <iron-icon icon="settings-input-composite" slot="item-icon"></iron-icon>
-                Change QoS to ...
+                Change QoS
+                <iron-icon id="arrow" icon="av:play-arrow"></iron-icon>
             </paper-icon-item>
             <paper-icon-item id="qosInfo"
                              class$="[[_computedClass('qosInfo', singleSelection,
@@ -109,7 +135,6 @@
                 this.multipleSelection = n === 1;
                 this.currentDir = n === 2;
                 this.targetNode = t;
-                this._cqcm = new ChangeQosContextualMenu(t);
             }
 
             static get is()
@@ -144,10 +169,6 @@
             ready()
             {
                 super.ready();
-                if (app.$.centralSubContextMenu.opened) {
-                    app.$.centralSubContextMenu.close();
-                }
-                app.$.centralSubContextMenu.innerHTML = "";
             }
 
             connectedCallback()
@@ -160,12 +181,12 @@
                     this.$.qosInfo.addEventListener('tap', this._qosInfo.bind(this));
                     this.$.rename.addEventListener('tap', this._rename.bind(this));
 
-                    switch (this.targetNode.fileType) {
+                    switch (this.targetNode.fileMetaData.fileType) {
                         case "DIR":
-                            this.$.open.addEventListener('tap', this._open.bind(this));
+                            this.$.open.addEventListener('tap', this._openOrDownload.bind(this));
                             break;
                         case "REGULAR":
-                            this.$.download.addEventListener('tap', this._download.bind(this));
+                            this.$.download.addEventListener('tap', this._openOrDownload.bind(this));
                             break;
                     }
 
@@ -179,8 +200,9 @@
                     this.$.upload.addEventListener('tap', this._upload.bind(this));
                 }
 
-                this.addEventListener('mouseover', this._mouseOverLeave);
-                this.$.changeQos.addEventListener('mouseover', this._mouseOver.bind(this));
+                [...this.shadowRoot.querySelectorAll('paper-icon-item')].forEach(nd => {
+                    nd.addEventListener('mouseenter', (e)=>{this._mouseEnter(e)});
+                });
 
                 window.addEventListener('dv-namespace-current-path',(e)=>{this._setCurrentPath(e)});
                 this.dispatchEvent(
@@ -191,132 +213,72 @@
             {
                 super.disconnectedCallback();
                 if (this.singleSelection) {
-                    this.$.delete.removeEventListener('tap', this._delete);
-                    this.$.metadata.removeEventListener('tap', this._metadata);
-                    this.$.move.removeEventListener('tap', this._move);
-                    this.$.qosInfo.removeEventListener('tap', this._qosInfo);
-                    this.$.rename.removeEventListener('tap', this._rename);
+                    this.$.delete.removeEventListener('tap', this._delete.bind(this));
+                    this.$.metadata.removeEventListener('tap', this._metadata.bind(this));
+                    this.$.move.removeEventListener('tap', this._move.bind(this));
+                    this.$.qosInfo.removeEventListener('tap', this._qosInfo.bind(this));
+                    this.$.rename.removeEventListener('tap', this._rename.bind(this));
 
-                    switch (this.targetNode.fileType) {
+                    switch (this.targetNode.fileMetaData.fileType) {
                         case "DIR":
-                            this.$.open.removeEventListener('tap', this._open);
+                            this.$.open.removeEventListener('tap', this._openOrDownload.bind(this));
                             break;
                         case "REGULAR":
-                            this.$.download.removeEventListener('tap', this._download);
+                            this.$.download.removeEventListener('tap', this._openOrDownload.bind(this));
                             break;
                     }
 
                 } else if (this.multipleSelection) {
-                    this.$.delete.removeEventListener('tap', this._delete);
-                    this.$.move.removeEventListener('tap', this._move);
+                    this.$.delete.removeEventListener('tap', this._delete.bind(this));
+                    this.$.move.removeEventListener('tap', this._move.bind(this));
                 } else if (this.currentDir) {
-                    this.$.create.removeEventListener('tap', this._create);
-                    this.$.metadata.removeEventListener('tap', this._metadata);
-                    this.$.qosInfo.removeEventListener('tap', this._qosInfo);
-                    this.$.upload.removeEventListener('tap', this._upload);
+                    this.$.create.removeEventListener('tap', this._create.bind(this));
+                    this.$.metadata.removeEventListener('tap', this._metadata.bind(this));
+                    this.$.qosInfo.removeEventListener('tap', this._qosInfo.bind(this));
+                    this.$.upload.removeEventListener('tap', this._upload.bind(this));
                 }
 
-                this.removeEventListener('mouseover', this._mouseOverLeave);
-                this.$.changeQos.removeEventListener('mouseover', this._mouseOver);
+                [...this.shadowRoot.querySelectorAll('paper-icon-item')].forEach(nd => {
+                    nd.removeEventListener('mouseenter', (e)=>{this._mouseEnter(e)});
+                });
 
                 window.removeEventListener('dv-namespace-current-path',(e)=>{this._setCurrentPath(e)});
             }
 
-            _mouseOverLeave()
+            _mouseEnter(e)
             {
-                if (app.$.centralSubContextMenu.opened) {
+                if (window.CONFIG.isSomebody && e.composedPath()[0].id === "changeQos") {
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-namespace-open-subcontextmenu', {
+                            detail: {targetNode: this.targetNode}, bubbles: true, composed: true}));
+                }
+                if (e.composedPath()[0].id !== "changeQos") {
                     app.$.centralSubContextMenu.close();
                 }
             }
 
-            _mouseOver(e)
-            {
-                e.stopPropagation();
-                if (!window.CONFIG.isSomebody) {
-                    app.$.toast.text = "You need to login to be able to perform this operation. ";
-                    app.$.toast.show();
-                    return;
-                }
-                if (!app.$.centralSubContextMenu.opened) {
-                    app.$.centralSubContextMenu.appendChild(this._cqcm);
-                    let x = 0, y = 0;
-
-                    if (e.pageX || e.pageY) {
-                        x = e.pageX;
-                        y = e.pageY;
-                    } else if (e.clientX || e.clientY) {
-                        x = e.clientX + document.body.scrollLeft +
-                            document.documentElement.scrollLeft;
-                        y = e.clientY + document.body.scrollTop +
-                            document.documentElement.scrollTop;
-                    }
-
-                    const vx = window.innerWidth;
-                    const vy = window.innerHeight;
-                    const w = 250;
-                    const h = 100;
-
-                    if (vx - app.x < w*2.1) {
-                        app.a = app.x - w;
-                    } else {
-                        app.a = w + app.x;
-
-                    }
-                    app.b = app.y + 15;
-                    app.notifyPath('a');
-                    app.notifyPath('b');
-                    app.$.centralSubContextMenu.resetFit();
-                    app.$.centralSubContextMenu.open();
-                }
-
-                e.stopPropagation();
-            }
-
-            _open()
+            _openOrDownload()
             {
                 app.$.centralContextMenu.close();
-                app.ls(this.targetNode.filePath);
-                Polymer.dom.flush();
-            }
-
-            _download()
-            {
-                app.$.centralContextMenu.close();
-                let path;
-                const webdav = window.CONFIG["dcache-view.endpoints.webdav"];
-                if (webdav === "") {
-                    path =
-                        window.location.protocol + "//" + window.location.hostname
-                        + ":2880" + this.targetNode.filePath;
-                } else {
-                    if (webdav.endsWith("/")) {
-                        path = webdav.substring(0, webdav.length-1) + this.targetNode.filePath;
-                    } else {
-                        path = webdav + this.targetNode.filePath;
-                    }
-                }
-                window.open(path);
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-namespace-open-file', {
+                        detail: {file: this.targetNode}, bubbles: true, composed: true}));
             }
 
             _metadata()
             {
                 app.$.centralContextMenu.close();
-                if (app.$.metadataDrawer.querySelector('file-metadata')) {
-                    app.$.metadataDrawer.removeChild(
-                        app.$.metadataDrawer.querySelector('file-metadata'));
-                }
-                const fm = this.targetNode.fileMData ?
-                    new FileMetadata(this.targetNode.fileMData, this.targetNode.filePath, 0) :
-                    new FileMetadata(this.targetNode, this.targetNode.filePath, 1);
-                app.$.metadataDrawer.appendChild(fm);
-                app.$.metadata.openDrawer();
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-namespace-open-filemetadata-panel', {
+                        detail: {file: this.targetNode}, bubbles: true, composed: true}));
             }
 
             _rename()
             {
                 app.$.centralContextMenu.close();
-                const vf = document.querySelector('view-file');
-                vf.openDialog(this.targetNode, this.targetNode.name);
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-namespace-open-rename-dialogbox', {
+                        detail: {file: this.targetNode}, bubbles: true, composed: true}));
             }
 
             _move()
@@ -324,8 +286,6 @@
                 app.$.centralContextMenu.close();
                 let noOfMovedItems = 1;
                 let fileType = "item";
-                const dialogBox = document.getElementById('centralDialogBox');
-                app.removeAllChildren(dialogBox);
                 const mv = document.createElement('move-file');
                 mv.auth = app.getAuthValue();
                 mv.currentPath = this.currentPath;
@@ -335,13 +295,15 @@
                     noOfMovedItems = mv.mvFiles.length;
                     fileType = "items";
                 } else {
-                    mv.mvFiles = [this.targetNode.fileMData];
+                    mv.mvFiles = [this.targetNode.fileMetaData];
                 }
 
                 mv.addEventListener('move', (e) => {
                     this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
                         detail: {files: mv.mvFiles},bubbles: true, composed: true}));
-                    dialogBox.close();
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                            bubbles: true, composed: true}));
                     app.$.toast.text = `${noOfMovedItems} ${fileType} have been moved from
                         ${e.detail.response.sourceDirName} to ${e.detail.response.targetDirName}. `;
                     app.$.toast.show();
@@ -351,7 +313,9 @@
                     app.$.toast.show();
                 });
                 mv.addEventListener('dismiss', function (e) {
-                    dialogBox.close();
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                            bubbles: true, composed: true}));
                 });
                 mv.addEventListener('move-create', function (e) {
                     const file = {
@@ -366,8 +330,10 @@
                     this.dispatchEvent(new CustomEvent('dv-namespace-add-items', {
                         detail: {files: [file]},bubbles: true, composed: true}));
                 });
-                dialogBox.appendChild(mv);
-                dialogBox.open();
+
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-namespace-open-central-dialogbox', {
+                        detail: {node: mv}, bubbles: true, composed: true}));
             }
 
             _delete()
@@ -378,49 +344,27 @@
                     app.$.toast.show();
                     return;
                 }
-                let url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
-
                 if (this.multipleSelection) {
-                    let vf = document.getElementById('homedir').querySelector('view-file');
-                    vf.multiSelection = false;
-
                     for (let i=0; i<this.targetNode.files.length; i++) {
-                        this._deleteSingleEntry(url, this.targetNode.files[i].fileName,
-                            this.targetNode.parentPath + this.targetNode.files[i].fileName);
+                        this._deleteSingleEntry(this.targetNode.files[i]);
                     }
-
-                    vf.multiSelection = true;
                 } else {
-                    if (this.targetNode.checkboxDisplay) {
-                        this.targetNode.querySelector('paper-checkbox').checked = false;
-                    }
-                    this._deleteSingleEntry(url, this.targetNode.name, this.targetNode.filePath);
+                    this._deleteSingleEntry(this.targetNode.fileMetaData);
                 }
             }
 
-            _deleteSingleEntry(url, name, path)
+            _deleteSingleEntry(file)
             {
-                let namespace = document.createElement('dcache-namespace');
+                const fullPath = this.currentPath.endsWith('/') ? `${this.currentPath}${file.fileName}`:
+                    `${this.currentPath}/${file.fileName}`;
+                const namespace = document.createElement('dcache-namespace');
                 namespace.auth = app.getAuthValue();
                 namespace.promise.then(
                     ()=>{
-                        let list = app.$.homedir.querySelector('view-file').$.feList;
-                        let arr = list.items;
-                        const len = arr.length;
-                        for (let i=0; i<len; i++) {
-                            if (arr[i].fileName == name) {
-                                list.splice('items', i, 1);
-                                break;
-                            }
-                        }
-
-                        if (len === 1) {
-                            const ed = document.createElement('empty-directory');
-                            const vf = document.querySelector('view-file');
-                            vf.querySelector('#content').appendChild(ed);
-                        }
-
-                        const type = this.targetNode.fileType == "DIR" ? "Folder" : "File";
+                        this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
+                            detail: {files: [file]},bubbles: true, composed: true
+                        }));
+                        const type = file.fileType === "DIR" ? "Folder" : "File";
                         app.$.toast.text = type + " deleted. ";
                         app.$.toast.show();
                     }
@@ -431,8 +375,8 @@
                     }
                 );
                 namespace.rm({
-                    url: url,
-                    path: path
+                    url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
+                    path: fullPath
                 });
             }
 
@@ -440,23 +384,19 @@
             {
                 app.$.centralContextMenu.close();
 
-                const dialogBox = document.getElementById('centralDialogBox');
-                app.removeAllChildren(dialogBox);
-
-                let mkdir = document.createElement('create-directory');
+                const mkdir = document.createElement('create-directory');
                 mkdir.dirFullPath = this.currentPath;
                 mkdir.header = false;
                 mkdir.addEventListener('create',(e) => {
-                    let name = e.detail.newFolderName;
-                    let url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
-                    let namespace = document.createElement('dcache-namespace');
+                    const namespace = document.createElement('dcache-namespace');
                     namespace.auth = app.getAuthValue();
 
                     namespace.promise.then(() => {
-                        dialogBox.close();
-                        dialogBox.removeChild(mkdir);
+                        this.dispatchEvent(
+                            new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                                bubbles: true, composed: true}));
                         const file = {
-                            "fileName" : name,
+                            "fileName" : e.detail.newFolderName,
                             "fileMimeType" : "application/vnd.dcache.folder",
                             "fileLocality" : "",
                             "size" : "--",
@@ -472,23 +412,25 @@
                         app.$.toast.show();
                     }).catch(
                         function(err) {
-                            app.$.toast.text = err.message + " ";
+                            app.$.toast.text = `${err.message} `;
                             app.$.toast.show();
                         }
                     );
 
                     namespace.mkdir({
-                        url: url,
+                        url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
                         path: this.currentPath,
-                        name: name
+                        name: e.detail.newFolderName
                     });
                 });
                 mkdir.addEventListener('close',function() {
-                    dialogBox.close();
-                    dialogBox.removeChild(mkdir);
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                            bubbles: true, composed: true}));
                 });
-                dialogBox.appendChild(mkdir);
-                dialogBox.open();
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-namespace-open-central-dialogbox', {
+                        detail: {node: mkdir}, bubbles: true, composed: true}));
             }
 
             _upload()
@@ -503,9 +445,6 @@
             {
                 app.$.centralContextMenu.close();
 
-                let dialogBox = document.getElementById('centralDialogBox');
-                dialogBox.innerHTML = "";
-
                 if (!window.CONFIG.isSomebody) {
                     app.$.toast.text = "You need to login to view this information. ";
                     app.$.toast.show();
@@ -517,10 +456,10 @@
                     return;
                 }
 
-                let content = document.createElement('qbi-dialog-content');
-
-                dialogBox.appendChild(content);
-                dialogBox.open();
+                const content = document.createElement('qbi-dialog-content');
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-namespace-open-central-dialogbox', {
+                        detail: {node: content}, bubbles: true, composed: true}));
             }
 
             /**
@@ -547,15 +486,18 @@
             {
                 if (multipleSelection && (id === 'open' || id === 'metadata' || id === 'rename' ||
                     id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
-                    this.root.querySelector('#'+id).setAttribute('disabled', "");
+                    this.$[id].setAttribute('disabled', "");
                 }
 
                 if (singleSelection) {
-                    if (t.fileType === 'DIR' && (id === 'download' || id === 'changeQos')) {
-                        this.root.querySelector('#'+id).setAttribute('disabled', "");
-                    } else if (id  === 'open' && t.fileType === 'REGULAR') {
-                        this.root.querySelector('#'+id).setAttribute('disabled', "");
+                    if (t.fileMetaData.fileType === 'DIR' && (id === 'download' || id === 'changeQos')) {
+                        this.$[id].setAttribute('disabled', "");
+                    } else if (id  === 'open' && t.fileMetaData.fileType === 'REGULAR') {
+                        this.$[id].setAttribute('disabled', "");
                     }
+                }
+                if (!window.CONFIG.isSomebody && id === 'changeQos') {
+                    this.$[id].setAttribute('disabled', "");
                 }
             }
 
