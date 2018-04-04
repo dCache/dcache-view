@@ -21,15 +21,13 @@
 <link rel="import"
       href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
 <link rel="import"
-      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
-<link rel="import"
-      href="../../../../bower_components/vaadin-grid/vaadin-grid-cell-click-behavior.html">
-<link rel="import"
       href="../../../../elements/dv-elements/admin/dialogs/file-info-dialog.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dialogs/pool-info-dialog.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-vaadin-theme.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
 
@@ -59,36 +57,6 @@
                 color: #ffffff;
                 height: 30px;
                 padding: 5px 0px;
-            }
-
-            vaadin-grid {
-                position: relative;
-                height: 100%;
-                -webkit-font-smoothing: antialiased;
-                --divider-color: #d4d4d4;
-
-                --vaadin-grid-cell: {
-                    padding: 0 8px;
-                    height: 32px;
-                    border-right: 1px solid #d4d4d4;
-                    box-sizing: border-box;
-                    font-size: 8pt;
-                    cursor: default;
-                };
-
-                --vaadin-grid-header-cell: {
-                    height: 36px;
-                    border-bottom: 1px solid #d4d4d4;
-                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
-                    font-size: 9pt;
-                    text-style: bold;
-                    text-align: center;
-                    cursor: default;
-                };
-
-                --vaadin-grid-body-row-odd-cell: {
-                    background-color: #f5f5f5;
-                };
             }
 
             .opaque {
@@ -160,10 +128,6 @@
                 height: 100%;
             }
 
-            .detailinfo {
-                margin: 20px auto 20px auto;
-            }
-
         </style>
 
         <div class="opaque">
@@ -212,8 +176,11 @@
                                                focus-target>
                                     </vaadin-grid-filter>
                                 </template>
-                                <template><span
-                                        class$="actionable[[item.pnfsId.active]]">[[item.pnfsId.id]]</span>
+                                <template>
+                                    <span onclick="sendPoolActivityCellClick()"
+                                          class$="actionable[[item.pnfsId.active]]">
+                                        [[item.pnfsId.id]]
+                                    </span>
                                 </template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
@@ -421,8 +388,11 @@
                                                focus-target>
                                     </vaadin-grid-filter>
                                 </template>
-                                <template><span
-                                        class$="actionable[[item.pnfsId.active]]">[[item.pnfsId.id]]</span>
+                                <template>
+                                    <span onclick="sendPoolActivityCellClick()"
+                                            class$="actionable[[item.pnfsId.active]]">
+                                            [[item.pnfsId.id]]
+                                    </span>
                                 </template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
@@ -570,7 +540,7 @@
 
                         <template class="row-details">
                             <div class="details">
-                                <table class="detailinfo">
+                                <table>
                                     <tr>
                                         <td><strong>UUID:</strong></td>
                                         <td><strong>[[item.uuid]]</strong></td>
@@ -592,7 +562,7 @@
                                 <template class="header"></template>
                                 <template>
                                     <paper-checkbox aria-label="Details"
-                                                    checked="{{expanded}}">
+                                                    checked="{{detailsOpened}}">
                                     </paper-checkbox>
                                 </template>
                             </vaadin-grid-column>
@@ -614,8 +584,11 @@
                                                focus-target>
                                     </vaadin-grid-filter>
                                 </template>
-                                <template><span
-                                        class$="actionable[[item.pnfsId.active]]">[[item.pnfsId.id]]</span>
+                                <template>
+                                    <span onclick="sendPoolActivityCellClick()"
+                                          class$="actionable[[item.pnfsId.active]]">
+                                            [[item.pnfsId.id]]
+                                    </span>
                                 </template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
@@ -714,7 +687,7 @@
 
                         <template class="row-details">
                             <div class="details">
-                                <table class="detailinfo">
+                                <table>
                                     <tr>
                                         <td><strong>UUID:</strong></td>
                                         <td><strong>[[item.uuid]]</strong></td>
@@ -736,7 +709,7 @@
                                 <template class="header"></template>
                                 <template>
                                     <paper-checkbox aria-label="Details"
-                                                    checked="{{expanded}}">
+                                                    checked="{{detailsOpened}}">
                                     </paper-checkbox>
                                 </template>
                             </vaadin-grid-column>
@@ -758,8 +731,11 @@
                                                focus-target>
                                     </vaadin-grid-filter>
                                 </template>
-                                <template><span
-                                        class$="actionable[[item.pnfsId.active]]">[[item.pnfsId.id]]</span>
+                                <template>
+                                    <span onclick="sendPoolActivityCellClick()"
+                                          class$="actionable[[item.pnfsId.active]]">
+                                            [[item.pnfsId.id]]
+                                    </span>
                                 </template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
@@ -858,7 +834,7 @@
 
                         <template class="row-details">
                             <div class="details">
-                                <table class="detailinfo">
+                                <table>
                                     <tr>
                                         <td><strong>UUID:</strong></td>
                                         <td><strong>[[item.uuid]]</strong></td>
@@ -884,7 +860,7 @@
                                 <template class="header"></template>
                                 <template>
                                     <paper-checkbox aria-label="Details"
-                                                    checked="{{expanded}}">
+                                                    checked="{{detailsOpened}}">
                                     </paper-checkbox>
                                 </template>
                             </vaadin-grid-column>
@@ -905,8 +881,11 @@
                                                focus-target>
                                     </vaadin-grid-filter>
                                 </template>
-                                <template><span
-                                        class$="actionable[[item.pnfsId.active]]">[[item.pnfsId.id]]</span>
+                                <template>
+                                    <span onclick="sendPoolActivityCellClick()"
+                                            class$="actionable[[item.pnfsId.active]]">
+                                        [[item.pnfsId.id]]
+                                    </span>
                                 </template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
@@ -1003,8 +982,12 @@
     </template>
 
     <script>
-        class PoolActivityDialog extends
-            Polymer.mixinBehaviors([Polymer.PaperDialogBehavior, vaadin.elements.grid.CellClickBehavior],
+        function setPoolActivityCellClick() {
+            window.dispatchEvent(
+                new CustomEvent(`dv-pool-activity-table-cell-click`, {}));
+        }
+
+        class PoolActivityDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
             DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
 
             static get is() {
@@ -1056,8 +1039,9 @@
                         type: String
                     },
 
-                    cell: {
-                        type: Number
+                    pnfsidClicked: {
+                        type: Boolean,
+                        value: false
                     },
 
                     selected: {
@@ -1077,20 +1061,15 @@
             connectedCallback() {
                 super.connectedCallback();
 
-                this.$.movers.addEventListener('cell-focus', this._handleCellFocus.bind(this));
-                this.$.p2ps.addEventListener('cell-focus', this._handleCellFocus.bind(this));
-                this.$.flushes.addEventListener('cell-focus', this._handleCellFocus.bind(this));
-                this.$.stages.addEventListener('cell-focus', this._handleCellFocus.bind(this));
-                this.$.removes.addEventListener('cell-focus', this._handleCellFocus.bind(this));
-
                 window.addEventListener('dv-vaadin-provider-reset-timeout-pool', this.resetTimeout.bind(this));
                 window.addEventListener('dv-vaadin-provider-update-table-size-pool', this.setTableSize.bind(this));
+                window.addEventListener('dv-pool-activity-table-cell-click', this.setPnfsidClicked.bind(this));
 
-                this.decorators[0] = this._createDecorator(this.$.movers, 0);
-                this.decorators[1] = this._createDecorator(this.$.p2ps, 1);
-                this.decorators[2] = this._createDecorator(this.$.flushes, 2);
-                this.decorators[3] = this._createDecorator(this.$.stages, 3);
-                this.decorators[4] = this._createDecorator(this.$.removes, 4);
+                this.decorators[0] = this._createDecorator(this.$.movers, 0, 6);
+                this.decorators[1] = this._createDecorator(this.$.p2ps, 1, 4);
+                this.decorators[2] = this._createDecorator(this.$.flushes, 2, 3);
+                this.decorators[3] = this._createDecorator(this.$.stages, 3, 3);
+                this.decorators[4] = this._createDecorator(this.$.removes, 4, 3);
 
                 this.$.movers.dataProvider = this._remoteProvider(0).bind(this);
                 this.$.p2ps.dataProvider = this._remoteProvider(1).bind(this);
@@ -1112,33 +1091,21 @@
 
             disconnectedCallback() {
                 super.disconnectedCallback();
-                this.$.movers.removeEventListener('cell-focus', this._handleCellFocus.bind(this));
-                this.$.p2ps.removeEventListener('cell-focus', this._handleCellFocus.bind(this));
-                this.$.flushes.removeEventListener('cell-focus', this._handleCellFocus.bind(this));
-                this.$.stages.removeEventListener('cell-focus', this._handleCellFocus.bind(this));
-                this.$.removes.removeEventListener('cell-focus', this._handleCellFocus.bind(this));
 
                 window.removeEventListener('dv-vaadin-provider-reset-timeout-pool', this.resetTimeout.bind(this));
                 window.removeEventListener('dv-vaadin-provider-update-table-size-pool', this.setTableSize.bind(this));
+                window.removeEventListener('dv-pool-activity-table-cell-click', this.setPnfsidClicked.bind(this));
             }
 
-            _createDecorator(table, index) {
+            _createDecorator(table, index, filters) {
                 return new DvVaadinProviderDecorator(table,
                                                     index,
                                                     this.handleItem.bind(this),
                                                     (xhr) => JSON.parse(xhr.responseText),
                                                     this.providerUrl.bind(this),
                                                     this.providerParams.bind(this),
-                                                    'pool');
-            }
-
-            _handleCellFocus(event) {
-                event.stopPropagation();
-                this.cell = 0;
-                const cell = event.composedPath()[0];
-                if (cell) {
-                    this.cell = parseInt(cell.order.toString().charAt(0));
-                }
+                                                    'pool',
+                                                    filters);
             }
 
             /*
@@ -1214,6 +1181,10 @@
                 this.resetRefresh(this._refresh.bind(this), 60000);
             }
 
+            setPnfsidClicked(e) {
+                this.pnfsidClicked = true;
+            }
+
             setTableSize(e) {
                 switch (e.detail.index) {
                     case 0:
@@ -1266,10 +1237,11 @@
                     return;
                 }
 
-                if ((this.selected < 2 && this.cell === 2) ||
-                    (this.selected > 1 && this.cell === 3)) {
+                if (this.pnfsidClicked) {
                     this.openFileInfoDialog(this.currentItem.pnfsId.id, this.pool);
                 }
+
+                this.pnfsidClicked = false;
             }
         }
 

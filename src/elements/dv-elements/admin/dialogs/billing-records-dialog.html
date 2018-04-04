@@ -21,13 +21,11 @@
 <link rel="import"
       href="../../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
 <link rel="import"
-      href="../../../../bower_components/vaadin-grid/vaadin-grid-table-scroll-behavior.html">
-<link rel="import"
-      href="../../../../bower_components/vaadin-grid/vaadin-grid-cell-click-behavior.html">
-<link rel="import"
       href="../../../../elements/dv-elements/admin/dialogs/file-info-dialog.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dialogs/pool-info-dialog.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-vaadin-theme.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-vaadin-provider-decorator.html">
 <link rel="import"
@@ -67,36 +65,6 @@
                 color: #ffffff;
                 height: 30px;
                 padding: 5px 0px;
-            }
-
-            vaadin-grid {
-                position: relative;
-                height: 100%;
-                -webkit-font-smoothing: antialiased;
-                --divider-color: #d4d4d4;
-
-                --vaadin-grid-cell: {
-                    padding: 0 8px;
-                    height: 32px;
-                    border-right: 1px solid #d4d4d4;
-                    box-sizing: border-box;
-                    font-size: 8pt;
-                    cursor: default;
-                };
-
-                --vaadin-grid-header-cell: {
-                    height: 36px;
-                    border-bottom: 1px solid #d4d4d4;
-                    background-image: linear-gradient(to bottom, #fafafa 2%, #efefef 98%);
-                    font-size: 9pt;
-                    text-style: bold;
-                    text-align: center;
-                    cursor: default;
-                };
-
-                --vaadin-grid-body-row-odd-cell: {
-                    background-color: #f5f5f5;
-                };
             }
 
             iron-pages {
@@ -231,7 +199,7 @@
                                 <template class="header"></template>
                                 <template>
                                     <paper-checkbox aria-label="UserInfo"
-                                                    checked="{{expanded}}">
+                                                    checked="{{detailsOpened}}">
                                     </paper-checkbox>
                                 </template>
                             </vaadin-grid-column>
@@ -267,7 +235,8 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span class$="actionable[[item.pool.active]]">
+                                    <span onclick="sendBillingRecordsCellClick('R', '4')"
+                                          class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
                                 </template>
@@ -415,7 +384,7 @@
                                 <template class="header"></template>
                                 <template>
                                     <paper-checkbox aria-label="UserInfo"
-                                                    checked="{{expanded}}">
+                                                    checked="{{detailsOpened}}">
                                     </paper-checkbox>
                                 </template>
                             </vaadin-grid-column>
@@ -451,7 +420,8 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span class$="actionable[[item.pool.active]]">
+                                    <span onclick="sendBillingRecordsCellClick('W', '4')"
+                                          class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
                                 </template>
@@ -593,7 +563,8 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span class$="actionable[[item.serverPool.active]]">
+                                    <span onclick="sendBillingRecordsCellClick('P', '3')"
+                                          class$="actionable[[item.serverPool.active]]">
                                         [[item.serverPool.name]]
                                     </span>
                                 </template>
@@ -618,7 +589,8 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span class$="actionable[[item.clientPool.active]]">
+                                    <span onclick="sendBillingRecordsCellClick('P', '4')"
+                                          class$="actionable[[item.clientPool.active]]">
                                         [[item.clientPool.name]]
                                     </span>
                                 </template>
@@ -718,7 +690,8 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span class$="actionable[[item.pool.active]]">
+                                    <span onclick="sendBillingRecordsCellClick('F', '3')"
+                                          class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
                                 </template>
@@ -807,7 +780,8 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span class$="actionable[[item.pool.active]]">
+                                    <span onclick="sendBillingRecordsCellClick('S', '3')"
+                                          class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
                                 </template>
@@ -861,7 +835,13 @@
     </template>
 
     <script>
-        class BillingRecordsDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior, vaadin.elements.grid.CellClickBehavior],
+        function sendBillingRecordsCellClick(table, cell) {
+            window.dispatchEvent(
+                new CustomEvent(`dv-billing-records-table-cell-click`, {
+                    detail: {table: table, cell: parseInt(cell)}}));
+        }
+
+        class BillingRecordsDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
             DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
 
             static get is() {
@@ -914,7 +894,8 @@
                     },
 
                     cell: {
-                        type: Number
+                        type: Number,
+                        value: 0
                     },
 
                     table: {
@@ -938,20 +919,15 @@
             connectedCallback() {
                 super.connectedCallback();
 
-                this.$.reads.addEventListener('cell-focus', this._handleReadsClick.bind(this));
-                this.$.writes.addEventListener('cell-focus', this._handleWritesClick.bind(this));
-                this.$.p2ps.addEventListener('cell-focus', this._handleP2psClick.bind(this));
-                this.$.stores.addEventListener('cell-focus', this._handleFlushesClick.bind(this));
-                this.$.restores.addEventListener('cell-focus', this._handleStagesClick.bind(this));
-
                 window.addEventListener('dv-vaadin-provider-reset-timeout-billing', this.resetTimeout.bind(this));
                 window.addEventListener('dv-vaadin-provider-update-table-size-billing', this.setTableSize.bind(this));
+                window.addEventListener('dv-billing-records-table-cell-click', this.setCell.bind(this));
 
-                this.decorators[0] = this._createDecorator(this.$.reads, 0);
-                this.decorators[1] = this._createDecorator(this.$.writes, 1);
-                this.decorators[2] = this._createDecorator(this.$.p2ps, 2);
-                this.decorators[3] = this._createDecorator(this.$.stores, 3);
-                this.decorators[4] = this._createDecorator(this.$.restores, 4);
+                this.decorators[0] = this._createDecorator(this.$.reads, 0, 3);
+                this.decorators[1] = this._createDecorator(this.$.writes, 1, 3);
+                this.decorators[2] = this._createDecorator(this.$.p2ps, 2, 3);
+                this.decorators[3] = this._createDecorator(this.$.stores, 3, 1);
+                this.decorators[4] = this._createDecorator(this.$.restores, 4, 1);
 
                 this.$.reads.dataProvider = this._remoteProvider(0).bind(this);
                 this.$.writes.dataProvider = this._remoteProvider(1).bind(this);
@@ -973,58 +949,26 @@
 
             disconnectedCallback() {
                 super.disconnectedCallback();
-                this.$.reads.removeEventListener('cell-focus', this._handleReadsClick.bind(this));
-                this.$.writes.removeEventListener('cell-focus', this._handleWritesClick.bind(this));
-                this.$.p2ps.removeEventListener('cell-focus', this._handleP2psClick.bind(this));
-                this.$.stores.removeEventListener('cell-focus', this._handleFlushesClick.bind(this));
-                this.$.restores.removeEventListener('cell-focus', this._handleStagesClick.bind(this));
 
                 window.removeEventListener('dv-vaadin-provider-reset-timeout-billing', this.resetTimeout.bind(this));
                 window.removeEventListener('dv-vaadin-provider-update-table-size-billing', this.setTableSize.bind(this));
+                window.removeEventListener('dv-billing-records-table-cell-click', this.setCell.bind(this));
             }
 
-            _createDecorator(table, index) {
+            setCell(event) {
+                this.table = event.detail.table;
+                this.cell = event.detail.cell;
+            }
+
+            _createDecorator(table, index, filter) {
                 return new DvVaadinProviderDecorator(table,
                                                     index,
                                                     this.handleItem.bind(this),
                                                     (xhr) => JSON.parse(xhr.responseText),
                                                     this.providerUrl.bind(this),
                                                     (index) => '',
-                                                    'billing');
-            }
-
-            _handleReadsClick(e) {
-                e.stopPropagation();
-                this._handleCellFocus(e, "R");
-            }
-
-            _handleWritesClick(e) {
-                e.stopPropagation();
-                this._handleCellFocus(e, "W");
-            }
-
-            _handleP2psClick(e) {
-                e.stopPropagation();
-                this._handleCellFocus(e, "P");
-            }
-
-            _handleFlushesClick(e) {
-                e.stopPropagation();
-                this._handleCellFocus(e, "F");
-            }
-
-            _handleStagesClick(e) {
-                e.stopPropagation();
-                this._handleCellFocus(e, "S");
-            }
-
-            _handleCellFocus(event, table) {
-                this.cell = 0;
-                const cell = event.composedPath()[0];
-                if (cell) {
-                    this.cell = parseInt(cell.order.toString().charAt(0));
-                }
-                this.table = table;
+                                                    'billing',
+                                                    filter);
             }
 
             /*
@@ -1120,8 +1064,8 @@
                     this.currentItem = item.detail.value;
                 }
 
-                if (typeof this.currentItem == 'undefined' ||
-                    typeof this.cell == 'undefined') {
+                if (typeof this.currentItem === 'undefined' ||
+                    typeof this.cell === 'undefined') {
                     return;
                 }
 
@@ -1153,6 +1097,9 @@
                         }
                         break;
                 }
+
+                this.table = '';
+                this.cell = 0;
             }
 
             _hideToast() {
