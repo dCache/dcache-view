@@ -163,7 +163,7 @@
                 const listOfRolesToAssert = this.assertionStatus?"*":"";
                 let userAuth = new UserAuthentication(this.redirectTo, this.auth, "", listOfRolesToAssert);
 
-                userAuth.addEventListener('error', (e) => {
+                window.addEventListener('dv-authentication-error', (e) => {
                     this.errorMessage = e.detail.message;
                 });
 
