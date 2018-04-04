@@ -1,0 +1,127 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<link rel="import" href="../../../bower_components/dcache-namespace/dcache-namespace.html">
+
+<dom-module id="rename-input">
+    <template>
+        <style>
+
+        </style>
+        <div>
+            <iron-a11y-keys target="[[target]]"
+                            keys="enter" on-keys-pressed="_rename"></iron-a11y-keys>
+            <iron-a11y-keys target="[[target]]"
+                            keys="esc" on-keys-pressed="_abortRename"></iron-a11y-keys>
+            <input id="input" type="text" pattern="[^/]*" value="{{value::input}}">
+        </div>
+    </template>
+    <script>
+        class RenameInput extends Polymer.Element
+        {
+            constructor(file)
+            {
+                super();
+                this._node = file;
+                this._previousValue = file.fileMetaData.fileName;
+                this._pnfsId = file.fileMetaData.pnfsId;
+                this.value = file.fileMetaData.fileName;
+                this._endRenaming_ = this._endRenaming.bind(this);
+            }
+            ready()
+            {
+                super.ready();
+                this.target = this.$.input;
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    this._focus();
+                });
+            }
+            static get is()
+            {
+                return "rename-input";
+            }
+            static get properties()
+            {
+                return {
+                    _previousValue: String,
+                    _pnfsId: String,
+                    value: {
+                        type: String,
+                        notify: true
+                    },
+                    _node: {
+                        type: Object,
+                        notify: true
+                    },
+                    flag: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+                    target: Object
+                }
+            }
+            connectedCallback()
+            {
+                super.connectedCallback();
+                this.$.input.addEventListener('focusout', this._endRenaming_);
+            }
+            disconnectedCallback()
+            {
+                super.disconnectedCallback();
+                this.$.input.removeEventListener('focusout', this._endRenaming_);
+            }
+            _focus()
+            {
+                this.$.input.focus();
+                const selectionEnd = this.value.lastIndexOf('.') === -1 ? this.value.length :
+                    this.value.lastIndexOf('.');
+                this.$.input.setSelectionRange(0,selectionEnd);
+            }
+            _endRenaming()
+            {
+                if (!this.flag) {
+                    return;
+                }
+                this.flag = false;
+                this.dispatchEvent(new CustomEvent('dv-namespace-rename-input', {
+                    detail: {pnfsId: this._pnfsId, newFileName: this.value},
+                    bubbles: true, composed: true
+                }));
+            }
+            _rename()
+            {
+                if (this._previousValue === this.value) {
+                    this._endRenaming();
+                    return;
+                }
+                const namespace = document.createElement('dcache-namespace');
+                namespace.auth = app.getAuthValue();
+                const path = this._node.parentPath.endsWith("/") ? this._node.parentPath :
+                    `${this._node.parentPath}/`;
+                namespace.mv({
+                    url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
+                    path: `${path}${this._previousValue}`,
+                    destination: `${path}${this.value}`
+                });
+
+                namespace.promise.then(() => {
+                    window.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                        {detail: {message: `Done! File renamed.`}}
+                    ));
+                    this._endRenaming();
+                }).catch((err)=> {
+                    this._abortRename();
+                    window.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                        {detail: {message: `${err.message}`}}
+                    ));
+                });
+            }
+            _abortRename()
+            {
+                this.value = this._previousValue;
+                this._endRenaming();
+            }
+        }
+        window.customElements.define(RenameInput.is, RenameInput);
+    </script>
+</dom-module>
