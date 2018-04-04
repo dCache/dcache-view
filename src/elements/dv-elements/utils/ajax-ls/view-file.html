@@ -129,6 +129,13 @@
                 window.dispatchEvent(
                     new CustomEvent('dv-namespace-view-file-created', {
                         detail: {}, bubbles: true, composed: true}));
+
+                this._removeItems_ = this._removeItems.bind(this);
+                this._addItems_ = this._addItems.bind(this);
+                this._sendCurrentPath_ = this._sendCurrentPath(this.path);
+                this._sendItemIndex_ = this._sendItemIndex.bind(this);
+                this._reset_ = this._reset.bind(this);
+                this._openDialog_ = this.openDialog.bind(this);
             }
             ready()
             {
@@ -140,41 +147,34 @@
             connectedCallback()
             {
                 super.connectedCallback();
+                this.$.feList.addEventListener('click', this._stopPropagation);
 
-                this.addEventListener('keydown', (e)=>{this._multipleSelectionShortcuts(e)});
-                this.addEventListener('keyup', (e)=>{this._resetMultipleSelectionShortcuts(e)});
-                window.addEventListener('dv-namespace-remove-items', (e)=>{this._removeItems(e)});
-                window.addEventListener('dv-namespace-add-items', (e)=>{this._addItems(e)});
-                window.addEventListener('dv-namespace-request-current-path', (e)=>{this._sendCurrentPath(this.path)});
+                this.addEventListener('keydown', this._multipleSelectionShortcuts);
+                this.addEventListener('keyup', this._resetMultipleSelectionShortcuts);
 
-                window.addEventListener('dv-namespace-request-item-index', (e)=>{this._sendItemIndex(e)});
+                window.addEventListener('dv-namespace-remove-items', this._removeItems_);
+                window.addEventListener('dv-namespace-add-items', this._addItems_);
+                window.addEventListener('dv-namespace-request-current-path', this._sendCurrentPath_);
+                window.addEventListener('dv-namespace-request-item-index', this._sendItemIndex_);
+                window.addEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
+                window.addEventListener('dv-namespace-namespace-open-rename-dialogbox', this._openDialog_);
 
-                window.addEventListener('dv-namespace-reset-element-internal-parameters', (e)=>{this._reset(e)});
 
-                this.$.feList.addEventListener('click', (e)=>{
-                    e.stopPropagation();
-                });
-
-                window.addEventListener('dv-namespace-namespace-open-rename-dialogbox', (e)=>{this.openDialog(e)});
             }
             disconnectedCallback()
             {
                 super.disconnectedCallback();
-                this.removeEventListener('keydown', (e)=>{this._multipleSelectionShortcuts(e)});
-                this.removeEventListener('keyup', (e)=>{this._resetMultipleSelectionShortcuts(e)});
-                window.removeEventListener('dv-namespace-remove-items', (e)=>{this._removeItems(e)});
-                window.removeEventListener('dv-namespace-add-items', (e)=>{this._addItems(e)});
-                window.removeEventListener('dv-namespace-request-current-path', (e)=>{this._sendCurrentPath(this.path)});
+                this.$.feList.removeEventListener('click', this._stopPropagation);
 
-                window.removeEventListener('dv-namespace-request-item-index', (e)=>{this._sendItemIndex(e)});
+                this.removeEventListener('keydown', this._multipleSelectionShortcuts);
+                this.removeEventListener('keyup', this._resetMultipleSelectionShortcuts);
 
-                window.removeEventListener('dv-namespace-reset-element-internal-parameters', (e)=>{this._reset(e)});
-
-                this.$.feList.removeEventListener('click', (e)=>{
-                    e.stopPropagation();
-                });
-
-                window.removeEventListener('dv-namespace-namespace-open-rename-dialogbox', (e)=>{this.openDialog(e)});
+                window.removeEventListener('dv-namespace-remove-items', this._removeItems_);
+                window.removeEventListener('dv-namespace-add-items', this._addItems_);
+                window.removeEventListener('dv-namespace-request-current-path', this._sendCurrentPath_);
+                window.removeEventListener('dv-namespace-request-item-index', this._sendItemIndex_);
+                window.removeEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
+                window.removeEventListener('dv-namespace-namespace-open-rename-dialogbox', this._openDialog_);
             }
             static get is()
             {
@@ -273,7 +273,6 @@
                     'selectedItemChanged(selectedItem)',
                     '_temporarySelectedItemsHolderModified(_temporarySelectedItemsHolder.splices)',
                     '__xSelectedItemsChanged(_xSelectedItems.splices)',
-                    '_sendCurrentPath(path)',
                     '_setSequentRequestStatus(__counter__)'
                 ];
             }
@@ -780,6 +779,11 @@
                         this.$.content.appendChild(el1);
                     }
                 }
+            }
+
+            _stopPropagation(e)
+            {
+                e.stopPropagation();
             }
         }
         window.customElements.define(ViewFile.is, ViewFile);
