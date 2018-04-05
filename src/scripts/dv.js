@@ -595,4 +595,20 @@
     window.addEventListener('dv-authentication-successful', (e) => {
         app.getQosInformation();
     });
+    window.addEventListener('dv-namespace-open-upload-toast', (e) => {
+        app.$.uploadToast.close();
+        app.removeAllChildren(app.$.uploadToast.querySelector("#uploadList"));
+        app.$.uploadToast.open();
+    });
+    window.addEventListener('dv-namespace-close-upload-toast', (e) => {
+        app.$.uploadToast.close();
+    });
+    window.addEventListener('dv-namespace-upload-toast-append-child', (e) => {
+        const child = e.detail.child;
+        app.$.uploadToast.querySelector("#uploadList").appendChild(child);
+    });
+    window.addEventListener('dv-namespace-show-message-toast', (e) => {
+        app.$.toast.text = `${e.detail.message} `;
+        app.$.toast.show()
+    });
 })(document);

@@ -1,4 +1,6 @@
 <link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../bower_components/paper-tooltip/paper-tooltip.html">
 <script src="../utils/dcache-view-uploader/dcache-view-uploader.js"></script>
 
 <link rel="import" href="upload-toast-file.html">
@@ -9,8 +11,8 @@
                 display: inline-block;
             }
             #files {
-                width: 0.1px;
-                height: 0.1px;
+                width: 0;
+                height: 0;
                 opacity: 0;
                 overflow: hidden;
                 position: absolute;
@@ -28,66 +30,78 @@
     <script>
         class UploadFilesButton extends Polymer.Element
         {
+            constructor()
+            {
+                super();
+                this._handleFileSelection = this.handleFileSelection.bind(this);
+                this._openFilePicker_ = this._openFilePicker.bind(this);
+                this._setCurrentPath_ = this._setCurrentPath.bind(this);
+            }
             static get is()
             {
                 return 'upload-files-button';
             }
-
+            static get properties()
+            {
+                return {
+                    currentPath: {
+                        type: String
+                    }
+                };
+            }
             connectedCallback()
             {
                 super.connectedCallback();
-                this.$.files.addEventListener('change', this.handleFileSelection.bind(this));
-                window.addEventListener('dv-namespace-upload-files', ()=>{
-                    this.$.files.click();
-                });
+                window.addEventListener('dv-namespace-upload-files', this._openFilePicker_);
+                window.addEventListener('dv-namespace-current-path', this._setCurrentPath_);
+
+                this.$.files.addEventListener('change', this._handleFileSelection);
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-request-current-path', {bubbles: true, composed: true}));
             }
             disconnectedCallback()
             {
                 super.disconnectedCallback();
-                this.$.files.removeEventListener('change', this.handleFileSelection);
-                window.removeEventListener('dv-namespace-upload-files', ()=>{
-                    this.$.files.click();
-                });
-            }
+                window.removeEventListener('dv-namespace-upload-files', this._openFilePicker_);
+                window.removeEventListener('dv-namespace-current-path', this._setCurrentPath_);
 
+                this.$.files.removeEventListener('change', this._handleFileSelection);
+            }
             handleFileSelection(e)
             {
                 e.stopPropagation();
                 e.preventDefault();
-                app.$.uploadToast.close();
                 if (window.File && window.FileReader && window.FileList && window.Blob) {
-                    app.$.uploadToast.open();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-open-upload-toast', {
+                        bubbles: true, composed: true}));
                     this.uploadFile(e.target.files);
                 } else {
-                    app.$.toast.text = 'No support for the File API in this web browser. ';
-                    app.$.toast.show();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: `No support for the File API in this web browser.`},
+                        bubbles: true, composed: true}));
                 }
             }
-
             uploadFile(files)
             {
-                var uploadList = app.$.uploadToast.querySelector("#uploadList");
-                uploadList.innerHTML ="";
-                var path = ((app.$.homedir.querySelector('view-file').path).endsWith("/"))
-                    ? app.$.homedir.querySelector('view-file').path
-                    : app.$.homedir.querySelector('view-file').path + "/";
-                var f;
-                for (var i=0; f = files[i]; i++) {
-                    var el = new UploadToastFile(f.name, "REGULAR", f.type);
+                const path = this.currentPath.endsWith("/") ? this.currentPath: `${this.currentPath}/`;
+                const len = files.length;
+                for (let i=0; i < len; i++) {
+                    const el = new UploadToastFile(files[i].name, "REGULAR", files[i].type);
                     el.setAttribute("id", i.toString());
-                    uploadList.appendChild(el);
+                    this.dispatchEvent(new CustomEvent('dv-namespace-upload-toast-append-child', {
+                            detail: {child: el}, bubbles: true, composed: true}));
                     const upLs = el;
                     const uploadURL = window.CONFIG["dcache-view.endpoints.webdav"] === "" ?
-                        `${window.location.protocol}//${window.location.hostname}:2880${path}${f.name}` :
+                        `${window.location.protocol}//${window.location.hostname}:2880${path}${files[i].name}` :
                         path.startsWith('/') ?
-                        `${window.CONFIG["dcache-view.endpoints.webdav"]}${path.slice(1)}${f.name}` :
-                        `${window.CONFIG["dcache-view.endpoints.webdav"]}${path}${f.name}`;
-                    var uploader = new UploadHandler({
-                        file: f,
+                        `${window.CONFIG["dcache-view.endpoints.webdav"]}${path.slice(1)}${files[i].name}` :
+                        `${window.CONFIG["dcache-view.endpoints.webdav"]}${path}${files[i].name}`;
+                    const uploader = new UploadHandler({
+                        file: files[i],
                         upauth: app.getAuthValue(),
                         url: uploadURL,
                         onComplete: function (data) {
-                            var progressBar = upLs.shadowRoot.querySelector('paper-progress');
+                            const progressBar = upLs.shadowRoot.querySelector('paper-progress');
                             progressBar.indeterminate = false;
                             progressBar.value = 100;
                             progressBar.classList.remove("error", "progress");
@@ -97,14 +111,8 @@
                             upLs.hasError = false;
                             upLs.isComplete = true;
                             upLs.message = "Uploaded";
-                            var vf = document.querySelector('view-file');
-                            var ed = vf.shadowRoot.querySelector('empty-directory');
-                            if (ed != null) {
-                                vf.shadowRoot.querySelector('#content').removeChild(ed);
-                            }
-                            var list = vf.shadowRoot.querySelector('iron-list');
-                            list.unshift('items',
-                                    {
+                            this.dispatchEvent(new CustomEvent('dv-namespace-add-items', {
+                                detail: {files: [{
                                         "fileName" : data.name,
                                         "fileMimeType" : data.type,
                                         "fileLocality" : "",
@@ -112,13 +120,13 @@
                                         "fileType" : "REGULAR",
                                         "mtime" : data.lastModified,
                                         "creationTime" : Date.now()
-                                    }
-                            );
+                                    }]},
+                                bubbles: true, composed: true}));
                         }.bind(this),
 
                         onProgress: function (evt) {
+                            const progressBar = upLs.shadowRoot.querySelector('paper-progress');
                             if (evt.lengthComputable) {
-                                var progressBar = upLs.shadowRoot.querySelector('paper-progress');
                                 progressBar.classList.remove("error", "complete");
                                 progressBar.classList.add("progress");
                                 progressBar.indeterminate = false;
@@ -131,7 +139,7 @@
                         }.bind(this),
 
                         onError: function (evt) {
-                            var progressBar = upLs.shadowRoot.querySelector('paper-progress');
+                            const progressBar = upLs.shadowRoot.querySelector('paper-progress');
                             progressBar.classList.remove("progress", "complete");
                             progressBar.classList.add("error");
                             progressBar.indeterminate = false;
@@ -143,9 +151,15 @@
                         }.bind(this)
                     });
                     uploader.upload();
-                    Polymer.dom.flush();
                 }
-                Polymer.dom.flush();
+            }
+            _openFilePicker()
+            {
+                this.$.files.click();
+            }
+            _setCurrentPath(e)
+            {
+                this.currentPath = e.detail.currentPath;
             }
         }
         window.customElements.define(UploadFilesButton.is, UploadFilesButton);
