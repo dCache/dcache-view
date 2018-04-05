@@ -270,7 +270,6 @@
             static get observers()
             {
                 return [
-                    'changedItems(items.*)',
                     'selectedItemChanged(selectedItem)',
                     '_temporarySelectedItemsHolderModified(_temporarySelectedItemsHolder.splices)',
                     '__xSelectedItemsChanged(_xSelectedItems.splices)',
@@ -281,11 +280,8 @@
 
             _computedUpw(path)
             {
-                if (!(sessionStorage.upauth === undefined || sessionStorage.upauth == null)) {
-                    return window.atob(sessionStorage.upauth);
-                } else {
-                    return "anonymous:nopassword";
-                }
+                return !(sessionStorage.upauth === undefined || sessionStorage.upauth == null) ?
+                    window.atob(sessionStorage.upauth) : "anonymous:nopassword";
             }
 
             _computedDraggable(isSelected)
@@ -307,26 +303,23 @@
 
             _url(path)
             {
-                let x;
-                const url  = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
                 const isHome = path===null || path === "" || path === "/";
-                if (sessionStorage.upauth !== undefined) {
-                    x = isHome === true ? "/?children=true&qos=true": path + "/?children=true&qos=true";
-                } else {
-                    x = isHome === true ? "/?children=true": path + "/?children=true";
-                }
-                return url + x;
+                const x = sessionStorage.upauth !== undefined ?
+                    isHome === true ? "/?children=true&qos=true" :
+                        `${path}/?children=true&qos=true` : isHome === true ?
+                        "/?children=true" : `${path}/?children=true`;
+                return `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace${x}`;
             }
 
             _computeParentPath(path)
             {
-                if ( this.path == null || this.path == "" || this.path == "/" ) {
+                if ( this.path == null || this.path === "" || this.path === "/" ) {
                     path = "/";
                     return path;
                 } else {
                     path = decodeURIComponent(this.path);
                     path = path.replace(/=/g, "/");
-                    return path + "/";
+                    return `${path}/`;
                 }
             }
 
@@ -334,12 +327,7 @@
             {
                 const children = e.detail.response.children;
 
-                if ( children.length === 0 && this.__counter__ === 0 ) {
-                    this.$.content.setAttribute("elevation", 0);
-                    const el1 = new EmptyDirectory();
-                    this.$.content.appendChild(el1);
-                } else {
-                    this.$.content.setAttribute("elevation", 1);
+                if (!(children.length === 0 && this.__counter__ === 0)) {
                     children.forEach((child) => {
                         this.$.feList.push('items', child)
                     });
@@ -355,45 +343,36 @@
                     this.currentDirMetaData = a;
                     this.currentDirMetaData.fileName = this.currentDirName;
                 }
+                this._updateContentElevationAttribute();
             }
 
             handleError(request)
             {
                 let msg = request.detail.error.message;
                 let code = request.detail.request.__data.status;
-                let content = this.$.content;
-                content.setAttribute("elevation", 0);
+                this.$.content.setAttribute("elevation", 0);
 
                 switch (parseInt(code)) {
                     case 401:
-                        const a = '"page":"home","path":"' + this.path + '"';
-                        let pathName = '/user-login?r=' + encodeURIComponent(a);
-                        page.redirect(pathName);
+                        const a = `"page":"home","path":"${this.path}"`;
+                        page.redirect(`/user-login?r=${encodeURIComponent(a)}`);
                         break;
                     case 403:
                         msg = "Access Denied! Please login using a credentials with the right permission.";
                         break;
                     default:
-                        code = code===undefined?"500":code;
-                        msg = msg ===undefined?
-                            "Something is terribly wrong! Please contact your admin.":msg;
-
+                        code = code === undefined ? "500": code;
+                        msg = msg === undefined ?
+                            "Something is terribly wrong! Please contact your admin.": msg;
                 }
 
                 let dle = new DirectoryLsError(msg, code);
-                content.appendChild(dle);
+                this.$.content.appendChild(dle);
 
                 this.currentDirMetaData = {"fileName": this.currentDirName, "fileType": "DIR", "size" : 512};
 
                 Polymer.dom.flush();
                 this.updateStyles();
-            }
-
-            changedItems(changedRecord)
-            {
-                if (changedRecord.path) {
-                    this.$.feList.fire('iron-resize');
-                }
             }
 
             selectedItemChanged(selectedItem)
@@ -425,24 +404,19 @@
 
             _rename()
             {
-                var d = this;
-                var namespace = document.createElement('dcache-namespace');
+                const namespace = document.createElement('dcache-namespace');
                 namespace.auth = app.getAuthValue();
-                var path = this.path.endsWith("/") ? this.path : this.path + "/";
-                var url = window.CONFIG["dcache-view.endpoints.webapi"] + "namespace";
-                var source = path + this._previousName;
-                var target = path + this.name;
+                const path = this.path.endsWith("/") ? this.path : `${this.path}/`;
                 namespace.mv({
-                    url: url,
-                    path: source,
-                    destination: target
+                    url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
+                    path: `${path}${this._previousName}`,
+                    destination: `${path}${this.name}`
                 });
 
-                var dialog = Polymer.dom(this.root).querySelector('#dialog');
-                namespace.promise.then(
-                    function () {
-                        d._renameTargetNode.$.fileName.innerHTML = d.name;
-                        d._renameTargetNode.name = d.name;
+                const dialog = this.$.dialog;
+                namespace.promise.then(() => {
+                        this._renameTargetNode.$.fileName.innerHTML = this.name;
+                        this._renameTargetNode.name = this.name;
                         app.$.toast.text = "Done! File renamed. ";
                         app.$.toast.show();
                         dialog.close();
@@ -462,9 +436,7 @@
                 if (this._isSubsequentRequest) {
                     this.__listDirectory();
                 } else {
-                    window.addEventListener('WebComponentsReady', () => {
-                        this.__listDirectory();
-                    });
+                    window.addEventListener('WebComponentsReady', () => this.__listDirectory());
                 }
             }
             __listDirectory()
@@ -687,6 +659,7 @@
                         }
                     }
                 });
+                this._updateContentElevationAttribute();
             }
 
             _addItems(event)
@@ -702,6 +675,7 @@
                     });
                 }
                 this.$.feList.fire('iron-resize');
+                this._updateContentElevationAttribute();
             }
 
             _sendCurrentPath(pt)
@@ -789,6 +763,23 @@
             _setSequentRequestStatus(c)
             {
                 this._isSubsequentRequest = c !== 0;
+            }
+
+            _updateContentElevationAttribute()
+            {
+                if (this.$.feList.items.length > 0) {
+                    if (this.$.content.getAttribute("elevation") === "0") {
+                        this.$.content.setAttribute("elevation", 1);
+                    }
+                } else {
+                    if (this.$.content.getAttribute("elevation") === "1") {
+                        this.$.content.setAttribute("elevation", 0);
+                    }
+                    if (this.$.feList.items.length === 0) {
+                        const el1 = new EmptyDirectory();
+                        this.$.content.appendChild(el1);
+                    }
+                }
             }
         }
         window.customElements.define(ViewFile.is, ViewFile);
