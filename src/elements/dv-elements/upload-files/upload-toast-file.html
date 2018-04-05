@@ -1,5 +1,6 @@
 <link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
+<link rel="import" href="../../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../../bower_components/iron-label/iron-label.html">
 <link rel="import" href="../../../bower_components/file-icon/file-icon.html">
@@ -11,7 +12,7 @@
                 display: block;
                 width: 420px;
                 height: 65px;
-                padding: 0px;
+                padding: 0;
                 border-bottom: 10px solid #323232;
                 background-color: #fff;
             }
@@ -21,8 +22,8 @@
             }
             .main {
                 @apply(--layout-horizontal);
-                padding: 0px;
-                margin: 0px;
+                padding: 0;
+                margin: 0;
             }
             .main > #fileStatusInfo {
                 @apply(--layout-flex);
@@ -105,13 +106,20 @@
             paper-progress.progress {
                 --paper-progress-active-color: #ffc925 !important;
             }
-
+            #fileIcon file-icon {
+                padding-left: 10px;
+            }
+            #statusMessage span {
+                background: #373737;
+                color:#fff;
+                font-size: 1em !important;
+            }
         </style>
         <div class="main">
             <div id="fileStatusInfo">
                 <div id="uploadFile">
                     <div id="fileIcon">
-                        <file-icon mime-type="[[fileMimeType]]" style="padding-left: 10px;"></file-icon>
+                        <file-icon mime-type="[[fileMimeType]]"></file-icon>
                     </div>
                     <div id="fileInfo">
                         <div id="fileName">
@@ -120,7 +128,7 @@
                             </div>
                         </div>
                         <div id="statusMessage">
-                            <span style="background: #373737;color:#fff; font-size: 1em !important;">Status:</span>
+                            <span>Status:</span>
                             <label class$="[[_computedClass(hasError,isComplete,inProgress)]]"> {{message}}</label>
                         </div>
                     </div>
@@ -206,7 +214,7 @@
 
             _computedClass(hasError,isComplete,inProgress)
             {
-                var classes = '';
+                let classes = '';
                 if (hasError) {
                     classes += ' error';
                 } else if (isComplete) {
