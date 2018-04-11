@@ -8,7 +8,7 @@
             constructor(path, browser)
             {
                 super();
-                this.path = (path.endsWith("/")) ? path : path + "/";
+                this.path = path.endsWith("/") ? path : path + "/";
                 this.browser = browser;
             }
 
@@ -48,7 +48,7 @@
                     url: {
                         type: String,
                         value: function () {
-                            if (window.CONFIG["dcache-view.endpoints.webdav"] == "") {
+                            if (window.CONFIG["dcache-view.endpoints.webdav"] === "") {
                                 return `${window.location.protocol}//${window.location.hostname}:2880`;
                             } else {
                                 return window.CONFIG["dcache-view.endpoints.webdav"];
@@ -86,16 +86,16 @@
                         this.hasError = false;
                         this.isComplete = true;
                         this.message = "Uploaded";
-                        let item = {
-                            "fileName" : data.name,
-                            "fileMimeType" : data.type,
-                            "fileLocality" : "",
-                            "size" : data.size,
-                            "fileType" : "REGULAR",
-                            "mtime" : data.lastModified,
-                            "creationTime" : Date.now()
-                        };
-                        this.dispatchEvent(new CustomEvent('complete', {detail: {item: item}}));
+                        this.dispatchEvent(new CustomEvent('complete', {detail: {item: {
+                                    "fileName" : data.name,
+                                    "fileMimeType" : data.type,
+                                    "fileLocality" : "",
+                                    "size" : data.size,
+                                    "fileType" : "REGULAR",
+                                    "mtime" : data.lastModified,
+                                    "creationTime" : Date.now()
+                                }}})
+                        );
                     },
 
                     onProgress: (evt)=>
