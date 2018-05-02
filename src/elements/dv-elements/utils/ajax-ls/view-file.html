@@ -5,7 +5,6 @@
 <link rel="import" href="../../../../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../../../../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
 
-<link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../../../bower_components/paper-styles/element-styles/paper-material-styles.html">
 
@@ -15,6 +14,7 @@
 <link rel="import" href="../../directory-ls-message/empty-directory.html">
 <link rel="import" href="../../directory-ls-message/directory-ls-error.html">
 <link rel="import" href="../../user-authentication/user-login-page.html">
+<link rel="import" href="../../rename-input/rename-input.html">
 
 <dom-module id="view-file">
     <template>
@@ -87,7 +87,8 @@
                        selection-enabled>
                 <template>
                     <div>
-                        <list-row class$="[[_computedClass(selected)]]" tabindex$="[[tabIndex]]"
+                        <list-row tabindex$="[[tabIndex]]"
+                                  class$="[[_computedClass(selected,item.pnfsId)]]"
                                   x-selected$="[[__computedXselected(item.xSelected)]]"
                                   file-meta-data="{{item}}" parent-path="[[parent]]"
                                   draggable="[[_computedDraggable(item.xSelected)]]"></list-row>
@@ -95,19 +96,6 @@
                 </template>
             </iron-list>
         </div>
-        <paper-dialog id="dialog"
-                      horizontal-align="left" vertical-align="top"
-                      style="margin:0; width:400px; background-color:#eee;">
-            <div style="padding-top:0;padding-bottom:0;margin-top:0;margin-left:0;margin-right:0;">
-                <iron-a11y-keys target="[[target]]"
-                                keys="enter" on-keys-pressed="_rename">
-                </iron-a11y-keys>
-                <paper-input id="input" value="{{name::input}}"
-                             auto-validate pattern="[^/]*" preventInvalidInput
-                             error-message="Invalid name" required autofocus>
-                </paper-input>
-            </div>
-        </paper-dialog>
         <div class="loading" id="loading" is-loading$="[[loading]]">
             <paper-spinner active="[[loading]]"></paper-spinner> Fetching data
         </div>
@@ -135,14 +123,13 @@
                 this._sendCurrentPath_ = this._sendCurrentPath(this.path);
                 this._sendItemIndex_ = this._sendItemIndex.bind(this);
                 this._reset_ = this._reset.bind(this);
-                this._openDialog_ = this.openDialog.bind(this);
+                this._renameInputStart_ = this._renameInputStart.bind(this);
             }
             ready()
             {
                 super.ready();
                 this.$.feList.scrollTarget = this.$.content;
                 this.$.threshold.scrollTarget = this.$.content;
-                this.target = this.$.input;
             }
             connectedCallback()
             {
@@ -151,15 +138,14 @@
 
                 this.addEventListener('keydown', this._multipleSelectionShortcuts);
                 this.addEventListener('keyup', this._resetMultipleSelectionShortcuts);
+                this.addEventListener('dv-namespace-rename-input', this._renameInputEnd);
 
                 window.addEventListener('dv-namespace-remove-items', this._removeItems_);
                 window.addEventListener('dv-namespace-add-items', this._addItems_);
                 window.addEventListener('dv-namespace-request-current-path', this._sendCurrentPath_);
                 window.addEventListener('dv-namespace-request-item-index', this._sendItemIndex_);
                 window.addEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
-                window.addEventListener('dv-namespace-namespace-open-rename-dialogbox', this._openDialog_);
-
-
+                window.addEventListener('dv-namespace-namespace-open-rename-dialogbox', this._renameInputStart_);
             }
             disconnectedCallback()
             {
@@ -168,13 +154,14 @@
 
                 this.removeEventListener('keydown', this._multipleSelectionShortcuts);
                 this.removeEventListener('keyup', this._resetMultipleSelectionShortcuts);
+                this.removeEventListener('dv-namespace-rename-input', this._renameInputEnd);
 
                 window.removeEventListener('dv-namespace-remove-items', this._removeItems_);
                 window.removeEventListener('dv-namespace-add-items', this._addItems_);
                 window.removeEventListener('dv-namespace-request-current-path', this._sendCurrentPath_);
                 window.removeEventListener('dv-namespace-request-item-index', this._sendItemIndex_);
                 window.removeEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
-                window.removeEventListener('dv-namespace-namespace-open-rename-dialogbox', this._openDialog_);
+                window.removeEventListener('dv-namespace-namespace-open-rename-dialogbox', this._renameInputStart_);
             }
             static get is()
             {
@@ -214,15 +201,6 @@
                     currentDirMetaData: {
                         type: Object,
                         value: ()=>{return {};}
-                    },
-
-                    name: {
-                        type:String,
-                        notify: true
-                    },
-
-                    target: {
-                        type: Object
                     },
 
                     __counter__: {
@@ -288,9 +266,9 @@
                 return !!isSelected;
             }
 
-            _computedClass(isSelected)
+            _computedClass(isSelected, pnfsId)
             {
-                let classes = 'item';
+                let classes = `item _dv${pnfsId}`;
                 if (isSelected) {
                     classes += ' selected';
                 }
@@ -390,43 +368,25 @@
                 }
             }
 
-            openDialog(e)
+            _renameInputStart(e)
             {
+                const listRow =
+                    this.$.feList.querySelector(`._dv${e.detail.file.fileMetaData.pnfsId}`);
+                const input = new RenameInput(e.detail.file);
 
-                this.name = e.detail.file.fileName;
-                this._previousName = e.detail.file.fileName;
-                const dialog = this.$.dialog;
-                dialog.positionTarget = e.detail.file.$.nameContainer;
-                this._renameTargetNode = e.detail.file;
-                dialog.open();
+                app.removeAllChildren(listRow.$.nameContainer);
+                listRow.$.nameContainer.appendChild(input);
             }
 
-            _rename()
+            _renameInputEnd(e)
             {
-                const namespace = document.createElement('dcache-namespace');
-                namespace.auth = app.getAuthValue();
-                const path = this.path.endsWith("/") ? this.path : `${this.path}/`;
-                namespace.mv({
-                    url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
-                    path: `${path}${this._previousName}`,
-                    destination: `${path}${this.name}`
-                });
-
-                const dialog = this.$.dialog;
-                namespace.promise.then(() => {
-                        this._renameTargetNode.$.fileName.innerHTML = this.name;
-                        this._renameTargetNode.name = this.name;
-                        app.$.toast.text = "Done! File renamed. ";
-                        app.$.toast.show();
-                        dialog.close();
-                    }
-                ).catch(
-                    function (err) {
-                        app.$.toast.text = err.message;
-                        app.$.toast.show();
-                        dialog.close();
-                    }
-                );
+                const listRow = this.$.feList.querySelector(`._dv${e.detail.pnfsId}`);
+                const span = document.createElement('span');
+                span.setAttribute("id", "fileName");
+                const t = document.createTextNode(`${e.detail.newFileName}`);
+                span.appendChild(t);
+                app.removeAllChildren(listRow.$.nameContainer);
+                listRow.$.nameContainer.appendChild(span);
             }
 
             _loadNamespaceData()
