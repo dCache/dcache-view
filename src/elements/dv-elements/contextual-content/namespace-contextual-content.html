@@ -304,13 +304,17 @@
                     this.dispatchEvent(
                         new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
                             bubbles: true, composed: true}));
-                    app.$.toast.text = `${noOfMovedItems} ${fileType} have been moved from
-                        ${e.detail.response.sourceDirName} to ${e.detail.response.targetDirName}. `;
-                    app.$.toast.show();
+
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                        {detail: {
+                            message: noOfMovedItems + fileType + " have been moved from " +
+                            e.detail.response.sourceDirName + " to " + e.detail.response.targetDirName
+                                + "."}, bubbles: true, composed: true}
+                    ));
                 });
                 mv.addEventListener('error', function (e) {
-                    app.$.toast.text = e.detail.error+ " ";
-                    app.$.toast.show();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                        {detail: {message: e.detail.error}, bubbles: true, composed: true}));
                 });
                 mv.addEventListener('dismiss', function (e) {
                     this.dispatchEvent(
@@ -340,8 +344,8 @@
             {
                 app.$.centralContextMenu.close();
                 if (sessionStorage.upauth === null || sessionStorage.upauth === undefined) {
-                    app.$.toast.text = 'You need to login to delete file(s). ';
-                    app.$.toast.show();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                        {detail: {message: "You need to login to delete file(s)."}, bubbles: true, composed: true}));
                     return;
                 }
                 if (this.multipleSelection) {
@@ -364,14 +368,15 @@
                         this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
                             detail: {files: [file]},bubbles: true, composed: true
                         }));
-                        const type = file.fileType === "DIR" ? "Folder" : "File";
-                        app.$.toast.text = type + " deleted. ";
-                        app.$.toast.show();
+                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                            {detail: {
+                                message: `${file.fileType === "DIR" ? "Folder" : "File"} deleted.`},
+                                bubbles: true, composed: true}));
                     }
                 ).catch(
                     function(err) {
-                        app.$.toast.text = err.message;
-                        app.$.toast.show();
+                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                            {detail: {message: err.message}, bubbles: true, composed: true}));
                     }
                 );
                 namespace.rm({
@@ -408,12 +413,12 @@
                         this.dispatchEvent(new CustomEvent('dv-namespace-add-items', {
                             detail: {files: [file]}, bubbles: true, composed: true})
                         );
-                        app.$.toast.text = "Done! New directory created. ";
-                        app.$.toast.show();
+                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                            {detail: {message: "Done! New directory created."}, bubbles: true, composed: true}));
                     }).catch(
                         function(err) {
-                            app.$.toast.text = `${err.message} `;
-                            app.$.toast.show();
+                            this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                                {detail: {message: err.message}, bubbles: true, composed: true}));
                         }
                     );
 
@@ -446,13 +451,16 @@
                 app.$.centralContextMenu.close();
 
                 if (!window.CONFIG.isSomebody) {
-                    app.$.toast.text = "You need to login to view this information. ";
-                    app.$.toast.show();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                        {detail: {
+                            message: "You need to login to view this information."}, bubbles: true, composed: true}));
                     return;
                 }
                 if (window.CONFIG.qos === undefined) {
-                    app.$.toast.text = "Request have been sent, please check again in a minute or two. ";
-                    app.$.toast.show();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                        {detail: {
+                            message: "Request have been sent, please check again in a minute or two."},
+                            bubbles: true, composed: true}));
                     return;
                 }
 
