@@ -156,8 +156,7 @@
             </paper-tabs>
             <iron-pages selected="{{selected}}">
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="Reads" id="reads"
+                    <vaadin-grid aria-label="Reads" id="reads"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[readsSize]]">
 
@@ -334,8 +333,7 @@
                     </vaadin-grid>
                 </div>
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="Writes" id="writes"
+                    <vaadin-grid aria-label="Writes" id="writes"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[writesSize]]">
 
@@ -420,7 +418,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('W', '4')"
+                                    <span onclick="sendBillingRecordsCellClick('W', 4)"
                                           class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
@@ -519,8 +517,7 @@
                     </vaadin-grid>
                 </div>
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="P2Ps" id="p2ps"
+                    <vaadin-grid aria-label="P2Ps" id="p2ps"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[p2psSize]]">
                         <vaadin-grid-column-group>
@@ -563,7 +560,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('P', '3')"
+                                    <span onclick="sendBillingRecordsCellClick('P', 3)"
                                           class$="actionable[[item.serverPool.active]]">
                                         [[item.serverPool.name]]
                                     </span>
@@ -589,7 +586,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('P', '4')"
+                                    <span onclick="sendBillingRecordsCellClick('P', 4)"
                                           class$="actionable[[item.clientPool.active]]">
                                         [[item.clientPool.name]]
                                     </span>
@@ -646,8 +643,7 @@
                     </vaadin-grid>
                 </div>
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="Stores" id="stores"
+                    <vaadin-grid aria-label="Stores" id="stores"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[storesSize]]">
                         <vaadin-grid-column-group>
@@ -690,7 +686,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('F', '3')"
+                                    <span onclick="sendBillingRecordsCellClick('F', 3)"
                                           class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
@@ -737,8 +733,7 @@
                     </vaadin-grid>
                 </div>
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="Restores" id="restores"
+                    <vaadin-grid aria-label="Restores" id="restores"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[restoresSize]]">
                         <vaadin-grid-column-group>
@@ -780,7 +775,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('S', '3')"
+                                    <span onclick="sendBillingRecordsCellClick('S', 3)"
                                           class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
@@ -838,7 +833,7 @@
         function sendBillingRecordsCellClick(table, cell) {
             window.dispatchEvent(
                 new CustomEvent(`dv-billing-records-table-cell-click`, {
-                    detail: {table: table, cell: parseInt(cell)}}));
+                    detail: {table: table, cell: cell}}));
         }
 
         class BillingRecordsDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
@@ -906,6 +901,11 @@
                         type: Number,
                         value: 0,
                         notify: true,
+                    },
+
+                    activeItem: {
+                        type: Object,
+                        observer: '_activeItemChanged'
                     }
                 }
             }
@@ -1060,8 +1060,8 @@
             /* -------------------------- Dialogs -------------------------- */
 
             _activeItemChanged(item) {
-                if (item && item.detail && item.detail.value) {
-                    this.currentItem = item.detail.value;
+                if (item) {
+                    this.currentItem = item;
                 }
 
                 if (typeof this.currentItem === 'undefined' ||
