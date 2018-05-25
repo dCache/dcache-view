@@ -148,8 +148,7 @@
             </paper-tabs>
             <iron-pages selected="{{selected}}">
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="Movers" id="movers"
+                    <vaadin-grid aria-label="Movers" id="movers"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[moversSize]]">
                         <vaadin-grid-column-group>
@@ -360,8 +359,7 @@
                     </vaadin-grid>
                 </div>
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="P2Ps" id="p2ps"
+                    <vaadin-grid aria-label="P2Ps" id="p2ps"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[p2psSize]]">
                         <vaadin-grid-column-group>
@@ -533,8 +531,7 @@
                     </vaadin-grid>
                 </div>
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="Flush" id="flushes"
+                    <vaadin-grid aria-label="Flush" id="flushes"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[flushesSize]]">
 
@@ -680,8 +677,7 @@
                     </vaadin-grid>
                 </div>
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="Stage" id="stages"
+                    <vaadin-grid aria-label="Stage" id="stages"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[stagesSize]]">
 
@@ -827,8 +823,7 @@
                     </vaadin-grid>
                 </div>
                 <div class="tablediv">
-                    <vaadin-grid on-active-item-changed="_activeItemChanged"
-                                 aria-label="Remove" id="removes"
+                    <vaadin-grid aria-label="Remove" id="removes"
                                  active-item="{{activeItem}}"
                                  multi-sort="true" size="[[removesSize]]">
 
@@ -982,7 +977,7 @@
     </template>
 
     <script>
-        function setPoolActivityCellClick() {
+        function sendPoolActivityCellClick() {
             window.dispatchEvent(
                 new CustomEvent(`dv-pool-activity-table-cell-click`, {}));
         }
@@ -1048,6 +1043,11 @@
                         type: Number,
                         value: 0,
                         notify: true
+                    },
+
+                    activeItem: {
+                        type: Object,
+                        observer: '_activeItemChanged'
                     }
                 }
             }
@@ -1228,18 +1228,16 @@
             /* -------------------------- Dialogs -------------------------- */
 
             _activeItemChanged(item) {
-                if (item && item.detail && item.detail.value) {
-                    this.currentItem = item.detail.value;
+                if (item) {
+                    this.currentItem = item;
                 }
 
                 if (typeof this.currentItem === 'undefined' ||
-                    typeof this.cell === 'undefined' ) {
+                    !this.pnfsidClicked ) {
                     return;
                 }
 
-                if (this.pnfsidClicked) {
-                    this.openFileInfoDialog(this.currentItem.pnfsId.id, this.pool);
-                }
+                this.openFileInfoDialog(this.currentItem.pnfsId.id, this.pool);
 
                 this.pnfsidClicked = false;
             }
