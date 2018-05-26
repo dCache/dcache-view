@@ -80,8 +80,7 @@
         </paper-toolbar>
         <hr/>
         <div class="tablediv">
-            <vaadin-grid on-active-item-changed="_activeItemChanged"
-                         aria-label="Tape Restores" id="restores"
+            <vaadin-grid aria-label="Tape Restores" id="restores"
                          active-item="{{activeItem}}"
                          multi-sort="true" size="[[tableSize]]">
 
@@ -141,7 +140,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template>
-                            <span onclick="sendRestoresTableCellClick('1')"
+                            <span onclick="sendRestoresTableCellClick(1)"
                                     class="actionable">[[item.pnfsId]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -182,7 +181,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template>
-                            <span onclick="sendRestoresTableCellClick('2')"
+                            <span onclick="sendRestoresTableCellClick(2)"
                                 class="actionable">[[item.poolCandidate]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -244,7 +243,7 @@
         function sendRestoresTableCellClick(cell) {
             window.dispatchEvent(
                 new CustomEvent(`dv-restores-table-cell-click`, {
-                    detail: {cell: parseInt(cell)}}));
+                    detail: {cell: cell}}));
         }
 
         class RestoresView extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)) {
@@ -272,6 +271,11 @@
                         type: Number,
                         value: 0,
                         notify: true
+                    },
+
+                    activeItem: {
+                        type: Object,
+                        observer: '_activeItemChanged'
                     }
                 }
             }
@@ -341,7 +345,7 @@
             /* -------------------------- Dialogs -------------------------- */
 
             _activeItemChanged(item) {
-                if (item && item.detail && item.detail.value) {
+                if (item) {
                     this.currentItem = item.detail.value;
                 }
 

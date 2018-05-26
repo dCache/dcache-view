@@ -167,8 +167,7 @@
         </paper-toolbar>
         <paper-checkbox checked="{{showall}}">Show All Columns</paper-checkbox>
         <div class="tablediv">
-            <vaadin-grid on-active-item-changed="_activeItemChanged"
-                         aria-label="Disk Transfers" id="transfers"
+            <vaadin-grid aria-label="Disk Transfers" id="transfers"
                          active-item="{{activeItem}}"
                          multi-sort="true" size="[[tableSize]]">
                 <vaadin-grid-selection-column>
@@ -360,7 +359,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template>
-                            <span onclick="sendTransfersTableCellClick('2')"
+                            <span onclick="sendTransfersTableCellClick(1)"
                                   class="actionable">[[item.pnfsId]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -383,7 +382,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template>
-                            <span onclick="sendTransfersTableCellClick('2')"
+                            <span onclick="sendTransfersTableCellClick(2)"
                                   class="actionable">[[item.pool]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -467,7 +466,7 @@
         function sendTransfersTableCellClick(cell) {
             window.dispatchEvent(
                 new CustomEvent(`dv-transfers-table-cell-click`, {
-                    detail: {cell: parseInt(cell)}}));
+                    detail: {cell: cell}}));
         }
 
         class TransfersView extends
@@ -481,7 +480,7 @@
                 return {
                     name: {
                         type: String,
-                        value: "TRANFERS"
+                        value: "TRANSFERS"
                     },
 
                     decorator: {
@@ -518,6 +517,11 @@
                         type: Boolean,
                         value: false,
                         notify: true
+                    },
+
+                    activeItem: {
+                        type: Object,
+                        observer: '_activeItemChanged'
                     }
                 }
             }
@@ -630,8 +634,8 @@
             /* -------------------------- Dialogs -------------------------- */
 
             _activeItemChanged(item) {
-                if (item && item.detail && item.detail.value) {
-                    this.currentItem = item.detail.value;
+                if (item) {
+                    this.currentItem = item;
                 }
 
                 if (typeof this.currentItem === 'undefined' ||
@@ -639,10 +643,10 @@
                     return;
                 }
 
-                if (this.cell === '1') {
+                if (this.cell === 1) {
                     this.openFileInfoDialog(this.currentItem.pnfsId,
                         this.currentItem.pool);
-                } else if (this.cell === '2') {
+                } else if (this.cell === 2) {
                     this.openPoolInfoDialog(this.currentItem.pool,
                         this.currentItem.pnfsId);
                 }
