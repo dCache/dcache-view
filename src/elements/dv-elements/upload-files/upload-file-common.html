@@ -5,11 +5,11 @@
         `use-strict`;
         class UploadFileCommon extends Polymer.Element
         {
-            constructor(path, browser)
+            constructor(path)
             {
                 super();
-                this.path = path.endsWith("/") ? path : path + "/";
-                this.browser = browser;
+                this.path = path.endsWith("/") ? path : `${path}/`;
+                this.browser = app.checkBrowser();
             }
 
             static get is()
@@ -48,11 +48,9 @@
                     url: {
                         type: String,
                         value: function () {
-                            if (window.CONFIG["dcache-view.endpoints.webdav"] === "") {
-                                return `${window.location.protocol}//${window.location.hostname}:2880`;
-                            } else {
-                                return window.CONFIG["dcache-view.endpoints.webdav"];
-                            }
+                            return window.CONFIG["dcache-view.endpoints.webdav"] === "" ?
+                                `${window.location.protocol}//${window.location.hostname}:2880` :
+                                window.CONFIG["dcache-view.endpoints.webdav"];
                         }
                     },
                     path: {
@@ -72,21 +70,22 @@
 
             upload(file)
             {
-                const uploadUrl = this.url + this.path + file.name;
+                const uploadUrl = `${this.url}${this.path}${file.name}`;
 
                 new UploadHandler({
                     file: file,
                     upauth: sessionStorage.upauth,
                     url: uploadUrl,
-                    onComplete: (data)=>
-                    {
+                    onComplete: data => {
                         this.progressStatus = false;
                         this.progressValue = 100;
                         this.inProgress = false;
                         this.hasError = false;
                         this.isComplete = true;
                         this.message = "Uploaded";
-                        this.dispatchEvent(new CustomEvent('complete', {detail: {item: {
+                        this.dispatchEvent(new CustomEvent('complete', {
+                            detail: {
+                                item: {
                                     "fileName" : data.name,
                                     "fileMimeType" : data.type,
                                     "fileLocality" : "",
@@ -94,7 +93,8 @@
                                     "fileType" : "REGULAR",
                                     "mtime" : data.lastModified,
                                     "creationTime" : Date.now()
-                                }}})
+                                }
+                            }})
                         );
                     },
 
