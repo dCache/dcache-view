@@ -118,6 +118,10 @@
                     new CustomEvent('dv-namespace-view-file-created', {
                         detail: {}, bubbles: true, composed: true}));
 
+                window.dispatchEvent(
+                    new CustomEvent('dv-namespace-current-path', {
+                        detail: {currentPath: path}, bubbles: true, composed: true}));
+
                 this._removeItems_ = this._removeItems.bind(this);
                 this._addItems_ = this._addItems.bind(this);
                 this._sendCurrentPath_ = this._sendCurrentPath.bind(this);
