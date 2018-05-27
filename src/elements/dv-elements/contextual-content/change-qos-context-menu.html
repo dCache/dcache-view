@@ -31,8 +31,7 @@
         <paper-listbox class="menu-content">
             <template is="dom-repeat" items="[[possibleTransition]]">
                 <paper-item on-tap="_changeQos" class="menuItem"
-                            disabled$="[[_computedDisabled(item.backendCapability.name,currentQos)]]"
-                            data-transition-name$="[[item.backendCapability.name]]">
+                            disabled$="[[_computedDisabled(item.backendCapability.name,currentQos)]]">
                     [[item.backendCapability.name]]
                 </paper-item>
             </template>
@@ -45,7 +44,7 @@
             {
                 super();
                 this.path = t.filePath;
-                this.currentQos = t.currentQos;
+                this.currentQos = t.fileMetaData.currentQos;
                 this.targetNode = t;
             }
 
@@ -86,9 +85,10 @@
             {
                 super.connectedCallback();
                 window.addEventListener('dv-namespace-receive-item-index', e => this.index = e.detail.index);
-                this.dispatchEvent(new CustomEvent('dv-namespace-request-item-index'), {
-                    detail:{item: this.targetNode}, bubbles: true, composed: true
-                });
+
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-request-item-index', {
+                        detail: {item: this.targetNode.fileMetaData}, bubbles: true, composed: true}));
             }
 
             disconnectedCallback()
@@ -104,29 +104,26 @@
                 const namespace = document.createElement('dcache-namespace');
                 namespace.auth = sessionStorage.upauth;
 
-                namespace.promise.then(
-                    () => {
-                        const currentQos = this.currentQos;
-                        app.$.toast.text = "Request successful! File in transition. ";
-                        app.$.toast.show();
-                        this.dispatchEvent(new CustomEvent('qos-in-transition', {detail: {options: {
-                            currentQos: currentQos,
-                            targetQos: e.target.getAttribute('data-transition-name'),
+                namespace.promise.then(() => {
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: `Request successful! File in transition.`},
+                        bubbles: true, composed: true}));
+                    this.dispatchEvent(new CustomEvent('qos-in-transition', {detail: {
+                        options: {
+                            currentQos: this.currentQos,
+                            targetQos: e.model.item.backendCapability.name,
                             itemIndex: this.index,
-                            path: this.path
-                        }}}));
-                    }
-                ).catch(
-                    function(err) {
-                        app.$.toast.text = `${err.message} `;
-                        app.$.toast.show();
-                    }
-                );
+                            path: this.path}}, bubbles: true, composed: true}));
+                }).catch((err) => {
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: `${err.message}`},
+                        bubbles: true, composed: true}));
+                });
 
                 namespace.qos({
                     url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
                     path: this.path,
-                    target: e.target.getAttribute('data-transition-name')
+                    target: e.model.item.backendCapability.name
                 });
             }
 

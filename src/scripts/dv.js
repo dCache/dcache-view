@@ -428,17 +428,18 @@
 
     function updateFeListAndMetaDataDrawer(status, itemIndex)
     {
-        if (app.$.metadata.selected == 'drawer'){
+        if (app.$.metadata.selected === 'drawer'){
             app.$.metadata.querySelector('file-metadata').currentQos = status;
         }
-        app.$.homeDir.querySelector('#feList')
-            .set('items.'+itemIndex+'.currentQos', status);
-        app.$.homeDir.querySelector('#feList').notifyPath('items.'+itemIndex+'.currentQos');
+        const vf = app.$.homedir.querySelector('view-file');
+        vf.shadowRoot.querySelector('#feList')
+            .set(`items.${itemIndex}.currentQos`, status);
+        vf.shadowRoot.querySelector('#feList').notifyPath(`items.${itemIndex}.currentQos`);
     }
 
     function periodicalCurrentQosRequest(options)
     {
-        let namespace = document.createElement('dcache-namespace');
+        const namespace = document.createElement('dcache-namespace');
         namespace.auth = sessionStorage.upauth;
         namespace.promise.then( (req) => {
             if (req.response.targetQos !== undefined) {
@@ -446,7 +447,7 @@
 
                 //ask every two seconds
                 setTimeout(periodicalCurrentQosRequest(options), 2000);
-            } else if (req.response.currentQos == options.targetQos) {
+            } else if (req.response.currentQos === options.targetQos) {
                 updateFeListAndMetaDataDrawer(req.response.currentQos, options.itemIndex);
 
                 app.$.toast.text = "Transition complete! ";
@@ -464,7 +465,7 @@
             }
         );
         namespace.getqos({
-            url: window.CONFIG["dcache-view.endpoints.webapi"] + 'namespace',
+            url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
             path: options.path
         });
     }

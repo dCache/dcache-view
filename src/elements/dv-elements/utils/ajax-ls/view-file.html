@@ -666,7 +666,7 @@
 
             _sendItemIndex(event)
             {
-                const index = this.__getItemCurrentIndex(event.detail.item.fileName);
+                const index = this.__getItemCurrentIndex(event.detail.item);
                 this.dispatchEvent(
                     new CustomEvent('dv-namespace-receive-item-index', {
                         detail: {index: index}, bubbles: true, composed: true}));
