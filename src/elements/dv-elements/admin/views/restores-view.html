@@ -140,7 +140,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template>
-                            <span onclick="sendRestoresTableCellClick(1)"
+                            <span onclick="_openFileInfo"
                                     class="actionable">[[item.pnfsId]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -181,7 +181,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template>
-                            <span onclick="sendRestoresTableCellClick(2)"
+                            <span onclick="_openPoolInfo"
                                 class="actionable">[[item.poolCandidate]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -240,12 +240,6 @@
     </template>
 
     <script>
-        function sendRestoresTableCellClick(cell) {
-            window.dispatchEvent(
-                new CustomEvent(`dv-restores-table-cell-click`, {
-                    detail: {cell: cell}}));
-        }
-
         class RestoresView extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)) {
 
             static get is() {
@@ -258,13 +252,13 @@
                         type: Object,
                     },
 
-                    currentItem: {
-                        type: Object
+                    activeItem: {
+                        type: Object,
+                        observer: '_setCurrentItem'
                     },
 
-                    cell: {
-                        type: Number,
-                        value: 0
+                    currentItem: {
+                        type: Object
                     },
 
                     tableSize: {
@@ -272,11 +266,6 @@
                         value: 0,
                         notify: true
                     },
-
-                    activeItem: {
-                        type: Object,
-                        observer: '_activeItemChanged'
-                    }
                 }
             }
 
@@ -285,7 +274,6 @@
 
                 window.addEventListener('dv-vaadin-provider-reset-timeout-restores', this.resetTimeout.bind(this));
                 window.addEventListener('dv-vaadin-provider-update-table-size-restores', this.setTableSize.bind(this));
-                window.addEventListener('dv-restores-table-cell-click', this.setCell.bind(this));
 
                 this.decorator = new DvVaadinProviderDecorator(this.$.restores,
                     null,
@@ -308,12 +296,7 @@
 
                 window.removeEventListener('dv-vaadin-provider-reset-timeout-restores', this.resetTimeout.bind(this));
                 window.removeEventListener('dv-vaadin-provider-update-table-size-restores', this.setTableSize.bind(this));
-                window.removeEventListener('dv-restores-table-cell-click', this.setCell.bind(this));
 
-            }
-
-            setCell(event) {
-                this.cell = event.detail.cell;
             }
 
             /*
@@ -344,25 +327,28 @@
 
             /* -------------------------- Dialogs -------------------------- */
 
-            _activeItemChanged(item) {
+            _setCurrentItem(item) {
                 if (item) {
-                    this.currentItem = item.detail.value;
+                    this.currentItem = item;
                 }
+            }
 
-                if (typeof this.currentItem === 'undefined' ||
-                    typeof this.cell === 'undefined') {
+            _openFileInfo() {
+                if (typeof this.currentItem === 'undefined') {
                     return;
                 }
 
-                if (this.cell === 1) {
-                    this.openFileInfoDialog(this.currentItem.pnfsId,
-                        this.currentItem.poolCandidate);
-                    this.cell = 0;
-                } else if (this.cell === 2) {
-                    this.openPoolInfoDialog(this.currentItem.poolCandidate,
-                        this.currentItem.pnfsId);
-                    this.cell = 0;
+                this.openFileInfoDialog(this.currentItem.pnfsId,
+                    this.currentItem.poolCandidate);
+            }
+
+            _openPoolInfo() {
+                if (typeof this.currentItem === 'undefined') {
+                    return;
                 }
+
+                this.openPoolInfoDialog(this.currentItem.poolCandidate,
+                    this.currentItem.pnfsId);
             }
         }
 
