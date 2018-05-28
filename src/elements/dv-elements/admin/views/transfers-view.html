@@ -359,7 +359,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template>
-                            <span onclick="sendTransfersTableCellClick(1)"
+                            <span on-tap="_openFileInfo"
                                   class="actionable">[[item.pnfsId]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -382,7 +382,7 @@
                             </vaadin-grid-filter>
                         </template>
                         <template>
-                            <span onclick="sendTransfersTableCellClick(2)"
+                            <span on-tap="_openPoolInfo"
                                   class="actionable">[[item.pool]]</span>
                         </template>
                     </vaadin-grid-column>
@@ -463,12 +463,6 @@
     </template>
 
     <script>
-        function sendTransfersTableCellClick(cell) {
-            window.dispatchEvent(
-                new CustomEvent(`dv-transfers-table-cell-click`, {
-                    detail: {cell: cell}}));
-        }
-
         class TransfersView extends
             DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)) {
 
@@ -487,13 +481,13 @@
                         type: Object,
                     },
 
-                    currentItem: {
-                        type: Object
+                    activeItem: {
+                        type: Object,
+                        observer: '_setCurrentItem'
                     },
 
-                    cell: {
-                        type: Number,
-                        value: 0
+                    currentItem: {
+                        type: Object
                     },
 
                     count: {
@@ -517,11 +511,6 @@
                         type: Boolean,
                         value: false,
                         notify: true
-                    },
-
-                    activeItem: {
-                        type: Object,
-                        observer: '_activeItemChanged'
                     }
                 }
             }
@@ -532,7 +521,6 @@
                 window.addEventListener('dv-vaadin-provider-selection-column-clear-transfers', this.signalChange.bind(this));
                 window.addEventListener('dv-vaadin-provider-reset-timeout-transfers', this.resetTimeout.bind(this));
                 window.addEventListener('dv-vaadin-provider-update-table-size-transfers', this.setTableSize.bind(this));
-                window.addEventListener('dv-transfers-table-cell-click', this.setCell.bind(this));
 
                 this.decorator = new DvVaadinProviderDecorator(this.$.transfers,
                                                                null,
@@ -556,11 +544,6 @@
                 window.removeEventListener('dv-vaadin-provider-selection-column-clear-transfers', this.signalChange.bind(this));
                 window.removeEventListener('dv-vaadin-provider-reset-timeout-transfers', this.resetTimeout.bind(this));
                 window.removeEventListener('dv-vaadin-provider-update-table-size-transfers', this.setTableSize.bind(this));
-                window.removeEventListener('dv-transfers-table-cell-click', this.setCell.bind(this));
-            }
-
-            setCell(event) {
-                this.cell = event.detail.cell;
             }
 
             /*
@@ -633,27 +616,30 @@
 
             /* -------------------------- Dialogs -------------------------- */
 
-            _activeItemChanged(item) {
+            _setCurrentItem(item) {
                 if (item) {
                     this.currentItem = item;
                 }
+            }
 
-                if (typeof this.currentItem === 'undefined' ||
-                    typeof this.cell === 'undefined' ) {
+            _openFileInfo() {
+                if (typeof this.currentItem === 'undefined') {
                     return;
                 }
 
-                if (this.cell === 1) {
-                    this.openFileInfoDialog(this.currentItem.pnfsId,
-                        this.currentItem.pool);
-                } else if (this.cell === 2) {
-                    this.openPoolInfoDialog(this.currentItem.pool,
-                        this.currentItem.pnfsId);
-                }
+                this.openFileInfoDialog(this.currentItem.pnfsId,
+                    this.currentItem.pool);
 
-                this.cell = 0;
             }
 
+            _openPoolInfo() {
+                if (typeof this.currentItem === 'undefined') {
+                    return;
+                }
+
+                this.openPoolInfoDialog(this.currentItem.pool,
+                    this.currentItem.pnfsId);
+            }
 
             /* --------------------- Path & Mover Kill --------------------- */
 

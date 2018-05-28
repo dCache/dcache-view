@@ -176,7 +176,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendPoolActivityCellClick()"
+                                    <span on-tap="_openFileInfo"
                                           class$="actionable[[item.pnfsId.active]]">
                                         [[item.pnfsId.id]]
                                     </span>
@@ -387,7 +387,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendPoolActivityCellClick()"
+                                    <span on-tap="_openFileInfo"
                                             class$="actionable[[item.pnfsId.active]]">
                                             [[item.pnfsId.id]]
                                     </span>
@@ -582,7 +582,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendPoolActivityCellClick()"
+                                    <span on-tap="_openFileInfo"
                                           class$="actionable[[item.pnfsId.active]]">
                                             [[item.pnfsId.id]]
                                     </span>
@@ -728,7 +728,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendPoolActivityCellClick()"
+                                    <span on-tap="_openFileInfo"
                                           class$="actionable[[item.pnfsId.active]]">
                                             [[item.pnfsId.id]]
                                     </span>
@@ -877,7 +877,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendPoolActivityCellClick()"
+                                    <span on-tap="_openFileInfo"
                                             class$="actionable[[item.pnfsId.active]]">
                                         [[item.pnfsId.id]]
                                     </span>
@@ -977,11 +977,6 @@
     </template>
 
     <script>
-        function sendPoolActivityCellClick() {
-            window.dispatchEvent(
-                new CustomEvent(`dv-pool-activity-table-cell-click`, {}));
-        }
-
         class PoolActivityDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
             DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
 
@@ -991,6 +986,20 @@
 
             static get properties() {
                 return {
+
+                    activeItem: {
+                        type: Object,
+                        observer: '_setCurrentItem'
+                    },
+
+                    currentItem: {
+                        type: Object
+                    },
+
+                    pnfsidClicked: {
+                        type: Boolean
+                    },
+
                     decorators: {
                         type: Array,
                         value: [{}, {}, {}, {}, {}]
@@ -1034,20 +1043,10 @@
                         type: String
                     },
 
-                    pnfsidClicked: {
-                        type: Boolean,
-                        value: false
-                    },
-
                     selected: {
                         type: Number,
                         value: 0,
                         notify: true
-                    },
-
-                    activeItem: {
-                        type: Object,
-                        observer: '_activeItemChanged'
                     }
                 }
             }
@@ -1063,7 +1062,6 @@
 
                 window.addEventListener('dv-vaadin-provider-reset-timeout-pool', this.resetTimeout.bind(this));
                 window.addEventListener('dv-vaadin-provider-update-table-size-pool', this.setTableSize.bind(this));
-                window.addEventListener('dv-pool-activity-table-cell-click', this.setPnfsidClicked.bind(this));
 
                 this.decorators[0] = this._createDecorator(this.$.movers, 0, 6);
                 this.decorators[1] = this._createDecorator(this.$.p2ps, 1, 4);
@@ -1094,7 +1092,6 @@
 
                 window.removeEventListener('dv-vaadin-provider-reset-timeout-pool', this.resetTimeout.bind(this));
                 window.removeEventListener('dv-vaadin-provider-update-table-size-pool', this.setTableSize.bind(this));
-                window.removeEventListener('dv-pool-activity-table-cell-click', this.setPnfsidClicked.bind(this));
             }
 
             _createDecorator(table, index, filters) {
@@ -1181,10 +1178,6 @@
                 this.resetRefresh(this._refresh.bind(this), 60000);
             }
 
-            setPnfsidClicked(e) {
-                this.pnfsidClicked = true;
-            }
-
             setTableSize(e) {
                 switch (e.detail.index) {
                     case 0:
@@ -1227,19 +1220,19 @@
 
             /* -------------------------- Dialogs -------------------------- */
 
-            _activeItemChanged(item) {
+            _setCurrentItem(item) {
                 if (item) {
                     this.currentItem = item;
                 }
 
-                if (typeof this.currentItem === 'undefined' ||
-                    !this.pnfsidClicked ) {
-                    return;
+                if (this.currentItem && this.pnfsidClicked) {
+                    this.openFileInfoDialog(this.currentItem.pnfsId.id, this.pool);
+                    this.pnfsidClicked = false;
                 }
+            }
 
-                this.openFileInfoDialog(this.currentItem.pnfsId.id, this.pool);
-
-                this.pnfsidClicked = false;
+            _openFileInfo() {
+                this.pnfsidClicked = true;
             }
         }
 
