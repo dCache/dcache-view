@@ -206,8 +206,7 @@
                                          class="card-actions" style="height: 30px !important; padding: 5px 1px;">
                                         <template is="dom-repeat" items="[[possibleTransition]]">
                                             <paper-button on-tap="_changeQos"
-                                                          disabled$="[[_computedDisabled(item.backendCapability.name,currentQos)]]"
-                                                          data-transition-name$="[[item.backendCapability.name]]">
+                                                          disabled$="[[_computedDisabled(item.backendCapability.name,currentQos)]]">
                                                 [[item.backendCapability.name]]
                                             </paper-button>
                                         </template>
@@ -488,35 +487,30 @@
 
             _changeQos(e)
             {
-                const target = e.target.getAttribute('data-transition-name');
                 const namespace = document.createElement('dcache-namespace');
                 namespace.auth = sessionStorage.upauth;
-                const path = this.path;
 
-                namespace.promise.then(
-                    () => {
-                        const currentQos = this.currentQos;
-                        app.$.toast.text = "Request successful! File in transition. ";
-                        app.$.toast.show();
-                        //FIXME: `this.fire` is deprecated in polymer 2.x please adjust accordingly.
-                        this.fire('qos-in-transition', {options: {
-                            currentQos: currentQos,
-                            targetQos: target,
+                namespace.promise.then(() => {
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: `Request successful! File in transition.`},
+                        bubbles: true, composed: true}));
+                    this.dispatchEvent(new CustomEvent('qos-in-transition', {detail: {
+                        options: {
+                            currentQos: this.currentQos,
+                            targetQos: e.model.item.backendCapability.name,
                             itemIndex: this.index,
-                            path: path
-                        }});
-                    }
-                ).catch(
-                    function(err) {
-                        app.$.toast.text = err.message + " ";
-                        app.$.toast.show();
-                    }
-                );
+                            path: this.path
+                        }}, bubbles: true, composed: true}));
+                }).catch((err) => {
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: `${err.message}`},
+                        bubbles: true, composed: true}));
+                });
 
                 namespace.qos({
                     url: window.CONFIG["dcache-view.endpoints.webapi"] +'namespace',
-                    path: path,
-                    target: target
+                    path: this.path,
+                    target: e.model.item.backendCapability.name
                 });
             }
 
