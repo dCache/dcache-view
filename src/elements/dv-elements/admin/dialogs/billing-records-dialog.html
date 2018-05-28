@@ -234,7 +234,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('R', '4')"
+                                    <span on-tap="_openPoolInfoFromPool"
                                           class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
@@ -418,7 +418,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('W', 4)"
+                                    <span on-tap="_openPoolInfoFromPool"
                                           class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
@@ -560,7 +560,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('P', 3)"
+                                    <span on-tap="_openPoolInfoFromServerPool"
                                           class$="actionable[[item.serverPool.active]]">
                                         [[item.serverPool.name]]
                                     </span>
@@ -586,7 +586,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('P', 4)"
+                                    <span on-tap="_openPoolInfoFromClientPool"
                                           class$="actionable[[item.clientPool.active]]">
                                         [[item.clientPool.name]]
                                     </span>
@@ -686,7 +686,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('F', 3)"
+                                    <span on-tap="_openPoolInfoFromPool"
                                           class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
@@ -775,7 +775,7 @@
                                     </vaadin-grid-filter>
                                 </template>
                                 <template>
-                                    <span onclick="sendBillingRecordsCellClick('S', 3)"
+                                    <span on-tap="_openPoolInfoFromPool"
                                           class$="actionable[[item.pool.active]]">
                                         [[item.pool.name]]
                                     </span>
@@ -830,12 +830,6 @@
     </template>
 
     <script>
-        function sendBillingRecordsCellClick(table, cell) {
-            window.dispatchEvent(
-                new CustomEvent(`dv-billing-records-table-cell-click`, {
-                    detail: {table: table, cell: cell}}));
-        }
-
         class BillingRecordsDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
             DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
 
@@ -845,6 +839,15 @@
 
             static get properties() {
                 return {
+                    activeItem: {
+                        type: Object,
+                        observer: '_setCurrentItem'
+                    },
+
+                    currentItem: {
+                        type: Object
+                    },
+
                     decorators: {
                         type: Array,
                         value: [{}, {}, {}, {}, {}]
@@ -888,11 +891,6 @@
                         type: String
                     },
 
-                    cell: {
-                        type: Number,
-                        value: 0
-                    },
-
                     table: {
                         type: String
                     },
@@ -903,9 +901,9 @@
                         notify: true,
                     },
 
-                    activeItem: {
-                        type: Object,
-                        observer: '_activeItemChanged'
+                    clicked: {
+                        type: Number,
+                        value: 0
                     }
                 }
             }
@@ -921,7 +919,6 @@
 
                 window.addEventListener('dv-vaadin-provider-reset-timeout-billing', this.resetTimeout.bind(this));
                 window.addEventListener('dv-vaadin-provider-update-table-size-billing', this.setTableSize.bind(this));
-                window.addEventListener('dv-billing-records-table-cell-click', this.setCell.bind(this));
 
                 this.decorators[0] = this._createDecorator(this.$.reads, 0, 3);
                 this.decorators[1] = this._createDecorator(this.$.writes, 1, 3);
@@ -952,12 +949,6 @@
 
                 window.removeEventListener('dv-vaadin-provider-reset-timeout-billing', this.resetTimeout.bind(this));
                 window.removeEventListener('dv-vaadin-provider-update-table-size-billing', this.setTableSize.bind(this));
-                window.removeEventListener('dv-billing-records-table-cell-click', this.setCell.bind(this));
-            }
-
-            setCell(event) {
-                this.table = event.detail.table;
-                this.cell = event.detail.cell;
             }
 
             _createDecorator(table, index, filter) {
@@ -1056,50 +1047,46 @@
                 };
             }
 
-
             /* -------------------------- Dialogs -------------------------- */
 
-            _activeItemChanged(item) {
+            _setCurrentItem(item) {
                 if (item) {
                     this.currentItem = item;
                 }
 
-                if (typeof this.currentItem === 'undefined' ||
-                    typeof this.cell === 'undefined') {
-                    return;
-                }
-
                 let pool;
 
-                switch (this.table) {
-                    case 'R':
-                    case 'W':
-                        if (this.cell === 4) {
+                if (this.currentItem) {
+                    switch(this.clicked) {
+                        case 1:
                             pool = this.currentItem.pool.name.split('@')[0];
                             this.openPoolInfoDialog(pool, this.pnfsid);
-                        }
-                        break;
-                    case 'F':
-                    case 'S':
-                        if (this.cell === 3) {
-                            pool = this.currentItem.pool.name.split('@')[0];
-                            this.openPoolInfoDialog(pool, this.pnfsid);
-                        }
-                        break;
-                    case 'P':
-                        if (this.cell === 3) {
+                            break;
+                        case 2:
                             pool = this.currentItem.serverPool.name.split('@')[0];
                             this.openPoolInfoDialog(pool, this.pnfsid);
-                        } else if (this.cell == 4) {
+                            break;
+                        case 3:
                             const address = this.currentItem.clientPool.name.split(':')[1];
                             pool = address.split('@')[0];
                             this.openPoolInfoDialog(pool, this.pnfsid);
-                        }
-                        break;
-                }
+                            break;
 
-                this.table = '';
-                this.cell = 0;
+                    }
+                    this.clicked = 0;
+                }
+            }
+
+            _openPoolInfoFromPool() {
+                this.clicked = 1;
+            }
+
+            _openPoolInfoFromServerPool() {
+                this.clicked = 2;
+            }
+
+            _openPoolInfoFromClientPool() {
+                this.clicked = 3;
             }
 
             _hideToast() {
