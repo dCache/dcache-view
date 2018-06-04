@@ -468,6 +468,12 @@
                         event.key === "Meta" : event.key === "Control") {
                     this._ctrlKeyOn = false;
                 }
+
+                if (event.key === "Escape" || event.key === "Esc") {
+                    window.dispatchEvent(
+                        new CustomEvent('dv-namespace-reset-element-internal-parameters', {
+                            detail: {element: 'view-file'}, bubbles: true, composed: true}));
+                }
             }
 
             __computedXselected(xSelected)
