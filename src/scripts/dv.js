@@ -117,7 +117,7 @@
             }
             h = 245;
         } else {
-            cc = new NamespaceContextualContent(vf, 2);
+            cc = new NamespaceContextualContent(vf.currentDirMetaData, 2);
         }
 
         const w = 200;
@@ -577,13 +577,17 @@
     });
     window.addEventListener('dv-namespace-namespace-open-subcontextmenu', e => app.subContextMenu(e));
     window.addEventListener('dv-namespace-namespace-open-filemetadata-panel', e => {
-        app.removeAllChildren(app.$.metadataDrawer);
-        const file = e.detail.file;
-        const fm = file.fileMetaData ?
-            new FileMetadata(file.fileMetaData, file.filePath, 0) :
-            new FileMetadata({}, file.path, 1);
-        app.$.metadataDrawer.appendChild(fm);
-        app.$.metadata.openDrawer();
+        if (app.$.metadata.selected === "main") {
+            app.removeAllChildren(app.$.metadataDrawer);
+            const file = e.detail.file;
+            const fm = file.fileMetaData ?
+                new FileMetadata(file.fileMetaData, file.filePath, 0) :
+                new FileMetadata(app.$.homedir.querySelector('view-file').currentDirMetaData, file.filePath, 1);
+            app.$.metadataDrawer.appendChild(fm);
+            app.$.metadata.openDrawer();
+        } else {
+            app.$.metadata.closeDrawer();
+        }
     });
     window.addEventListener('dv-namespace-namespace-open-central-dialogbox',(e)=>{
         app.removeAllChildren(app.$.centralDialogBox);
