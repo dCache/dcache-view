@@ -941,9 +941,10 @@
             }
 
             _toggleAll(cb) {
+                const filtered = this.$.cellinfo._filter(this.$.cellinfo.items);
                 this.selectAll
                     = this.toggleAllGridItems(this.selectAll,
-                                              this.$.cellinfo.items,
+                                              filtered,
                                               this.$.cellinfo);
                 this.indeterminate = this.computeIndeterminate(this.$.cellinfo);
                 this.selectionAction = !this.selectionAction;
