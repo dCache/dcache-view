@@ -23,6 +23,8 @@
 
         // Routes
         page('*', function(ctx, next) {
+            app.$.dvDrawerPanel.forceNarrow = false;
+            app.$.dvMainTopBar.style.display = '';
             next();
             window.dispatchEvent(new CustomEvent('dv-routing-changed',
                 {
@@ -105,11 +107,10 @@
         });
 
         page('/user-login', function(ctx) {
-            let loginSection = app.$.loginSection;
-            loginSection.innerHTML = "";
-            let a = JSON.parse('{'+ ctx.querystring.substr(2) + '}');
-            let ulp = new UserLoginPage(a);
-            loginSection.appendChild(ulp);
+            app.removeAllChildren(app.$.loginSection);
+            app.$.loginSection.appendChild(new UserLoginPage(JSON.parse(`\{${ctx.querystring.substr(2)}\}`)));
+            app.$.dvDrawerPanel.forceNarrow = true;
+            app.$.dvMainTopBar.style.display = 'none';
             app.route = 'user-login';
             app.params = "";
         });
