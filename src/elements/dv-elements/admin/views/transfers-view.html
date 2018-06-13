@@ -517,6 +517,7 @@
 
             connectedCallback() {
                 super.connectedCallback();
+                this.componentPath = '/admin/active-transfers';
 
                 window.addEventListener('dv-vaadin-provider-selection-column-clear-transfers', this.signalChange.bind(this));
                 window.addEventListener('dv-vaadin-provider-reset-timeout-transfers', this.resetTimeout.bind(this));
