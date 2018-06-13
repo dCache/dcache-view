@@ -351,6 +351,11 @@
                 }
             }
 
+            connectedCallback() {
+                super.connectedCallback();
+                this.componentPath = '/admin/pool-plots';
+            }
+
             _down(e) {
                 e.stopPropagation();
                 this.selectedGroup = e.model.item.title;

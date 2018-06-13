@@ -189,6 +189,7 @@
 
             connectedCallback() {
                 super.connectedCallback();
+                this.componentPath = '/admin/pool-info';
                 this.refreshAndReset(this._sendGroupRequest.bind(this), 60000);
             }
 
