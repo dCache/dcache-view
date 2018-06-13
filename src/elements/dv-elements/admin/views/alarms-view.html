@@ -423,6 +423,7 @@
 
             connectedCallback() {
                 super.connectedCallback();
+                this.componentPath = '/admin/alarms';
 
                 window.addEventListener('dv-vaadin-provider-selection-column-clear-alarms', this.signalChange.bind(this));
                 window.addEventListener('dv-vaadin-provider-reset-timeout-alarms', this.resetTimeout.bind(this));

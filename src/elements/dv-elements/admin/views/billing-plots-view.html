@@ -145,6 +145,7 @@
 
             connectedCallback() {
                 super.connectedCallback();
+                this.componentPath = '/admin/billing-plots';
                 this.refreshAndReset(this._sendHistogramsRequest.bind(this), 300000);
             }
 

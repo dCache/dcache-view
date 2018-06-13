@@ -24,6 +24,10 @@
         // Routes
         page('*', function(ctx, next) {
             next();
+            window.dispatchEvent(new CustomEvent('dv-routing-changed',
+                {
+                    detail: { route: ctx }, bubbles: true, composed: true
+                }));
         });
 
         page('/', function() {

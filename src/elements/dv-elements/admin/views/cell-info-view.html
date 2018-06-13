@@ -230,6 +230,7 @@
 
             connectedCallback() {
                 super.connectedCallback();
+                this.componentPath = '/admin/cell-services';
                 this.refreshAndReset(this._requestCellInfo.bind(this), 60000);
             }
 

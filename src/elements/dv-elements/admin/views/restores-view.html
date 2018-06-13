@@ -271,6 +271,7 @@
 
             connectedCallback() {
                 super.connectedCallback();
+                this.componentPath = '/admin/tape-transfer-queue';
 
                 window.addEventListener('dv-vaadin-provider-reset-timeout-restores', this.resetTimeout.bind(this));
                 window.addEventListener('dv-vaadin-provider-update-table-size-restores', this.setTableSize.bind(this));

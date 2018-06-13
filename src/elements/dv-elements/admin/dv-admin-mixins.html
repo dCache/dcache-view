@@ -17,25 +17,88 @@
                 return {
                     timeoutID: {
                         type: Object
+                    },
+
+                    componentPath: {
+                        type: String
+                    },
+
+                    valid: {
+                        type: Boolean,
+                        value: true
+                    },
+
+                    callback: {
+                        type: Function
+                    },
+
+                    interval: {
+                        type: Number
+                    },
+
+                    routingChangeListener: {
+                        type: Object
                     }
                 }
+            }
+
+            constructor() {
+                super();
+                this.routingChangeListener = this.validateRoute.bind(this);
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                window.addEventListener('dv-routing-changed', this.routingChangeListener);
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback();
+                window.removeEventListener('dv-routing-changed', this.routingChangeListener);
             }
 
             stopRefresh() {
                 if (this.timeoutID) {
                     clearTimeout(this.timeoutID);
+                    this.timeoutID == null;
                 }
             }
 
             refreshAndReset(refreshCallback, interval) {
                 this.stopRefresh();
-                refreshCallback();
-                this.timeoutID = setInterval(refreshCallback, interval);
+                if (this.valid) {
+                    refreshCallback();
+                    this.callback = refreshCallback;
+                    this.interval = interval;
+                    this.timeoutID = setInterval(refreshCallback, interval);
+                }
             }
 
             resetRefresh(refreshCallback, interval) {
                 this.stopRefresh();
-                this.timeoutID = setInterval(refreshCallback, interval);
+                if (this.valid) {
+                    this.callback = refreshCallback;
+                    this.interval = interval;
+                    this.timeoutID = setInterval(refreshCallback, interval);
+                }
+            }
+
+            validateRoute(e) {
+                /*
+                 *  The componentName will not be set on the dialog.
+                 *  Dialog refresh is turned off when the dialog box
+                 *  is closed.
+                 */
+                const previous = this.valid;
+
+                this.valid = !this.componentPath ||
+                    this.componentPath === e.detail.route.canonicalPath;
+
+                if (!this.valid) {
+                    this.stopRefresh();
+                } else if (!previous) {
+                    this.refreshAndReset(this.callback, this.interval);
+                }
             }
         }
     }
