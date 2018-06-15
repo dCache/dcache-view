@@ -153,19 +153,12 @@
 
         start(event)
         {
-            if (!window.CONFIG.isSomebody) {
-                window.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                    detail: {message: `You need to login to perform this operation.`},
-                    bubbles: true, composed: true}));
-                return;
-            }
             window.dispatchEvent(new CustomEvent('dv-namespace-close-upload-toast', {
                 bubbles: true, composed: true}));
 
             const items = event.dataTransfer.items;
             window.dispatchEvent(new CustomEvent('dv-namespace-open-upload-toast', {
                 bubbles: true, composed: true}));
-            const uploadList = app.$.uploadToast.querySelector("#uploadList");
 
             if (items === undefined) {
                 const files = event.dataTransfer.files;
@@ -183,7 +176,8 @@
                     } else if (item.isDirectory) {
                         const uploadToast = new UploadToastFile(item.name, "DIR", "application/vnd.dcache.folder");
                         uploadToast.setAttribute("id", i.toString());
-                        uploadList.appendChild(uploadToast);
+                        this.dispatchEvent(new CustomEvent('dv-namespace-upload-toast-append-child', {
+                            detail: {child: uploadToast}, bubbles: true, composed: true}));
                         const progressBar = uploadToast.shadowRoot.querySelector('paper-progress');
 
                         this.__createNewDirectory(item.name, this.path).then(name => {
