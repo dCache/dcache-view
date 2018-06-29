@@ -159,11 +159,13 @@
                 }
 
                 let up = this.username + ":" + this.password;
+                sessionStorage.setItem("password", `:${this.password}`);
                 this.auth = window.btoa(up);
                 const listOfRolesToAssert = this.assertionStatus?"*":"";
                 let userAuth = new UserAuthentication(this.redirectTo, this.auth, "", listOfRolesToAssert);
 
                 window.addEventListener('dv-authentication-error', (e) => {
+                    sessionStorage.removeItem("password");
                     this.errorMessage = e.detail.message;
                 });
 
