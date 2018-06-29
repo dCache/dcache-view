@@ -44,17 +44,11 @@
                     return;
                 }
 
-                let newUnencodedAuth;
                 const oldAuth = window.atob(sessionStorage.upauth);
-                if (!oldAuth.startsWith(sessionStorage.name+"#")) {
-                    //first time of asserting roles
-                    window.CONFIG.salt = oldAuth.replace(sessionStorage.name,"");
-                    newUnencodedAuth = oldAuth.replace(sessionStorage.name, sessionStorage.name+"#" +
-                        listOfRolesToAssert);
-                } else {
-                    newUnencodedAuth = listOfRolesToAssert === "" ? sessionStorage.name + window.CONFIG.salt :
-                        sessionStorage.name + "#" + listOfRolesToAssert + window.CONFIG.salt;
-                }
+                const newUnencodedAuth = !oldAuth.startsWith(sessionStorage.name + "#") ?
+                    `${oldAuth.replace(sessionStorage.name, sessionStorage.name + `#${listOfRolesToAssert}`)}` :
+                    listOfRolesToAssert === "" ? `${sessionStorage.name}${sessionStorage.password}` :
+                    `${sessionStorage.name}#${listOfRolesToAssert}${sessionStorage.password}`;
                 const auth = window.btoa(newUnencodedAuth);
 
                 let userAuth = new UserAuthentication(redirectTo, auth, sessionStorage.listOfPossibleRoles, "");
