@@ -268,21 +268,12 @@
                         new CustomEvent('dv-namespace-request-item-index', {
                             detail: {item: file}, bubbles: true, composed: true}));
                 }
-                path = path === "" ? "/": path;
-                if (JSON.stringify(file) === '{}') {
-                    this.fileName = path === "/" ? "Root" : path.slice(path.lastIndexOf("/") + 1);
-                    this.fileType = "DIR";
-                } else {
-                    this.fileName = file.fileName;
-                    this.fileType = file.fileType;
-                }
-
+                this.fileName = file.fileName;
+                this.fileType = file.fileType;
                 this.path = path;
                 this.isSomebody = !(sessionStorage.upauth === undefined || sessionStorage.upauth == null);
                 this.isRegular = this.fileType === 'REGULAR';
                 this.currentQos = file.currentQos === undefined ? null : file.currentQos;
-
-
 
                 if (window.CONFIG.qos === undefined && window.CONFIG.isSomebody) {
                     const apiEndPoint = window.CONFIG["dcache-view.endpoints.webapi"];
