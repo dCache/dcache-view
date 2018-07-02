@@ -581,13 +581,17 @@
             app.removeAllChildren(app.$.metadataDrawer);
             const file = e.detail.file;
             const fm = file.fileMetaData ?
-                new FileMetadata(file.fileMetaData, file.filePath, 0) :
-                new FileMetadata(app.$.homedir.querySelector('view-file').currentDirMetaData, file.filePath, 1);
+                new FileMetadataDashboard(Object.assign({},file.fileMetaData), file.filePath, 0) :
+                new FileMetadataDashboard(Object.assign({},
+                    app.$.homedir.querySelector('view-file').currentDirMetaData), file.filePath, 1);
             app.$.metadataDrawer.appendChild(fm);
             app.$.metadata.openDrawer();
         } else {
             app.$.metadata.closeDrawer();
         }
+    });
+    window.addEventListener('dv-namespace-namespace-close-filemetadata-panel', e => {
+        app.$.metadata.closeDrawer();
     });
     window.addEventListener('dv-namespace-namespace-open-central-dialogbox',(e)=>{
         app.removeAllChildren(app.$.centralDialogBox);

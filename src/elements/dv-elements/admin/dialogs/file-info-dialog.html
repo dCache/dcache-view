@@ -24,6 +24,8 @@
       href="../../../../elements/dv-elements/admin/dv-vaadin-theme.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/utils/mixins/commons.html">
 
 <dom-module id="file-info-dialog">
     <template>
@@ -339,7 +341,7 @@
 
     <script>
         class FileInfoDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
-            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element)))) {
 
             static get is() {
                 return 'file-info-dialog';
@@ -414,7 +416,7 @@
                 const atime = this.timeToLocaleString(info.atime);
                 const ctime = this.timeToLocaleString(info.ctime);
                 const mtime = this.timeToLocaleString(info.mtime);
-                const unix = this.convertToUnixPermissions(info.fileType, info.mode);
+                const unix = this.convertToUnixPermissions(info.mode);
                 return [this.convertToNameValueObject('Type', info.fileType),
                         this.convertToNameValueObject('Owner (UID)', info.owner),
                         this.convertToNameValueObject('Group (GID)', info.group),

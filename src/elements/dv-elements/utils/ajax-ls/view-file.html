@@ -128,6 +128,7 @@
                 this._sendItemIndex_ = this._sendItemIndex.bind(this);
                 this._reset_ = this._reset.bind(this);
                 this._renameInputStart_ = this._renameInputStart.bind(this);
+                this._sendCurrentChildren_ = this._sendCurrentChildren.bind(this);
             }
             ready()
             {
@@ -150,6 +151,7 @@
                 window.addEventListener('dv-namespace-request-item-index', this._sendItemIndex_);
                 window.addEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
                 window.addEventListener('dv-namespace-namespace-open-rename-dialogbox', this._renameInputStart_);
+                window.addEventListener('dv-namespace-request-children', this._sendCurrentChildren_);
             }
             disconnectedCallback()
             {
@@ -166,6 +168,7 @@
                 window.removeEventListener('dv-namespace-request-item-index', this._sendItemIndex_);
                 window.removeEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
                 window.removeEventListener('dv-namespace-namespace-open-rename-dialogbox', this._renameInputStart_);
+                window.removeEventListener('dv-namespace-request-children', this._sendCurrentChildren_);
             }
             static get is()
             {
@@ -754,6 +757,13 @@
             _stopPropagation(e)
             {
                 e.stopPropagation();
+            }
+
+            _sendCurrentChildren()
+            {
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-receive-children', {
+                        detail: {children: this.$.feList.items}, bubbles: true, composed: true}));
             }
         }
         window.customElements.define(ViewFile.is, ViewFile);
