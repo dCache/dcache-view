@@ -197,7 +197,7 @@
                             <span> No roles to assert</span>
                         </div>
                     </div>
-                    <template is="dom-repeat" items="[[listOfPossibleRoles]]">
+                    <template is="dom-repeat" items="[[listOfAllRoles]]">
                         <div class="display-flex row vertically-align">
                             <div class="label label-addPadding">[[item]]</div>
                             <div class="value flex"></div>
@@ -267,12 +267,19 @@
                         return sessionStorage.homeDirectory;
                     }
                 },
-                listOfPossibleRoles: {
+                listOfAllRoles: {
                     type: Array,
                     notify: true,
                     value: function () {
-                        let x = sessionStorage.listOfPossibleRoles;
-                        return x === undefined || x === "" ? [] : x.split(",");
+                        const x = sessionStorage.listOfPossibleRoles === undefined ||
+                        sessionStorage.listOfPossibleRoles === "" ?
+                            [] : sessionStorage.listOfPossibleRoles.split(",");
+                        const y = sessionStorage.roles === undefined ||
+                        sessionStorage.roles === "" ? [] : sessionStorage.roles.split(",");
+
+                        return x.concat(y.filter(function (item) {
+                            return x.indexOf(item) < 0;
+                        }));
                     }
                 }
             },
@@ -285,7 +292,7 @@
 
             _computedClass: function (str)
             {
-                const listOfPossibleRoles = sessionStorage.listOfPossibleRoles;
+                const listOfPossibleRoles = this.listOfAllRoles;
 
                 if (listOfPossibleRoles === "" || listOfPossibleRoles === null ||
                     listOfPossibleRoles === undefined) {
@@ -295,11 +302,7 @@
                     if (str === "no-roles") {
                         return ' hide row';
                     } else if (str === "all-roles") {
-                        if (listOfPossibleRoles.split(",").length === 1) {
-                            return ' hide';
-                        } else {
-                            return ' toggleBtn';
-                        }
+                        return listOfPossibleRoles.split(",").length === 1 ? ' hide' : ' toggleBtn';
                     } else {
                         return ' paper-material-inner display-flex column';
                     }
