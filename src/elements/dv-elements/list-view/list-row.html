@@ -76,12 +76,15 @@
                 padding-left: 15px;
                 padding-right: 10px
             }
+            file-icon[selected] {
+                fill: white !important;
+            }
             .none {
                 display: none;
             }
         </style>
         <div id="row" class="row">
-            <file-icon mime-type="[[fileMetaData.fileMimeType]]"></file-icon>
+            <file-icon mime-type="[[fileMetaData.fileMimeType]]" selected$="[[xSelected]]"></file-icon>
             <div class="cell name">
                 <div id="nameContainer">
                     <span id="fileName">[[fileMetaData.fileName]]</span>
