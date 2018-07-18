@@ -563,7 +563,7 @@
 
     <script>
         class PoolsOfGroupDialog extends Polymer.mixinBehaviors([Polymer.PaperDialogBehavior],
-            DcacheViewMixins.Selection(DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)))) {
+            DcacheViewMixins.Selection(DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element))))) {
 
             static get is() {
                 return 'pools-of-group-dialog';
@@ -781,10 +781,10 @@
 
                         const space = poolData.detailsData.costData.space;
 
-                        const total = this.convertToMiB(space.total);
-                        const free = this.convertToMiB(space.free);
-                        const precious = this.convertToMiB(space.precious);
-                        const removable = this.convertToMiB(space.removable);
+                        const total = this.convertBytesToNearestBinaryPrefix(space.total);
+                        const free = this.convertBytesToNearestBinaryPrefix(space.free);
+                        const precious = this.convertBytesToNearestBinaryPrefix(space.precious);
+                        const removable = this.convertBytesToNearestBinaryPrefix(space.removable);
 
                         pool = {
                             'cell': poolData.cellData.cellName,

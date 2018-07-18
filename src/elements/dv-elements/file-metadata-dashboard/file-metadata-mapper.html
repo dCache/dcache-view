@@ -295,7 +295,7 @@
                 const arr1 = [];
                 const arr2 = [];
                 metadata.size = metadata.fileType === "REGULAR" ?
-                    this._formattedSize(metadata.size): "--";
+                    this.convertBytesToNearestBinaryPrefix(metadata.size): "--";
                 metadata.creationTime = this._formattedDateTime(metadata.creationTime);
                 metadata.mtime = this._formattedDateTime(metadata.mtime);
                 if (metadata.ctime && metadata.atime) {
@@ -326,16 +326,6 @@
                 this.setProperties({_metadataOA: arr2});
 
                 this.isLoading = false;
-            }
-            _formattedSize(size)
-            {
-                if (size === 0) return "0 Byte";
-
-                const k = 1000, dm = 1 || 3;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-                const i = Math.floor(Math.log(size) / Math.log(k));
-
-                return parseFloat((size / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
             }
             _formattedDateTime(dateTimeValue)
             {

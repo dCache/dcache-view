@@ -116,7 +116,7 @@
                 <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="total">
-                            Total Space (MB)
+                            Total Space Size
                         </vaadin-grid-sorter>
                     </template>
                     <vaadin-grid-column width="150px">
@@ -127,7 +127,7 @@
                 <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="free">
-                            Free Space (MB)
+                            Free Space Size
                         </vaadin-grid-sorter>
                     </template>
                     <vaadin-grid-column width="150px">
@@ -138,7 +138,7 @@
                 <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="precious">
-                            Precious Space (MB)
+                            Precious Space Size
                         </vaadin-grid-sorter>
                     </template>
                     <vaadin-grid-column width="150px">
@@ -163,7 +163,7 @@
 
     <script>
         class PoolGroupView extends
-            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element)) {
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element))) {
 
             static get is() {
                 return 'pool-group-view';
@@ -269,10 +269,10 @@
                         }
                     });
                 } else {
-                    const total = this.convertToMiB(result.groupSpaceData.total);
-                    const free = this.convertToMiB(result.groupSpaceData.free);
-                    const precious = this.convertToMiB(result.groupSpaceData.precious);
-                    const removable = this.convertToMiB(result.groupSpaceData.removable);
+                    const total = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.total);
+                    const free = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.free);
+                    const precious = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.precious);
+                    const removable = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.removable);
                     this.incoming.push({
                         'group': group,
                         'total': total,

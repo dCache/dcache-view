@@ -107,7 +107,7 @@
     </template>
 
     <script>
-        class ViewFile extends Polymer.Element
+        class ViewFile extends DcacheViewMixins.Commons(Polymer.Element)
         {
             constructor(path)
             {
@@ -381,7 +381,7 @@
                     this.$.feList.querySelector(`._dv${e.detail.file.fileMetaData.pnfsId}`);
                 const input = new RenameInput(e.detail.file);
 
-                app.removeAllChildren(listRow.$.nameContainer);
+                this.removeAllChildren(listRow.$.nameContainer);
                 listRow.$.nameContainer.appendChild(input);
             }
 
@@ -392,7 +392,7 @@
                 span.setAttribute("id", "fileName");
                 const t = document.createTextNode(`${e.detail.newFileName}`);
                 span.appendChild(t);
-                app.removeAllChildren(listRow.$.nameContainer);
+                this.removeAllChildren(listRow.$.nameContainer);
                 listRow.$.nameContainer.appendChild(span);
             }
 

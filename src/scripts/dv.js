@@ -79,6 +79,14 @@
         app.ls(sessionStorage.homeDirectory);
     };
 
+    /**
+     *
+     * @deprecated
+     * this should no longer be use for removing all
+     * nodes of an element.
+     * TODO: Once the implementation of mixins is complete this should be removed.
+     *
+     */
     app.removeAllChildren = function (node)
     {
         while (node.firstChild) {

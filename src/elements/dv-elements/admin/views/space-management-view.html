@@ -165,7 +165,7 @@
                              value="{{lgvogroup}}"></paper-input>
                 <paper-input slot="top" class="item" label="VO Role"
                              value="{{lgvorole}}"></paper-input>
-                <paper-input slot="top" class="item" label="Min Available (MB)"
+                <paper-input slot="top" class="item" label="Min Available Size"
                              value="{{lgminavailable}}"></paper-input>
             </div>
             <div slot="content" class="divider"><br/></div>
@@ -248,7 +248,7 @@
                 <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="availableSpace">
-                            Available Space (MB)
+                            Available Space Size
                         </vaadin-grid-sorter>
                     </template>
                     <vaadin-grid-column width="50px">
@@ -259,7 +259,7 @@
                 <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="reservedSpace">
-                            Reserved Space (MB)
+                            Reserved Space Size
                         </vaadin-grid-sorter>
                     </template>
                     <vaadin-grid-column width="50px">
@@ -270,7 +270,7 @@
                 <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="totalSpace">
-                            Total Space (MB)
+                            Total Space Size
                         </vaadin-grid-sorter>
                     </template>
                     <vaadin-grid-column width="50px">
@@ -331,9 +331,9 @@
                         <paper-item></paper-item>
                     </iron-selector>
                 </paper-dropdown-menu>
-                <paper-input slot="top" class="item" label="Min Size (MB)"
+                <paper-input slot="top" class="item" label="Min Size"
                              value="{{stminsize}}"></paper-input>
-                <paper-input slot="top" class="item" label="Min Free (MB)"
+                <paper-input slot="top" class="item" label="Min Free"
                              value="{{stminfree}}"></paper-input>
             </div>
             <div slot="content" class="divider"><br/></div>
@@ -505,7 +505,7 @@
         </paper-scroll-header-panel>
     </template>
     <script>
-        class SpaceManagementView extends DcacheViewMixins.AdminBase(Polymer.Element) {
+        class SpaceManagementView extends DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element)) {
 
             static get is() {
                 return 'space-management-view';
@@ -769,9 +769,9 @@
             _handleLinkGroupResponse(groups) {
                 groups.forEach((g) => {
                     const total = g.availableSpace + g.reservedSpace;
-                    g.availableSpace = this.convertToMiB(g.availableSpace);
-                    g.reservedSpace = this.convertToMiB(g.reservedSpace);
-                    g.totalSpace = this.convertToMiB(total);
+                    g.availableSpace = this.convertBytesToNearestBinaryPrefix(g.availableSpace);
+                    g.reservedSpace = this.convertBytesToNearestBinaryPrefix(g.reservedSpace);
+                    g.totalSpace = this.convertBytesToNearestBinaryPrefix(total);
 
                     g.allowed = '';
 
@@ -825,9 +825,9 @@
 
             _handleSpaceTokenResponse(tokens) {
                 tokens.forEach((t) => {
-                    t.sizeInBytes = this.convertToMiB(t.sizeInBytes);
-                    t.usedSizeInBytes = this.convertToMiB(t.usedSizeInBytes);
-                    t.allocatedSpaceInBytes = this.convertToMiB(t.allocatedSpaceInBytes);
+                    t.sizeInBytes = this.convertBytesToNearestBinaryPrefix(t.sizeInBytes);
+                    t.usedSizeInBytes = this.convertBytesToNearestBinaryPrefix(t.usedSizeInBytes);
+                    t.allocatedSpaceInBytes = this.convertBytesToNearestBinaryPrefix(t.allocatedSpaceInBytes);
                     if (t.expirationTime) {
                         t.expirationTime = this.convertDatestampToObject(t.expirationTime);
                     } else {

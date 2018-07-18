@@ -182,14 +182,6 @@
             }
 
             /**
-             * return integer value of megabytes from bytes, or 0 if the bytes
-             * value is undefined.
-             */
-            convertToMiB(bytes) {
-                return !bytes ? 0 : (bytes.toFixed(0) / (1024 * 1024)).toFixed(0) / 1;
-            }
-
-            /**
              * Constructs single object containing key value pair.
              */
             convertToNameValueObject(key, value) {
@@ -380,12 +372,6 @@
             pushDialog(dialog) {
                 app.$.adminDialogs.appendChild(dialog);
                 Polymer.dom.flush();
-            }
-
-            removeAllChildrenFromSingleNode(node) {
-                while (node.firstChild) {
-                    node.removeChild(node.firstChild);
-                }
             }
 
             /**

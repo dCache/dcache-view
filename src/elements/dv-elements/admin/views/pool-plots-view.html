@@ -275,7 +275,7 @@
 
     <script>
         class PoolPlotsView extends Polymer.mixinBehaviors([Polymer.IronResizableBehavior],
-            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(Polymer.Element))) {
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element)))) {
 
             static get is() {
                 return 'pool-plots-view';
@@ -367,7 +367,7 @@
 
             _fetchPlotData() {
                 const hiddenDiv = this.shadowRoot.querySelector('#chart-placeholders');
-                this.removeAllChildrenFromSingleNode(hiddenDiv);
+                this.removeAllChildren(hiddenDiv);
 
                 this.currentChildren.forEach((child) => {
                     this._sendHistogramRequest(child);
@@ -550,19 +550,19 @@
                     case 0:
                         this.upLabel = "";
                         this.downLabel = "POOL GROUPS";
-                        this.removeAllChildrenFromSingleNode(this.$.subtitle);
+                        this.removeAllChildren(this.$.subtitle);
                         this.$.subtitle.appendChild(document.createTextNode("ALL POOLS"));
                         break;
                     case 1:
                         this.upLabel = "ALL POOLS";
                         this.downLabel = "POOLS";
-                        this.removeAllChildrenFromSingleNode(this.$.subtitle);
+                        this.removeAllChildren(this.$.subtitle);
                         this.$.subtitle.appendChild(document.createTextNode("POOL GROUPS"));
                         break;
                     case 2:
                         this.upLabel = "POOL GROUPS";
                         this.downLabel = "ALL POOLS";
-                        this.removeAllChildrenFromSingleNode(this.$.subtitle);
+                        this.removeAllChildren(this.$.subtitle);
                         this.$.subtitle.appendChild(document.createTextNode(this.selectedGroup));
                         break;
                     default:
