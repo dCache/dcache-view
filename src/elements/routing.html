@@ -17,6 +17,8 @@
 
         // Middleware
         window.CONFIG.isSomebody = sessionStorage.upauth !== undefined;
+        window.CONFIG.isAdmin = sessionStorage.roles !== undefined &&
+            sessionStorage.roles.includes('admin');
         app.config = window.CONFIG;
         app.organisationName = window.CONFIG["dcache-view.org-name"];
 
@@ -43,11 +45,20 @@
         });
 
         page('/admin', function() {
+            if (!window.CONFIG.isAdmin) {
+                page.redirect(app.baseUrl);
+                return;
+            }
             app.route = 'admin';
             app.params = "";
         });
 
         page('/admin/:component', function(data) {
+            if (!window.CONFIG.isAdmin) {
+                page.redirect(app.baseUrl);
+                return;
+            }
+
             app.route = 'admin-component-page';
             app.params = data.params;
 
