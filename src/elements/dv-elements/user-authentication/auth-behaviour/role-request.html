@@ -58,8 +58,6 @@
                 });
                 window.addEventListener('dv-authentication-successful', (e) => {
                     this.resolveAssertion(listOfRolesToAssert);
-                    window.CONFIG.isAdmin = listOfRolesToAssert.includes('admin');
-                    app.notifyPath('config.isAdmin');
                 });
                 userAuth.send("Basic");
 

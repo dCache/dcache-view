@@ -144,7 +144,8 @@
                     page("/"+this.redirectTo.page);
                 }
                 window.dispatchEvent(new CustomEvent('dv-authentication-successful', {
-                    detail: {message: 'login successful'}}));
+                    detail: {message: 'login successful', roles: roles}
+                }));
             } else if (request.target.response.status === "ANONYMOUS") {
                 const errMsg = 'Login failed. Please check that you have supplied ' +
                     'the correct credentials. ';
