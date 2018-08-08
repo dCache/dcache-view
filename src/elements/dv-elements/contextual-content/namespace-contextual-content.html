@@ -249,44 +249,54 @@
             {
                 if (window.CONFIG.isSomebody && e.composedPath()[0].id === "changeQos") {
                     this.dispatchEvent(
-                        new CustomEvent('dv-namespace-namespace-open-subcontextmenu', {
+                        new CustomEvent('dv-namespace-open-subcontextmenu', {
                             detail: {targetNode: this.targetNode}, bubbles: true, composed: true}));
                 }
                 if (e.composedPath()[0].id !== "changeQos") {
-                    app.$.centralSubContextMenu.close();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-close-subcontextmenu', {
+                        bubbles: true, composed: true
+                    }));
                 }
             }
 
             _openOrDownload()
             {
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
                 this.dispatchEvent(
-                    new CustomEvent('dv-namespace-namespace-open-file', {
+                    new CustomEvent('dv-namespace-open-file', {
                         detail: {file: this.targetNode}, bubbles: true, composed: true}));
             }
 
             _metadata()
             {
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
                 if (!this.targetNode.filePath) {
                     this.targetNode.filePath = this.currentPath;
                 }
                 this.dispatchEvent(
-                    new CustomEvent('dv-namespace-namespace-open-filemetadata-panel', {
+                    new CustomEvent('dv-namespace-open-filemetadata-panel', {
                         detail: {file: this.targetNode}, bubbles: true, composed: true}));
             }
 
             _rename()
             {
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
                 this.dispatchEvent(
-                    new CustomEvent('dv-namespace-namespace-open-rename-dialogbox', {
+                    new CustomEvent('dv-namespace-open-rename-dialogbox', {
                         detail: {file: this.targetNode}, bubbles: true, composed: true}));
             }
 
             _move()
             {
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
                 let noOfMovedItems = 1;
                 let fileType = "item";
                 const mv = document.createElement('move-file');
@@ -305,7 +315,7 @@
                     this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
                         detail: {files: mv.mvFiles},bubbles: true, composed: true}));
                     this.dispatchEvent(
-                        new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                        new CustomEvent('dv-namespace-close-central-dialogbox', {
                             bubbles: true, composed: true}));
 
                     this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
@@ -321,7 +331,7 @@
                 });
                 mv.addEventListener('dismiss', function (e) {
                     this.dispatchEvent(
-                        new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                        new CustomEvent('dv-namespace-close-central-dialogbox', {
                             bubbles: true, composed: true}));
                 });
                 mv.addEventListener('move-create', function (e) {
@@ -339,13 +349,15 @@
                 });
 
                 this.dispatchEvent(
-                    new CustomEvent('dv-namespace-namespace-open-central-dialogbox', {
+                    new CustomEvent('dv-namespace-open-central-dialogbox', {
                         detail: {node: mv}, bubbles: true, composed: true}));
             }
 
             _delete()
             {
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
                 if (sessionStorage.upauth === null || sessionStorage.upauth === undefined) {
                     this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
                         {detail: {message: "You need to login to delete file(s)."}, bubbles: true, composed: true}));
@@ -390,7 +402,9 @@
 
             _create()
             {
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
 
                 const mkdir = document.createElement('create-directory');
                 mkdir.dirFullPath = this.currentPath;
@@ -401,7 +415,7 @@
 
                     namespace.promise.then(() => {
                         this.dispatchEvent(
-                            new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                            new CustomEvent('dv-namespace-close-central-dialogbox', {
                                 bubbles: true, composed: true}));
                         const file = {
                             "fileName" : e.detail.newFolderName,
@@ -433,25 +447,29 @@
                 });
                 mkdir.addEventListener('close',function() {
                     this.dispatchEvent(
-                        new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                        new CustomEvent('dv-namespace-close-central-dialogbox', {
                             bubbles: true, composed: true}));
                 });
                 this.dispatchEvent(
-                    new CustomEvent('dv-namespace-namespace-open-central-dialogbox', {
+                    new CustomEvent('dv-namespace-open-central-dialogbox', {
                         detail: {node: mkdir}, bubbles: true, composed: true}));
             }
 
             _upload()
             {
                 //FIXME: context menu stay opened even long after the file picker appears.
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
                 this.dispatchEvent(new CustomEvent('dv-namespace-upload-files', {
                     detail:{}, bubbles: true, composed: true}));
             }
 
             _qosInfo()
             {
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
 
                 if (!window.CONFIG.isSomebody) {
                     this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
@@ -469,7 +487,7 @@
 
                 const content = document.createElement('qbi-dialog-content');
                 this.dispatchEvent(
-                    new CustomEvent('dv-namespace-namespace-open-central-dialogbox', {
+                    new CustomEvent('dv-namespace-open-central-dialogbox', {
                         detail: {node: content}, bubbles: true, composed: true}));
             }
 

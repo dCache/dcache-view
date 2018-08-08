@@ -243,7 +243,7 @@
                 path = this.isSelected ? `${path}/${this._selectedItems[0].fileName}` : path === "" ? '/' : path;
 
                 this.dispatchEvent(
-                    new CustomEvent('dv-namespace-namespace-open-filemetadata-panel', {
+                    new CustomEvent('dv-namespace-open-filemetadata-panel', {
                         detail: {file: {
                             filePath: path,
                             fileMetaData: this.isSelected ? Object.assign({}, this._selectedItems[0]): undefined
@@ -264,7 +264,7 @@
 
                     namespace.auth = app.getAuthValue();
                     namespace.promise.then(() => {
-                        this.dispatchEvent(new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                        this.dispatchEvent(new CustomEvent('dv-namespace-close-central-dialogbox', {
                             detail: {}, bubbles: true, composed: true})
                         );
 
@@ -298,12 +298,12 @@
                     });
                 });
                 mkdir.addEventListener('close', () => {
-                    this.dispatchEvent(new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                    this.dispatchEvent(new CustomEvent('dv-namespace-close-central-dialogbox', {
                         detail: {}, bubbles: true, composed: true})
                     );
                 });
 
-                this.dispatchEvent(new CustomEvent('dv-namespace-namespace-open-central-dialogbox',{
+                this.dispatchEvent(new CustomEvent('dv-namespace-open-central-dialogbox',{
                     detail: {node: mkdir}, bubbles: true, composed: true
                 }));
             }
@@ -320,7 +320,7 @@
                 mv.addEventListener('move', (e) => {
                     this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
                         detail: {files: mv.mvFiles},bubbles: true, composed: true}));
-                    this.dispatchEvent(new CustomEvent('dv-namespace-namespace-close-central-dialogbox', {
+                    this.dispatchEvent(new CustomEvent('dv-namespace-close-central-dialogbox', {
                         detail: {}, bubbles: true, composed: true})
                     );
                     this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
@@ -335,7 +335,7 @@
                     );
                 });
                 mv.addEventListener('dismiss', function (e) {
-                    this.dispatchEvent(new CustomEvent('dv-namespace-namespace-close-central-dialogbox',{
+                    this.dispatchEvent(new CustomEvent('dv-namespace-close-central-dialogbox',{
                         detail: {}, bubbles: true, composed: true
                     }));
                 });
@@ -353,7 +353,7 @@
                             detail: {files: [file]},bubbles: true, composed: true}));
                 });
 
-                this.dispatchEvent(new CustomEvent('dv-namespace-namespace-open-central-dialogbox',{
+                this.dispatchEvent(new CustomEvent('dv-namespace-open-central-dialogbox',{
                     detail: {node: mv}, bubbles: true, composed: true
                 }));
             }

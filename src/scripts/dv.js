@@ -569,7 +569,7 @@
     window.addEventListener('dv-namespace-drop', (e)=>{
         app.drop(e);
     });
-    window.addEventListener('dv-namespace-namespace-open-file', function (e) {
+    window.addEventListener('dv-namespace-open-file', function (e) {
         if (e.detail.file.fileMetaData.fileType === "DIR") {
             app.ls(e.detail.file.filePath);
             Polymer.dom.flush();
@@ -583,8 +583,18 @@
             window.open(path);
         }
     });
-    window.addEventListener('dv-namespace-namespace-open-subcontextmenu', e => app.subContextMenu(e));
-    window.addEventListener('dv-namespace-namespace-open-filemetadata-panel', e => {
+    window.addEventListener('dv-namespace-open-subcontextmenu', e => app.subContextMenu(e));
+    window.addEventListener('dv-namespace-close-subcontextmenu', () => {
+        app.$.centralSubContextMenu.close();
+    });
+
+    window.addEventListener('dv-namespace-open-centralcontextmenu', () => {
+        app.$.centralContextMenu.open();
+    });
+    window.addEventListener('dv-namespace-close-centralcontextmenu', () => {
+        app.$.centralContextMenu.close();
+    });
+    window.addEventListener('dv-namespace-open-filemetadata-panel', e => {
         if (app.$.metadata.selected === "main") {
             app.removeAllChildren(app.$.metadataDrawer);
             const file = e.detail.file;
@@ -598,15 +608,15 @@
             app.$.metadata.closeDrawer();
         }
     });
-    window.addEventListener('dv-namespace-namespace-close-filemetadata-panel', e => {
+    window.addEventListener('dv-namespace-close-filemetadata-panel', e => {
         app.$.metadata.closeDrawer();
     });
-    window.addEventListener('dv-namespace-namespace-open-central-dialogbox',(e)=>{
+    window.addEventListener('dv-namespace-open-central-dialogbox',(e)=>{
         app.removeAllChildren(app.$.centralDialogBox);
         app.$.centralDialogBox.appendChild(e.detail.node);
         app.$.centralDialogBox.open()
     });
-    window.addEventListener('dv-namespace-namespace-close-central-dialogbox',()=>{
+    window.addEventListener('dv-namespace-close-central-dialogbox',()=>{
         app.$.centralDialogBox.close();
     });
     window.addEventListener('dv-authentication-successful', (e) => {
