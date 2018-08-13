@@ -99,8 +99,12 @@
 
             _changeQos(e)
             {
-                app.$.centralSubContextMenu.close();
-                app.$.centralContextMenu.close();
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-subcontextmenu', {
+                    bubbles: true, composed: true
+                }));
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
                 const namespace = document.createElement('dcache-namespace');
                 namespace.auth = sessionStorage.upauth;
 

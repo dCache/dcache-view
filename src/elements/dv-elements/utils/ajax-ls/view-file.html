@@ -149,7 +149,7 @@
                 window.addEventListener('dv-namespace-request-current-path', this._sendCurrentPath_);
                 window.addEventListener('dv-namespace-request-item-index', this._sendItemIndex_);
                 window.addEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
-                window.addEventListener('dv-namespace-namespace-open-rename-dialogbox', this._renameInputStart_);
+                window.addEventListener('dv-namespace-open-rename-dialogbox', this._renameInputStart_);
             }
             disconnectedCallback()
             {
@@ -165,7 +165,7 @@
                 window.removeEventListener('dv-namespace-request-current-path', this._sendCurrentPath_);
                 window.removeEventListener('dv-namespace-request-item-index', this._sendItemIndex_);
                 window.removeEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
-                window.removeEventListener('dv-namespace-namespace-open-rename-dialogbox', this._renameInputStart_);
+                window.removeEventListener('dv-namespace-open-rename-dialogbox', this._renameInputStart_);
             }
             static get is()
             {
@@ -421,10 +421,10 @@
             _multipleSelectionShortcuts(event)
             {
                 if ((window.navigator.platform.match("Mac")
-                        ? event.metaKey : event.ctrlKey) && event.key === "ArrowUp") {
+                    ? event.metaKey : event.ctrlKey) && event.key === "ArrowUp") {
                     this.__arrowUpDown_CtrlShift('up');
                 } else if ((window.navigator.platform.match("Mac")
-                        ? event.metaKey : event.ctrlKey) && event.key === "ArrowDown") {
+                    ? event.metaKey : event.ctrlKey) && event.key === "ArrowDown") {
                     this.__arrowUpDown_CtrlShift('down');
                 } else if (event.shiftKey && event.key === "ArrowUp") {
                     this.__arrowUpDown_CtrlShift('up');
@@ -465,7 +465,7 @@
                 }
 
                 if (window.navigator.platform.match("Mac") ?
-                        event.key === "Meta" : event.key === "Control") {
+                    event.key === "Meta" : event.key === "Control") {
                     this._ctrlKeyOn = false;
                 }
 
@@ -700,7 +700,7 @@
                 const idx = this.__getItemCurrentIndex(file);
 
                 if (keyValue === 'arrow-down' && arrowType === 'up'
-                        || keyValue === 'arrow-up' && arrowType === 'down') {
+                    || keyValue === 'arrow-up' && arrowType === 'down') {
                     this._removeXSelected(idx);
                     this._temporarySelectedItemsHolder.pop();
                     this.__getAllItemsXSelected();
