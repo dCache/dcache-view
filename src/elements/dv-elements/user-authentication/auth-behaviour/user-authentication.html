@@ -74,6 +74,7 @@
             //FIXME: Not upgraded to the new change yet
             this.auth = null;
             sessionStorage.removeItem("name");
+            sessionStorage.removeItem("password");
             const errorXHR = request.request.__data.xhr.response.errors[0];
             this.dispatchEvent(new CustomEvent('error', {detail:
                 {message: `${errorXHR.message}! Please check that you have
