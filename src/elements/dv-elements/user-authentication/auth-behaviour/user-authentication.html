@@ -82,6 +82,7 @@
             {
                 this.auth = null;
                 sessionStorage.removeItem("name");
+                sessionStorage.removeItem("password");
                 let errorXHR = request.request.__data__.xhr.response.errors[0];
                 this.errorMessage = errorXHR.message+ '! Please check that you have supplied ' +
                     'the correct credentials. ';
@@ -175,4 +176,3 @@
         });
     </script>
 </dom-module>
-
