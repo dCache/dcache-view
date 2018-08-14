@@ -626,4 +626,8 @@
         app.$.toast.text = `${e.detail.message} `;
         app.$.toast.show()
     });
+    window.addEventListener('dv-authentication-successful', (e) => {
+        window.CONFIG.isAdmin = e.detail.roles.includes('admin');
+        app.notifyPath('config.isAdmin');
+    });
 })(document);
