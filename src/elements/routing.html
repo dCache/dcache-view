@@ -74,8 +74,7 @@
         // 404
         page('*', function() {
             let href = window.location.href;
-            if (href.includes("state") && href.includes("access_token") && href.includes("id_token")
-                && href.includes("token_type")) {
+            if (href.includes("access_token") && href.includes("id_token") && href.includes("token_type")) {
 
                 let arr = href.split("/#!/#");
                 let v = arr[1].split('&');
