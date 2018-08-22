@@ -42,6 +42,8 @@
     /**
      * List directory -> use by other elements like:
      * list-row, pagination-button, hover-contextual
+     * @deprecated
+     * TODO: move this to the listener
      */
     app.ls = function(path)
     {
@@ -644,6 +646,10 @@
         app.$.centralDialogBox.close();
     });
     window.addEventListener('dv-authentication-successful', (e) => {
+        window.CONFIG.isSomebody = true;
+        window.CONFIG.isAdmin = e.detail.roles.includes('admin');
+        app.notifyPath('config.isSomebody');
+        app.notifyPath('config.isAdmin');
         app.getQosInformation();
     });
     window.addEventListener('dv-namespace-open-upload-toast', (e) => {
@@ -662,8 +668,8 @@
         app.$.toast.text = `${e.detail.message} `;
         app.$.toast.show()
     });
-    window.addEventListener('dv-authentication-successful', (e) => {
-        window.CONFIG.isAdmin = e.detail.roles.includes('admin');
-        app.notifyPath('config.isAdmin');
+    window.addEventListener('dv-namespace-ls-path', (e) => {
+        if (app.route !== "home") page("/");
+        app.ls(e.detail.path);
     });
 })(document);

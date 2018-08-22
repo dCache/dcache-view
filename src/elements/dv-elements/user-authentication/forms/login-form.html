@@ -1,14 +1,15 @@
-<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
 
-<link rel="import" href="../../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
-<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="../../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../../../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<link rel="import" href="../../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../../bower_components/iron-input/iron-input.html">
 
-<link rel="import" href="../../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../../bower_components/paper-input/paper-input-container.html">
+<link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../../bower_components/paper-input/paper-input-container.html">
 
-<link rel="import" href="auth-behaviour/user-authentication.html">
+<link rel="import" href="../user-authentication.html">
+<link rel="import" href="../role-request/role-request.html">
 
 <dom-module id="login-form">
     <template>
@@ -152,23 +153,85 @@
 
             _login()
             {
-                if (this.username === undefined || this.username === "" ||
-                    this.password === "" || this.password === undefined) {
+                if (this.username === undefined || this.username === ""
+                    || this.password === "" || this.password === undefined) {
                     this.errorMessage = "Please enter your username and password to login.";
                     return;
                 }
 
-                let up = this.username + ":" + this.password;
-                sessionStorage.setItem("password", `:${this.password}`);
-                this.auth = window.btoa(up);
-                const listOfRolesToAssert = this.assertionStatus?"*":"";
-                let userAuth = new UserAuthentication(this.redirectTo, this.auth, "", listOfRolesToAssert);
+                if (sessionStorage.getItem("hasAuthClientCertificate")
+                    && this.username !== sessionStorage.getItem('name')) {
+                    this.errorMessage = "Unacceptable request! The username you provided must " +
+                        "correspond to your certificate username.";
+                    return;
+                }
+                const auth = window.btoa(`${this.username}:${this.password}`);
 
-                window.addEventListener('dv-authentication-error', (e) => {
-                    sessionStorage.removeItem("password");
+                const userAuth = new UserAuthentication(auth);
+                userAuth.addEventListener('dv-user-authentication-successful', e => {
+                    e.detail.credential["password"] = `:${this.password}`;
+                    store(normaliseCredentialFormat(e.detail.credential));
+
+                    if (this.assertionStatus) {
+                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                            detail: {message: `${e.detail.message} Requesting for role(s) assertion`},
+                            bubbles: true, composed: true
+                        }));
+
+                        const unassertedRoles = e.detail.credential.listOfPossibleRoles === undefined ? "" :
+                            `${e.detail.credential.listOfPossibleRoles}`;
+                        if (unassertedRoles === "") {
+                            this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                                detail: {message: `${e.detail.message} But no roles to assert.`},
+                                bubbles: true, composed: true
+                            }));
+                        } else {
+                            const list = e.detail.credential.roles === undefined || e.detail.credential.roles === "" ?
+                                unassertedRoles : `${unassertedRoles}, ${e.detail.credential.roles}`;
+                            const rolesAssertion = new RoleRequest();
+                            rolesAssertion.promise.then((e) => {
+                                e.detail.credential["password"] = `:${this.password}`;
+                                store(normaliseCredentialFormat(e.detail.credential));
+                                this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                                    detail: {message: e.detail.message}, bubbles: true, composed: true
+                                }));
+                            }).catch((err) => {
+                                this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                                    detail: {message: err}, bubbles: true, composed: true
+                                }));
+                            });
+                            rolesAssertion.assert(list);
+                        }
+                    } else {
+                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                            detail: {message: e.detail.message}, bubbles: true, composed: true
+                        }));
+                    }
+
+                    switch (this.redirectTo.page) {
+                        case "home":
+                            page("/");
+                            this.dispatchEvent(
+                                new CustomEvent('dv-namespace-ls-path', {
+                                    detail: {path: this.redirectTo.path}, bubbles: true, composed: true}));
+                            break;
+                        case "stay": // do nothing - use for example inside user-profile
+                            break;
+                        default:
+                            page(`/${this.redirectTo.page}`);
+                            break;
+                    }
+
+                    this.dispatchEvent(new CustomEvent('dv-authentication-successful', {
+                        detail: {
+                            message: e.detail.message,
+                            roles: e.detail.credential.roles === undefined ? "": `${e.detail.credential.roles}`
+                        }, bubbles: true, composed: true
+                    }));
+                });
+                userAuth.addEventListener('dv-user-authentication-error', e => {
                     this.errorMessage = e.detail.message;
                 });
-
                 userAuth.send("Basic");
             }
 

@@ -1,4 +1,4 @@
-<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="login-form.html">
 <link rel="import" href="loginform-with-openid.html">
@@ -137,7 +137,9 @@
                 if (window.CONFIG.isSomebody) {
                     if (this.redirectInformation.page === "home") {
                         page("/");
-                        app.ls(this.redirectInformation.path);
+                        this.dispatchEvent(
+                            new CustomEvent('dv-namespace-ls-path', {
+                                detail: {path: this.redirectInformation.path}, bubbles: true, composed: true}));
                     } else {
                         page("/"+this.redirectInformation.page);
                     }

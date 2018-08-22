@@ -1,25 +1,26 @@
 <link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/paper-styles/element-styles/paper-material-styles.html">
 
 <link rel="import" href="user-image.html">
-<link rel="import" href="../user-authentication/auth-behaviour/role-request.html">
+<link rel="import" href="../user-authentication/role-request/role-request.html">
 <dom-module id="user-profile">
     <template>
-        <style>
+        <style include="paper-material-styles">
             :host {
                 display: flex;
                 justify-content: center;
                 min-width: 500px;
             }
-            paper-material {
+            .paper-material {
                 margin-top: 20px;
                 width: 500px;
                 background:#fff;
             }
-            paper-material + paper-material {
+            .paper-material + .paper-material {
                 margin-top: 5px;
             }
 
-            paper-material .paper-material-inner {
+            .paper-material .paper-material-inner {
                 width: 100%;
                 box-sizing: border-box;
             }
@@ -123,7 +124,7 @@
             }
         </style>
         <div class="display-flex column">
-            <paper-material elevation="2">
+            <div class="paper-material" elevation="2">
                 <div class="paper-material-inner display-flex border-top" style="background: #f5f5f5">
                     <div class="display-flex vertically-align image-holder">
                         <user-image fallback-value="[[username]]" email="[[email]]"></user-image>
@@ -137,9 +138,9 @@
                         </div>
                     </div>
                 </div>
-            </paper-material>
+            </div>
 
-            <paper-material>
+            <div class="paper-material" elevation="1">
                 <div class="paper-material-inner display-flex column">
                     <div class="display-flex row vertically-align">
                         <div class="label">Home directory path</div>
@@ -168,9 +169,9 @@
                         <div class="value">[[gids]]</div>
                     </div>
                 </div>
-            </paper-material>
+            </div>
 
-            <paper-material>
+            <div class="paper-material" elevation="1">
                 <div style="padding-left: 10px;">
                     <div class="header">
                         Roles
@@ -184,7 +185,8 @@
                         <div class="value flex">
                             Available role(s):
                         </div>
-                        <paper-toggle-button on-change="_roleAssertion"
+                        <paper-toggle-button id="allRolesAssertionToggle"
+                                             on-change="_roleAssertion"
                                              data-roles="*"
                                              checked="[[_allCurrentStatus()]]"
                                              class$="[[_computedClass('all-roles')]]">Assert all roles
@@ -199,21 +201,26 @@
                     </div>
                     <template is="dom-repeat" items="[[listOfAllRoles]]">
                         <div class="display-flex row vertically-align">
-                            <div class="label label-addPadding">[[item]]</div>
+                            <div class="label label-addPadding">[[item.role]]</div>
                             <div class="value flex"></div>
                             <paper-toggle-button on-change="_roleAssertion"
-                                                 data-roles="[[item]]"
-                                                 checked="[[_currentStatus(item)]]"
+                                                 data-roles="[[item.role]]"
+                                                 checked="[[item.assert]]"
                                                  class="toggleBtn"></paper-toggle-button>
                         </div>
                     </template>
                 </div>
-            </paper-material>
+            </div>
         </div>
     </template>
     <script>
         class UserProfile extends Polymer.Element
         {
+            constructor()
+            {
+                super();
+                this.listOfAllRoles = this._getInitialListOfAllRoles();
+            }
             static get is()
             {
                 return 'user-profile';
@@ -260,59 +267,40 @@
                         type: String,
                         notify: true,
                         value: function () {
-                            return sessionStorage.rootDirectory;
+                            return sessionStorage.getItem("rootDirectory");
                         }
                     },
                     homeDir: {
                         type: String,
                         notify: true,
                         value: function () {
-                            return sessionStorage.homeDirectory;
+                            return sessionStorage.getItem("homeDirectory");
                         }
                     },
                     listOfAllRoles: {
                         type: Array,
                         notify: true,
                         value: function () {
-                            const x = sessionStorage.listOfPossibleRoles === undefined ||
-                            sessionStorage.listOfPossibleRoles === "" ?
-                                [] : sessionStorage.listOfPossibleRoles.split(",");
-                            const y = sessionStorage.roles === undefined ||
-                            sessionStorage.roles === "" ? [] : sessionStorage.roles.split(",");
-
-                            return x.concat(y.filter(function (item) {
-                                return x.indexOf(item) < 0;
-                            }));
+                            return [];
                         }
                     }
                 }
             }
             _view(e)
             {
-                const path = e.target.getAttribute('data-path');
                 page.redirect("/");
-                app.ls(path);
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-ls-path', {
+                        detail: {path: e.target.getAttribute('data-path')}, bubbles: true, composed: true}));
             }
 
             _computedClass(str)
             {
-                const listOfPossibleRoles = this.listOfAllRoles;
-
-                if (listOfPossibleRoles === "" || listOfPossibleRoles === null ||
-                    listOfPossibleRoles === undefined) {
-                    return str === "no-roles" ? ' display-flex row vertically-align' :
-                        ' hide row';
-                } else {
-                    if (str === "no-roles") {
-                        return ' hide row';
-                    } else if (str === "all-roles") {
-                        return listOfPossibleRoles.length === 1 ? ' hide' : ' toggleBtn';
-                    } else {
-                        return ' paper-material-inner display-flex column';
-                    }
-                }
+                return this.listOfAllRoles.length === 0 ? str === "no-roles" ?
+                    ' display-flex row vertically-align' : ' hide row' : str === "no-roles" ?
+                    ' hide row' : str === "all-roles" ? this.listOfAllRoles.length === 1 ?
+                        ' hide' : ' toggleBtn' : ' paper-material-inner display-flex column';
             }
-
             _computedEmailCss(email)
             {
                 let classes = 'value flex';
@@ -321,66 +309,85 @@
                 }
                 return classes;
             }
-
-            _currentStatus(item)
-            {
-                const roles = (sessionStorage.roles).split(",");
-                const len = roles.length;
-                if (len === 0) {
-                    return false;
-                } else if (len === 1) {
-                    return roles[0] === "" ? false : roles[0] === item;
-                } else {
-                    for (let i=0; i<len; i++) {
-                        return roles[i] === item;
-                    }
-                }
-            }
-
             _allCurrentStatus()
             {
-                const roles = (sessionStorage.roles).split(",");
-                const listOfPossibleRoles = (sessionStorage.listOfPossibleRoles).split(",");
-
-                return roles.length === listOfPossibleRoles.length;
+                const len = this.listOfAllRoles.length;
+                let allRolesAsserted = true;
+                for (let i = 0; i < len; i++) {
+                    if (this.listOfAllRoles[i].assert === false) {
+                        allRolesAsserted = false;
+                        break;
+                    }
+                }
+                return allRolesAsserted;
             }
-
             _roleAssertion(e)
             {
-                const roleNames = e.target.dataRoles === undefined ? e.target.getAttribute('data-roles'):
-                    e.target.dataRoles;
-                const isAssert =  e.target.__data.checked;
-                let roles;
-                let msg;
-                if (isAssert) {
-                    roles = roleNames === "*"? sessionStorage.listOfPossibleRoles: roleNames;
-                    msg = "Role(s): " + roleNames + " asserted. "
-                } else {
-                    if (roleNames === "*") {
-                        roles = "";
-                    } else {
-                        const a = ((sessionStorage.roles).split(",")).map(str => {
-                            if (str.trim() !== roleNames.trim()) {
-                                return str.trim()
+                const role = e.target.dataRoles === undefined ?
+                    e.target.getAttribute('data-roles'): e.target.dataRoles;
+                const toggle = e.target;
+
+                const rolesAssertion = new RoleRequest();
+                rolesAssertion.promise.then(response => {
+                    const len = this.listOfAllRoles.length;
+                    if (role === "*") {
+                        for (let i = 0; i < len; i++) {
+                            if (this.listOfAllRoles[i].assert === !toggle.active) {
+                                this.set(`listOfAllRoles.${i}`, {assert: toggle.active});
                             }
-                        });
-                        roles = a.toString();
+                        }
+                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                            detail: {message: response.detail.message}, bubbles: true, composed: true
+                        }));
+                    } else {
+                        if (len > 1) {
+                            let assert = 0, leave = 0;
+                            for (let i = 0; i < len; i++) {
+                                if (this.listOfAllRoles[i].assert === true) {
+                                    assert += 1;
+                                }
+                                if (this.listOfAllRoles[i].assert === false) {
+                                    leave += 1;
+                                }
+                            }
+                            if (assert === len) {
+                                this.$.allRolesAssertionToggle.checked = true;
+                            }
+                            if (leave === len) {
+                                this.$.allRolesAssertionToggle.checked = false;
+                            }
+                        }
                     }
-                    const rmsg = roleNames === "*" ? "all" : roleNames;
-                    msg = "Role(s): " + rmsg + " un-asserted. ";
-                }
-
-                const redirectTo = {"page":"stay","path":""};
-                let rr = new RoleRequest();
-
-                rr.promise.then(() => {
-                    app.$.toast.text = msg;
-                    app.$.toast.show();
-                }).catch((err)=>{
-                    app.$.toast.text = err + " ";
-                    app.$.toast.show();
+                    store(normaliseCredentialFormat(response.detail.credential));
+                    this.dispatchEvent(new CustomEvent('dv-authentication-successful', {
+                        detail: {
+                            message: response.detail.message,
+                            roles: response.detail.credential.roles === undefined ?
+                                "": `${response.detail.credential.roles}`
+                        }, bubbles: true, composed: true
+                    }));
+                }).catch(err => {
+                    toggle.checked = !toggle.checked;
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: `${err}`}, bubbles: true, composed: true
+                    }));
                 });
-                rr.assert(roles, redirectTo);
+                if (toggle.active) {
+                    rolesAssertion.assert(role === "*"?`${sessionStorage.listOfPossibleRoles}`:role);
+                } else {
+                    rolesAssertion.leave(role);
+                }
+            }
+            _getInitialListOfAllRoles()
+            {
+                const roles = sessionStorage.roles === "" ? [] : (sessionStorage.roles).split(",");
+                const unAsserted = sessionStorage.listOfPossibleRoles === "" ?
+                    [] : (sessionStorage.listOfPossibleRoles).split(",");
+                return [...roles.map(str => {
+                    if (str !== undefined || str !== "") return {"role": str, "assert": true};}),
+                    ...unAsserted.map(str => {
+                    if (str !== undefined || str !== "") return {"role": str, "assert": false};})
+                ];
             }
         }
         window.customElements.define(UserProfile.is, UserProfile);

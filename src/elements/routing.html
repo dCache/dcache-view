@@ -151,9 +151,36 @@
                 const accessToken = new URL(url).hash.split('&').filter(function(el) {
                     if(el.match('access_token') !== null) return true; })[0].split('=')[1];
                 const redirectInfoObj = JSON.parse(sessionStorage.getItem('redirect'));
-                const userAuth = new UserAuthentication(redirectInfoObj, accessToken, "", "");
+                const userAuth = new UserAuthentication(accessToken);
 
-                window.addEventListener('dv-authentication-error', (e) => {
+                userAuth.addEventListener('dv-user-authentication-successful', (e)=>{
+                    const user = e.detail.credential;
+                    user['authType'] = 'Bearer';
+                    user['upauth'] = accessToken;
+                    store(normaliseCredentialFormat(user));
+
+                    window.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: e.detail.message}, bubbles: true, composed: true
+                    }));
+                    switch (redirectInfoObj.page) {
+                        case "home":
+                            page("/");
+                            this.dispatchEvent(
+                                new CustomEvent('dv-namespace-ls-path', {
+                                    detail: {path: redirectInfoObj.path}, bubbles: true, composed: true}));
+                            break;
+                        default:
+                            page(`/${redirectInfoObj.page}`);
+                            break;
+                    }
+                    window.dispatchEvent(new CustomEvent('dv-authentication-successful', {
+                        detail: {
+                            message: e.detail.message,
+                            roles: e.detail.credential.roles === undefined ? "": `${e.detail.credential.roles}`
+                        }, bubbles: true, composed: true
+                    }));
+                });
+                userAuth.addEventListener('dv-user-authentication-error', (e) => {
                     sessionStorage.removeItem('authType');
                     sessionStorage.removeItem('nonce');
                     const searchParams = `"page":"${redirectInfoObj.page}","path":"${redirectInfoObj.path}"`;

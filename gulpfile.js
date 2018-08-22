@@ -52,9 +52,10 @@ gulp.task('copy-css', function() {
         .pipe(gulp.dest('./target/styles'));
 });
 
-gulp.task('copy-script', function() {
+gulp.task('copy-scripts', function() {
     return gulp.src([
-        'src/scripts/dv.js'
+        'src/scripts/**/*',
+        '!src/scripts/config.js'
     ], {
         base: ''
     })
@@ -72,7 +73,7 @@ gulp.task('vulcanize', function() {
         .pipe(gulp.dest('./target/elements'));
 });
 
-gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-script']);
+gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-scripts']);
 
 gulp.task('default', ['bower', 'build'], function () {
     gulp.start('vulcanize','copy-webcomponents');

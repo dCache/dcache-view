@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <html lang="en">
     <head>
         <meta charset="utf-8">
+        <script src="scripts/client-certificate-checker.js"></script>
 
         <title>dCache View</title>
         <meta name="description" content="dcache view">
@@ -218,8 +219,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <paper-icon-button slot="top" icon="menu" on-tap="menuAction" id="mainMenu"
                                            hidden></paper-icon-button>
                         <span slot="top" class="title" id="mainMenuTitleSpan">[[organisationName]]</span>
-                        <div slot="top" id="WhoAmI"><user-loginout-button
-                                pg-route="{{route}}"></user-loginout-button></div>
+                        <div slot="top" id="WhoAmI">
+                            <authentication-switch current-route="[[route]]"></authentication-switch>
+                        </div>
                         <div slot="bottom" class="bottom fit" style="height: 70px; background-color: #eee;
                             display: flex; flex-direction: column; justify-content: center;">
                             <selected-title id="selectedTitle" pg-route="{{route}}"></selected-title>
