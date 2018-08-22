@@ -1,6 +1,6 @@
 {
   "name": "dcache-view",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "new end-user web application for dCache",
   "dependencies": {
     "bower": "~1.7.2",
