@@ -143,26 +143,21 @@
 
         // 404
         page('*', function() {
-            let href = window.location.href;
-            if (href.includes("access_token") && href.includes("id_token") && href.includes("token_type")) {
+            /**
+             * Handle OpenID Connect Server Redirect
+             */
+            const url = window.location.href;
+            if (url.includes("access_token")) {
+                const accessToken = new URL(url).hash.split('&').filter(function(el) {
+                    if(el.match('access_token') !== null) return true; })[0].split('=')[1];
+                const redirectInfoObj = JSON.parse(sessionStorage.getItem('redirect'));
+                const userAuth = new UserAuthentication(redirectInfoObj, accessToken, "", "");
 
-                let arr = href.split("/#!/#");
-                let v = arr[1].split('&');
-                const len = v.length;
-                let oidcProviderResponse = {};
-
-                for (let i=0; i<len; i++) {
-                    let a = v[i].split('=');
-                    oidcProviderResponse[a[0].trim()] = a[1].trim();
-                }
-
-                let redirectInfoObj = JSON.parse(sessionStorage.getItem('redirect'));
-                let userAuth = new UserAuthentication(redirectInfoObj, oidcProviderResponse.access_token, "", "");
-
-                window.addEventListener('error', (e) => {
-                    const a = '"page":'+ redirectInfoObj.page + ',"path":"' + redirectInfoObj.path + '"';
-                    let pathName = '/user-login?r=' + encodeURIComponent(a);
-                    page(pathName);
+                window.addEventListener('dv-authentication-error', (e) => {
+                    sessionStorage.removeItem('authType');
+                    sessionStorage.removeItem('nonce');
+                    const searchParams = `"page":"${redirectInfoObj.page}","path":"${redirectInfoObj.path}"`;
+                    page(`/user-login?r=${encodeURIComponent(searchParams)}`);
                     app.$.toast.text = e.detail.message + " ";
                     app.$.toast.show();
                 });
@@ -172,7 +167,7 @@
                 return;
             }
 
-            app.$.toast.text = 'Can\'t find: ' + href  + '. Redirected you to Home Page';
+            app.$.toast.text = `Can't find: ${url}. Redirected you to Home Page`;
             app.$.toast.show();
             page.redirect(app.baseUrl);
         });
