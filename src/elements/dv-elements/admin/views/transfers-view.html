@@ -145,6 +145,7 @@
                 id="AjaxDelete"
                 method="DELETE"
                 handle-as="json"
+                on-response="_handleDelete"
                 on-error="_handleDeleteError">
         </iron-ajax>
         <paper-toolbar id="title">
@@ -153,7 +154,7 @@
         <div class="renderingIndicator" hidden="[[!rendering]]">
             <paper-spinner class="thick" active="[[rendering]]"></paper-spinner>
             <br/>
-            <strong>Killing [[count]] movers ...</strong>
+            <strong>Killing movers ...</strong>
         </div>
         <hr/>
         <paper-toolbar id="entrytoolbar">
@@ -490,9 +491,9 @@
                         type: Object
                     },
 
-                    count: {
-                        type: Number,
-                        value: 0
+                    killedUrls: {
+                        type: Object,
+                        value: function() { return {}; }
                     },
 
                     tableSize: {
@@ -654,6 +655,31 @@
                 return `${transfer.cellName}-${transfer.domainName}-${transfer.serialId}`;
             }
 
+            _handleDelete(event) {
+                delete this.killedUrls[event.detail.url];
+                if (this.decorator && Object.keys(this.killedUrls).length === 0) {
+                    this._refresh();
+                }
+            }
+
+            _handleDeleteError(event) {
+                this._handleDelete(event);
+
+                let message;
+                const errors = event.detail.request.xhr.response.errors;
+
+                if (errors && errors.length > 0) {
+                    message = '';
+                    for (let i = 0; i < errors.length; i++) {
+                        message = `${message}(error ${errors[i].status}: ${errors[i].message})`;
+                    }
+                } else {
+                    message = event.detail.error.message;
+                }
+
+                this.handleError(`Could not kill mover(s): ${message}`);
+            }
+
             _handleIdError(event) {
                 const message = `Could not process id request for ${this.$.pnfsidof.value}: `;
                 this.handleError(message + event.detail.error.message);
@@ -665,24 +691,18 @@
             }
 
             _handleMoverKill() {
-                this.count = this.$.transfers.selectedItems.length;
                 this.rendering = true;
 
                 this.$.transfers.selectedItems.forEach((item) => {
-                    if (item.pool) {
+                    if (item.pool && !item.pool.includes('unknown') && item.moverId) {
                         this._sendMoverKill(item.pool, item.moverId);
                     } else {
-                        this.handleError(`Cannot kill mover for transfer ${this._getTransferId(item)}: no pool.`);
+                        this.handleError(`Cannot kill mover for transfer ${this._getTransferId(item)}: undefined mover.`);
                     }
                 });
 
                 this.rendering = false;
                 this.decorator.clearSelected(this);
-                this._refresh();
-            }
-
-            _handleDeleteError(event) {
-                this.handleError(`Could not kill mover(s): ${event.detail.error.message}.`);
             }
 
             _ifEnterGetPnfsid(e) {
@@ -704,8 +724,11 @@
             }
 
             _sendMoverKill(pool, id) {
-                this.$.AjaxDelete.url = this.getUrl(`pools/${pool}/movers/${id}`, null);
+                const url = this.getUrl(`pools/${pool}/movers/${id}`, null);
+                this.killedUrls[url]=true;
+                this.$.AjaxDelete.url = url;
                 this.$.AjaxDelete.headers = this.getHeaders();
+                this.$.AjaxDelete.rejectWithRequest = true;
                 this.$.AjaxDelete.generateRequest();
             }
 
