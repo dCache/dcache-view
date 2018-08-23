@@ -568,11 +568,34 @@
         } else {
             //Download the file
             const webdav = window.CONFIG["dcache-view.endpoints.webdav"];
-            const path = webdav === "" ?
+            const fileURL = webdav === "" ?
                 `${window.location.protocol}//${window.location.hostname}:2880${e.detail.file.filePath}` :
                 webdav.endsWith("/") ? `${webdav.substring(0, webdav.length - 1)}${e.detail.file.filePath}` :
                     `${webdav}${e.detail.file.filePath}`;
-            window.open(path);
+            fetch(fileURL, {
+                mode: "cors",
+                headers: {
+                    "Authorization": `${app.getAuthValue()}`,
+                    "Suppress-WWW-Authenticate": "Suppress",
+                    "Content-Type" : `${e.detail.file.fileMetaData.fileMimeType}`
+                }
+            })
+                .then((file) => {
+                    return file.blob();
+                })
+                .then((blob) => {
+                    const windowUrl = window.URL || window.webkitURL;
+                    const url = windowUrl.createObjectURL(blob);
+                    const link = app.$.download;
+                    link.href = url;
+                    link.download = e.detail.file.fileMetaData.fileName;
+                    link.click();
+                    windowUrl.revokeObjectURL(url);//Maybe it might be wise to delay this
+                })
+                .catch((err)=>{
+                    app.$.toast.text = `${err.message} `;
+                    app.$.toast.show()
+                });
         }
     });
     window.addEventListener('dv-namespace-open-subcontextmenu', e => app.subContextMenu(e));
