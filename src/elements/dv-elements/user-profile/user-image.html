@@ -22,6 +22,10 @@
             }
         </style>
         <div class="container">
+            <gravatar-request id="gravatar"
+                              size="[[size]]"
+                              on-gravatar-request-error="_gravatarResponseListener"
+                              on-gravatar-request-successful="_gravatarResponseListener"></gravatar-request>
             <img id="avatar" width="{{size}}" height="{{size}}">
             <paper-spinner id="spinner" active="[[loading]]"></paper-spinner>
         </div>
@@ -42,6 +46,7 @@
                     },
                     fallbackValue: {
                         type: String,
+                        value: 'Anonymous',
                         notify: true,
                     },
                     size: {
@@ -76,30 +81,32 @@
             ready()
             {
                 super.ready();
-                Polymer.RenderStatus.afterNextRender(this, function() {
+                Polymer.RenderStatus.afterNextRender(this, ()=> {
                     if (window.CONFIG.avatarSrc === undefined || window.CONFIG.avatarSrc === "") {
-                        if (this.email===undefined) {
-                            link = this._fallbackCall(this.fallbackValue);
-                        }
-
-                        let emailArr = this.email.split(',');
-                        try {
-                            let gravatar = new GravatarRequest({email:emailArr});
-                            gravatar.size = this.size;
-
-                            gravatar.addEventListener('error', (e) => {
-                                this.src = this._fallbackCall(this.fallbackValue);
-                            });
-                            gravatar.addEventListener('gravatar-generated-link', (e) => {
-                                this.src = e.detail.link;
-                            });
-                        } catch (err) {
+                        if (this.email===undefined || this.email === null || this.email === "") {
                             this.src = this._fallbackCall(this.fallbackValue);
+                            return;
                         }
+                        const gravatar = this.$.gravatar;
+                        gravatar.request(this.email);
+
+                        /**
+                         * If no response is received from the request after 1.5 seconds,
+                         * use the fallback option.
+                         */
+                        setTimeout(()=>{
+                            if (!window.CONFIG.avatarSrc) {
+                                this.src = this._fallbackCall(this.fallbackValue);
+                            }
+                        }, 1500);
                     } else {
                         this.src = window.CONFIG.avatarSrc;
                     }
                 });
+            }
+            _gravatarResponseListener(e)
+            {
+                this.src = e.detail.link ? e.detail.link : this._fallbackCall(this.fallbackValue);
             }
             _srcChanged(n)
             {

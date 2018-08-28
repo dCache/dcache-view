@@ -12,27 +12,9 @@
     <script>
         class GravatarRequest extends Polymer.Element
         {
-            constructor(opt)
+            constructor()
             {
                 super();
-                const email = opt.email;
-                let hash = opt.hash;
-
-                if ((email === undefined || email[0] === "" || email[0] === "not available") &&
-                    (hash === undefined || hash[0] === "")) {
-                    throw new Error("Unable to create the element.");
-                }
-
-                if (hash === undefined && email !== undefined) {
-                    let sortedEmail = email.sort();
-                    const len = sortedEmail.length;
-                    hash = [];
-                    for (let i=0; i<len; i++) {
-                        hash[i] = md5((sortedEmail[i].trim()).toLowerCase());
-                    }
-                }
-
-                this.hash = hash;
             }
 
             static get is()
@@ -42,6 +24,11 @@
             static get properties()
             {
                 return {
+                    email: {
+                        type: String,
+                        notify: true,
+                        observer: 'request'
+                    },
                     size: {
                         type: Number,
                         value: 60,
@@ -50,11 +37,7 @@
                     hash: {
                         type: Array,
                         notify: true,
-                    },
-                    libraryUrl: {
-                        type: String,
-                        notify: true,
-                        computed: '_computeUrl(hash)'
+                        observer: '_generateLibraryUrl'
                     },
                     errorMessage: {
                         type: String,
@@ -64,66 +47,59 @@
                         type: Boolean,
                         observer: '_generateGravatarSrc'
                     },
-                    message: {
-                        type: String,
-                        notify: true,
-                        observer: '_notifyParent'
-                    },
-                    link: {
-                        type: String,
-                        notify: true,
-                        observer: '_getGeneratedLink'
-                    },
                     _counter: {
                         type: Number,
                         value: 0,
-                        notify: true
                     }
                 }
             }
-
-            _computeUrl(hash)
+            ready()
             {
-                if (hash !== undefined) {
-                    const i = this._counter;
-                    if (i < hash.length) {
-                        this._counter++;
-                        return "https://en.gravatar.com/"+hash[i]+".json?callback=%%callback%%";
-                    }
-                    return "";
+                super.ready();
+                this._ensureAttribute('hidden', true);
+            }
+            request(listOfEmail)
+            {
+                if (listOfEmail === undefined || listOfEmail === null || listOfEmail === "") {
+                    throw new Error("Unable to request for Gravatar, no email provided.");
+                }
+                const emailArray = listOfEmail.split(",");
+
+                const len = emailArray.length;
+                const hash = [];
+                for (let i=0; i<len; i++) {
+                    hash[i] = md5((emailArray[i].trim()).toLowerCase());
+                }
+                this.hash = hash;
+            }
+            _generateLibraryUrl(hash)
+            {
+                if (hash.length > 0 && this._counter < hash.length) {
+                    this.$.jsonp.libraryUrl =
+                        `https://en.gravatar.com/${hash[this._counter]}.json?callback=%%callback%%`;
+                    this._counter++;
+                } else {
+                    throw new Error("No associated Gravatar available with these emails.");
                 }
             }
-
             _errorOccurred(err)
             {
                 if (err !== null) {
-                    const next = this._computeUrl(this.hash);
-                    if (next === "") {
-                        this.message = err;
-                    } else {
-                        this.$.jsonp.libraryUrl = next;
+                    try {
+                        this._generateLibraryUrl(this.hash);
+                    } catch (e) {
+                        this.dispatchEvent(new CustomEvent('gravatar-request-error', {detail: {message: err}}));
                     }
                 }
             }
-
             _generateGravatarSrc(isSuccessful)
             {
                 if (isSuccessful) {
-                    const i = this._counter - 1;
                     window.CONFIG.avatarSrc =
-                        'https:\/\/secure.gravatar.com\/avatar\/'+this.hash[i]+"?s="+this.size;
-                    this.link = 'https:\/\/secure.gravatar.com\/avatar\/'+this.hash[i]+"?s="+this.size;
+                        `https://secure.gravatar.com/avatar/${this.hash[+this._counter-1]}?s=${this.size}`;
+                    this.dispatchEvent(new CustomEvent('gravatar-request-successful', {detail: {
+                        link: `https://secure.gravatar.com/avatar/${this.hash[+this._counter-1]}?s=${this.size}`}}));
                 }
-            }
-
-            _getGeneratedLink(n)
-            {
-                this.dispatchEvent(new CustomEvent('gravatar-generated-link', {detail: {link: n}}));
-            }
-
-            _notifyParent(n)
-            {
-                this.dispatchEvent(new CustomEvent('error', {detail: {message: n}}));
             }
         }
         window.customElements.define(GravatarRequest.is, GravatarRequest);

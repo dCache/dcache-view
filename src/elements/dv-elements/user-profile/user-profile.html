@@ -126,7 +126,7 @@
             <paper-material elevation="2">
                 <div class="paper-material-inner display-flex border-top" style="background: #f5f5f5">
                     <div class="display-flex vertically-align image-holder">
-                        <user-image size="60" email="[[email]]"></user-image>
+                        <user-image fallback-value="[[username]]" email="[[email]]"></user-image>
                     </div>
 
                     <div class="display-flex column flex"
@@ -232,9 +232,6 @@
                         type: String,
                         notify: true,
                         value: function () {
-                            if (sessionStorage.getItem("email") === "") {
-                                return "not available";
-                            }
                             return sessionStorage.getItem("email");
                         }
                     },
