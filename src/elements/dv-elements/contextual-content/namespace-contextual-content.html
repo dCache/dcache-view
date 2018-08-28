@@ -262,20 +262,35 @@
             _download: function()
             {
                 app.$.centralContextMenu.close();
-                let path;
                 const webdav = window.CONFIG["dcache-view.endpoints.webdav"];
-                if (webdav === "") {
-                    path =
-                        window.location.protocol + "//" + window.location.hostname
-                        + ":2880" + this.targetNode.filePath;
-                } else {
-                    if (webdav.endsWith("/")) {
-                        path = webdav.substring(0, webdav.length-1) + this.targetNode.filePath;
-                    } else {
-                        path = webdav + this.targetNode.filePath;
+                const fileURL = webdav === "" ?
+                    `${window.location.protocol}//${window.location.hostname}:2880${this.targetNode.filePath}` :
+                    webdav.endsWith("/") ? `${webdav.substring(0, webdav.length - 1)}${this.targetNode.filePath}` :
+                        `${webdav}${this.targetNode.filePath}`;
+                fetch(fileURL, {
+                    mode: "cors",
+                    headers: {
+                        "Authorization": `${app.getAuthValue()}`,
+                        "Suppress-WWW-Authenticate": "Suppress",
+                        "Content-Type" : `${this.targetNode.fileMimeType}`
                     }
-                }
-                window.open(path);
+                })
+                    .then((file) => {
+                        return file.blob();
+                    })
+                    .then((blob) => {
+                        const windowUrl = window.URL || window.webkitURL;
+                        const url = windowUrl.createObjectURL(blob);
+                        const link = app.$.download;
+                        link.href = url;
+                        link.download = this.targetNode.name;
+                        link.click();
+                        windowUrl.revokeObjectURL(url);//Maybe it might be wise to delay this
+                    })
+                    .catch((err)=>{
+                        app.$.toast.text = `${err.message} `;
+                        app.$.toast.show()
+                    });
             },
 
             _metadata: function()
