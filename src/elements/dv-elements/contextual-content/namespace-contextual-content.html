@@ -325,16 +325,16 @@
                                 + "."}, bubbles: true, composed: true}
                     ));
                 });
-                mv.addEventListener('error', function (e) {
+                mv.addEventListener('error', (e) => {
                     this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
                         {detail: {message: e.detail.error}, bubbles: true, composed: true}));
                 });
-                mv.addEventListener('dismiss', function (e) {
+                mv.addEventListener('dismiss', (e) => {
                     this.dispatchEvent(
                         new CustomEvent('dv-namespace-close-central-dialogbox', {
                             bubbles: true, composed: true}));
                 });
-                mv.addEventListener('move-create', function (e) {
+                mv.addEventListener('move-create', (e) => {
                     const file = {
                         "fileName" : e.detail.name,
                         "fileMimeType" : "application/vnd.dcache.folder",
@@ -358,11 +358,6 @@
                 this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
                     bubbles: true, composed: true
                 }));
-                if (sessionStorage.upauth === null || sessionStorage.upauth === undefined) {
-                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
-                        {detail: {message: "You need to login to delete file(s)."}, bubbles: true, composed: true}));
-                    return;
-                }
                 if (this.multipleSelection) {
                     for (let i=0; i<this.targetNode.files.length; i++) {
                         this._deleteSingleEntry(this.targetNode.files[i]);
@@ -374,26 +369,23 @@
 
             _deleteSingleEntry(file)
             {
-                const fullPath = this.currentPath.endsWith('/') ? `${this.currentPath}${file.fileName}`:
-                    `${this.currentPath}/${file.fileName}`;
+                const fullPath = this.currentPath.endsWith('/') ?
+                    `${this.currentPath}${file.fileName}`: `${this.currentPath}/${file.fileName}`;
                 const namespace = document.createElement('dcache-namespace');
                 namespace.auth = app.getAuthValue();
-                namespace.promise.then(
-                    ()=>{
-                        this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
-                            detail: {files: [file]},bubbles: true, composed: true
-                        }));
-                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
-                            {detail: {
-                                message: `${file.fileType === "DIR" ? "Folder" : "File"} deleted.`},
-                                bubbles: true, composed: true}));
-                    }
-                ).catch(
-                    function(err) {
-                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
-                            {detail: {message: err.message}, bubbles: true, composed: true}));
-                    }
-                );
+                namespace.promise.then(()=>{
+                    this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
+                        detail: {files: [file]},bubbles: true, composed: true
+                    }));
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {
+                            message: `${file.fileType === "DIR" ? "Folder" : "File"} deleted.`
+                        }, bubbles: true, composed: true
+                    }));
+                }).catch((err) => {
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                        {detail: {message: err.message}, bubbles: true, composed: true}));
+                });
                 namespace.rm({
                     url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
                     path: fullPath
@@ -432,12 +424,10 @@
                         );
                         this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
                             {detail: {message: "Done! New directory created."}, bubbles: true, composed: true}));
-                    }).catch(
-                        function(err) {
+                    }).catch((err) => {
                             this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
                                 {detail: {message: err.message}, bubbles: true, composed: true}));
-                        }
-                    );
+                    });
 
                     namespace.mkdir({
                         url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
@@ -445,7 +435,7 @@
                         name: e.detail.newFolderName
                     });
                 });
-                mkdir.addEventListener('close',function() {
+                mkdir.addEventListener('close',() => {
                     this.dispatchEvent(
                         new CustomEvent('dv-namespace-close-central-dialogbox', {
                             bubbles: true, composed: true}));
