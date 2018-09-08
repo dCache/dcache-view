@@ -3,10 +3,16 @@
 <dom-module id="json-viewer">
     <template>
         <style>
+            :host {
+                margin: auto;
+                width: 100%;
+                height: 100%;
+            }
             div {
                 width: 100%;
                 height: 100%;
                 overflow: scroll;
+                background: var(--json-viewer-background-color, #fff);
             }
             .string {
                 color: green;
@@ -79,6 +85,9 @@
                 } else {
                     this.$.preTag.innerHTML = this._prettyPrintJSON(JSON.stringify(json, undefined, 4));
                     this.isLoading = false;
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-files-viewer-finished-loading', {bubbles:true, composed:true})
+                    );
                 }
             }
         }

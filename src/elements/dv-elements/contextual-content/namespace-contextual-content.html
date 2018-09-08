@@ -3,6 +3,7 @@
 <link rel="import" href="../../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../../bower_components/paper-item/paper-icon-item.html">
 
+<link rel="import" href="../files-viewer/files-viewer.html">
 <link rel="import" href="../qbi-dialog-content/qbi-dialog-content.html">
 <dom-module id="namespace-contextual-content">
     <template>
@@ -61,7 +62,7 @@
                               class$="[[_computedClass('open', singleSelection,
                               multipleSelection, currentDir, targetNode)]]">
                 <iron-icon icon="visibility" slot="item-icon"></iron-icon>
-                Open
+                [[openOrView]]
             </paper-icon-item>
 
             <paper-icon-item id="changeQos"
@@ -162,6 +163,10 @@
                     },
                     currentPath: {
                         type: String,
+                    },
+                    openOrView: {
+                        type: String,
+                        notify: true
                     }
                 }
             }
@@ -183,10 +188,18 @@
 
                     switch (this.targetNode.fileMetaData.fileType) {
                         case "DIR":
+                            this.openOrView = 'Open';
                             this.$.open.addEventListener('tap', this._openOrDownload.bind(this));
                             break;
                         case "REGULAR":
+                            if (this.targetNode.fileMetaData.fileMimeType.includes('video') ||
+                                this.targetNode.fileMetaData.fileMimeType.includes('audio')) {
+                                this.openOrView = 'Play';
+                            } else {
+                                this.openOrView = 'View';
+                            }
                             this.$.download.addEventListener('tap', this._openOrDownload.bind(this));
+                            this.$.open.addEventListener('tap', this._view.bind(this));
                             break;
                     }
 
@@ -225,6 +238,7 @@
                             break;
                         case "REGULAR":
                             this.$.download.removeEventListener('tap', this._openOrDownload.bind(this));
+                            this.$.open.removeEventListener('tap', this._view.bind(this));
                             break;
                     }
 
@@ -508,12 +522,8 @@
                     this.$[id].setAttribute('disabled', "");
                 }
 
-                if (singleSelection) {
-                    if (t.fileMetaData.fileType === 'DIR' && (id === 'download' || id === 'changeQos')) {
-                        this.$[id].setAttribute('disabled', "");
-                    } else if (id  === 'open' && t.fileMetaData.fileType === 'REGULAR') {
-                        this.$[id].setAttribute('disabled', "");
-                    }
+                if (singleSelection && t.fileMetaData.fileType === 'DIR' && (id === 'download' || id === 'changeQos')) {
+                    this.$[id].setAttribute('disabled', "");
                 }
                 if (!window.CONFIG.isSomebody && id === 'changeQos') {
                     this.$[id].setAttribute('disabled', "");
@@ -523,6 +533,18 @@
             _setCurrentPath(e)
             {
                 this.currentPath = e.detail.currentPath;
+            }
+            _view()
+            {
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
+                const viewer = new FilesViewer(this.targetNode);
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-open-files-viewer', {
+                        detail: {node: viewer}, bubbles: true, composed: true
+                    })
+                );
             }
         }
         window.customElements.define(NamespaceContextualContent.is, NamespaceContextualContent);
