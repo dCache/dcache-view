@@ -32,8 +32,9 @@
             .file-name-container {
                 box-sizing: border-box;
                 flex: 1 1 auto;
-                word-wrap: break-word;
+                white-space: nowrap;
                 overflow: hidden;
+                text-overflow: ellipsis;
             }
             .file-icon {
                 margin-right: 18px;
@@ -58,13 +59,13 @@
                 padding: 5px;
                 height: 200px;
                 background: #f3f3f3;
+                overflow: auto;
             }
             .none {
                 display: none;
             }
             .preview-title {
                 display: flex;
-                height: 30px;
                 width: 100%;
                 justify-content: center;
                 align-items: center;
@@ -72,7 +73,13 @@
                 font-variant-ligatures: no-contextual;
                 font-weight: 400;
                 color: #202124;
-                line-height: 24px;
+            }
+            .preview-title p {
+                margin: 0;
+                padding: 0;
+            }
+            p i {
+                color: cornflowerblue;
             }
             google-chart {
                 height: 100%;
@@ -131,8 +138,11 @@
                 </app-toolbar>
                 <div id="preview" class$="[[_computePreviewClass(knownMetadata.fileType)]]">
                     <div class="preview-title">
-                        Directory Content Analysis of <i>&nbsp;[[knownMetadata.fileName]]&nbsp;</i> -
-                        <small>&nbsp;based on MIME Type</small>
+                        <p>
+                            Directory Content Analysis of
+                            <i class="file-name-in-preview-title">&nbsp;[[knownMetadata.fileName]]&nbsp;</i> -
+                            <small>&nbsp;based on MIME Type</small>
+                        </p>
                     </div>
                     <div id="previewContainer" class="preview-container">
                         <google-chart
