@@ -142,6 +142,16 @@
                 this._setCurrentPath_ = this._setCurrentPath.bind(this);
                 this._resetViewFileDependentParameters_ = this._resetViewFileDependentParameters.bind(this);
             }
+            ready()
+            {
+                super.ready();
+                Polymer.RenderStatus.afterNextRender(this, () => {
+                    //WORKAROUND: This is moved here because firefox wouldn't fire this during connectedCallback()
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-request-current-path', {bubbles: true, composed: true})
+                    );
+                });
+            }
             static get is()
             {
                 return 'selected-title';
@@ -153,10 +163,6 @@
                 window.addEventListener('dv-namespace-x-selected-items-changed', this._isSelectedChanged_);
                 window.addEventListener('dv-namespace-current-path', this._setCurrentPath_);
                 window.addEventListener('dv-namespace-view-file-created', this._resetViewFileDependentParameters_);
-
-                this.dispatchEvent(
-                    new CustomEvent('dv-namespace-request-current-path', {bubbles: true, composed: true})
-                );
             }
 
             disconnectedCallback()
