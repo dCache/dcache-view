@@ -1,13 +1,11 @@
 <link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 
-<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../../bower_components/file-icon/file-icon.html">
-
 <dom-module id="list-row">
     <template>
         <style>
             :host {
-                @apply(--layout-block);
+                display: block;
                 font-size: 0.7em;
             }
             :host([x-selected]) {
@@ -32,36 +30,25 @@
                 border-bottom: 1px solid #6ab8f7;
             }
             .row {
-                @apply(--layout-horizontal);
-                @apply(--layout-center);
+                width: 100%;
+                max-width: 100%;
                 height: 40px;
                 border-bottom: 1px solid #e5e5e5;
-                text-decoration: none !important;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
             }
-            .name{
-                @apply(--layout-flex-3);
-            }
-            .ctime, .qos {
-                @apply(--layout-flex);
-            }
-            .size {
-                @apply(--layout-flex);
-                text-align: right;
-            }
-            .size > span {
+            .file-icon {
+                padding-left: 15px;
                 padding-right: 10px;
+                width: 50px;
+                max-width: 50px;
+                min-width: 50px;
             }
-            .fit {
-                @apply(--layout-fit);
-            }
-            @keyframes blink-animation {
-                to {visibility: hidden;}
-            }
-            @-webkit-keyframes blink-animation {
-                to {visibility: hidden;}
+            .file-icon[selected] {
+                fill: white !important;
             }
             #fileName {
-                min-width:10px;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -72,19 +59,49 @@
                 align-items: center;
                 padding-right: 24px;
             }
-            file-icon {
-                padding-left: 15px;
-                padding-right: 10px
+            .cell {
+                box-sizing: border-box;
             }
-            file-icon[selected] {
-                fill: white !important;
+
+            @media only screen and (min-width: 960px) {
+                /* larger screen: */
+                .name {
+                    flex: 1 1 auto;
+                    max-width: calc(100% - 410px);
+                }
+                .ctime, .qos {
+                    width: 150px;
+                    max-width: 150px;
+                    min-width: 150px;
+                }
+                .size {
+                    width: 60px;
+                    max-width: 60px;
+                    min-width: 60px;
+                    text-align: right;
+                }
+                .size > span {
+                    padding-right: 10px;
+                }
+            }
+            @media only screen and (max-width: 960px) {
+                /* smaller screen: */
+                .name {
+                    flex: 1 1 auto;
+                    max-width: calc(100% - 50px);
+                }
+                .ctime, .qos, .size {
+                    display: none;
+                }
             }
             .none {
                 display: none;
             }
         </style>
         <div id="row" class="row">
-            <file-icon mime-type="[[fileMetaData.fileMimeType]]" selected$="[[xSelected]]"></file-icon>
+            <file-icon class="cell file-icon"
+                       mime-type="[[fileMetaData.fileMimeType]]"
+                       selected$="[[xSelected]]"></file-icon>
             <div class="cell name">
                 <div id="nameContainer">
                     <span id="fileName">[[fileMetaData.fileName]]</span>
