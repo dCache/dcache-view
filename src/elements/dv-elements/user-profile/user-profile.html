@@ -366,6 +366,8 @@
                                 "": `${response.detail.credential.roles}`
                         }, bubbles: true, composed: true
                     }));
+                    window.dispatchEvent(new CustomEvent('dv-role-validation',
+                        { bubbles: true, composed: true }));
                 }).catch(err => {
                     toggle.checked = !toggle.checked;
                     this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {

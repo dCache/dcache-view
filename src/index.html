@@ -249,13 +249,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         </a>
                                     </paper-item>
 
-                                    <template is="dom-if" if="[[config.isAdmin]]">
-                                        <paper-item>
-                                            <a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
-                                                <paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
-                                            </a>
-                                        </paper-item>
-                                    </template>
+                                    <paper-item>
+                                        <a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
+                                            <paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
+                                        </a>
+                                    </paper-item>
 
                                     <template is="dom-if" if="[[config.isSomebody]]">
                                         <paper-item>
