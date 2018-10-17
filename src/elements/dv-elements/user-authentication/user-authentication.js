@@ -35,8 +35,8 @@ class UserAuthentication extends Polymer.Element
                 return response.json();
             }).then((user) => {
                 if (user['status'] === "AUTHENTICATED") {
-                    if (sessionStorage.getItem("hasAuthClientCertificate") &&
-                        user.name !== sessionStorage.getItem("username")) {
+                    if (!!sessionStorage.getItem("hasAuthClientCertificate") &&
+                        user['username'] !== sessionStorage.getItem("name")) {
                         this._dispatchError('Unacceptable request! The username you provided must ' +
                             'correspond to your certificate username.');
                         return;
