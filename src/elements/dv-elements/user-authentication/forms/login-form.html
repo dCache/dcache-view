@@ -159,7 +159,7 @@
                     return;
                 }
 
-                if (!!sessionStorage.getItem("hasAuthClientCertificate")
+                if (sessionStorage.getItem("hasAuthClientCertificate")
                     && this.username !== sessionStorage.getItem('name')) {
                     this.errorMessage = "Unacceptable request! The username you provided must " +
                         "correspond to your certificate username.";
