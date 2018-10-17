@@ -195,6 +195,8 @@
                                 this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
                                     detail: {message: e.detail.message}, bubbles: true, composed: true
                                 }));
+                                window.dispatchEvent(new CustomEvent('dv-role-validation',
+                                    { bubbles: true, composed: true }));
                             }).catch((err) => {
                                 this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
                                     detail: {message: err}, bubbles: true, composed: true

@@ -32,6 +32,8 @@
                 {
                     detail: { route: ctx }, bubbles: true, composed: true
                 }));
+            window.dispatchEvent(new CustomEvent('dv-role-validation',
+                { bubbles: true, composed: true }));
         });
 
         page('/', function() {
@@ -45,20 +47,11 @@
         });
 
         page('/admin', function() {
-            if (!window.CONFIG.isAdmin) {
-                page.redirect(app.baseUrl);
-                return;
-            }
             app.route = 'admin';
             app.params = "";
         });
 
         page('/admin/:component', function(data) {
-            if (!window.CONFIG.isAdmin) {
-                page.redirect(app.baseUrl);
-                return;
-            }
-
             app.route = 'admin-component-page';
             app.params = data.params;
 
