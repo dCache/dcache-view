@@ -183,8 +183,8 @@
         </iron-ajax>
         <div class="opaque">
             <paper-toolbar>
-                <div slot="top" class="spacer title">
-                    <strong>Pool Group: [[group]]</strong>
+                <div slot="top" class="spacer title"><strong>Pool Group:
+                    [[group]]</strong>
                 </div>
                 <paper-button slot="top" dialog-dismiss>Close</paper-button>
             </paper-toolbar>
@@ -195,41 +195,35 @@
             </paper-tabs>
             <iron-pages selected="{{selected}}">
                 <div class="tablediv">
-                    <template is="dom-if" if="[[showAdminComponents]]">
-                        <paper-button id="send" on-tap="_handlePoolModeChange">
-                            Send
-                        </paper-button>
-                        <paper-dropdown-menu label="Change Pool Mode" noink
-                                             no-animations>
-                            <iron-selector slot="dropdown-content"
-                                           class="dropdown-content"
-                                           selected="{{mode}}">
-                                <paper-item>Enabled</paper-item>
-                                <paper-item>Disabled Read-Only</paper-item>
-                                <paper-item>Disabled Strict</paper-item>
-                            </iron-selector>
-                        </paper-dropdown-menu>
-                    </template>
+                    <paper-button id="send" on-tap="_handlePoolModeChange">
+                        Send
+                    </paper-button>
+                    <paper-dropdown-menu label="Change Pool Mode" noink
+                                         no-animations>
+                        <iron-selector slot="dropdown-content"
+                                       class="dropdown-content"
+                                       selected="{{mode}}">
+                            <paper-item>Enabled</paper-item>
+                            <paper-item>Disabled Read-Only</paper-item>
+                            <paper-item>Disabled Strict</paper-item>
+                        </iron-selector>
+                    </paper-dropdown-menu>
                     <vaadin-grid aria-label="Cell Info" id="cellinfo"
                                  items="[[pools]]" multi-sort="true"
                                  size="50">
-                        <template is="dom-if" if="[[showAdminComponents]]">
-                            <vaadin-grid-selection-column>
-                                <template class="header">
-                                    <input aria-label="Select All"
-                                           type="checkbox"
-                                           on-click="_toggleAll"
-                                           checked="[[_isChecked(selectionAction)]]"
-                                           indeterminate="[[_isIndeterminate(selectionAction)]]">
-                                </template>
-                                <template>
-                                    <input aria-label="Select Row"
-                                           type="checkbox"
-                                           on-change="_selectItem"
-                                           checked="{{selected::change}}">
-                                </template>
-                            </vaadin-grid-selection-column>
-                        </template>
+                        <vaadin-grid-selection-column>
+                            <template class="header">
+                                <input aria-label="Select All" type="checkbox"
+                                       on-click="_toggleAll"
+                                       checked="[[_isChecked(selectionAction)]]"
+                                       indeterminate="[[_isIndeterminate(selectionAction)]]">
+                            </template>
+                            <template>
+                                <input aria-label="Select Row" type="checkbox"
+                                       on-change="_selectItem"
+                                       checked="{{selected::change}}">
+                            </template>
+                        </vaadin-grid-selection-column>
                         <vaadin-grid-column-group resizable>
                             <template class="header">
                                 <vaadin-grid-sorter path="mode">
@@ -646,10 +640,6 @@
 
             connectedCallback() {
                 super.connectedCallback();
-                /*
-                 *  not sure why the mixin value does not get set properly
-                 */
-                this.showAdminComponents = window.CONFIG.isAdmin;
                 this.refreshAndReset(this._sendPoolsRequest.bind(this), 60000);
             }
 

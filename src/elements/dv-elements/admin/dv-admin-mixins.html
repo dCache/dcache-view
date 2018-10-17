@@ -120,32 +120,7 @@
                         type: String,
                         value: `${window.location.origin}${window.CONFIG["dcache-view.endpoints.webapi"]}`
                     },
-
-                    showAdminComponents: {
-                        type: Boolean,
-                        value: window.CONFIG.isAdmin,
-                        notify: true
-                    }
                 }
-            }
-
-            connectedCallback() {
-                super.connectedCallback();
-                window.addEventListener('dv-role-validation',
-                    this.resetShowAdminComponents.bind(this));
-            }
-
-            disconnectedCallback() {
-                super.disconnectedCallback();
-                window.removeEventListener('dv-role-validation',
-                    this.resetShowAdminComponents.bind(this));
-            }
-
-            resetShowAdminComponents(e) {
-                window.CONFIG.isAdmin = sessionStorage.roles !== undefined &&
-                    sessionStorage.roles.includes('admin');
-                this.showAdminComponents = window.CONFIG.isAdmin;
-                Polymer.dom.flush();
             }
 
             /**

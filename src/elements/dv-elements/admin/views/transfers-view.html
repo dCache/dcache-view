@@ -158,11 +158,8 @@
         </div>
         <hr/>
         <paper-toolbar id="entrytoolbar">
-            <template is="dom-if" if="[[showAdminComponents]]">
-                <paper-button slot="top" id="kill" on-tap="_handleMoverKill">
-                    Kill Movers
-                </paper-button>
-            </template>
+            <paper-button slot="top" id="kill"
+                          on-tap="_handleMoverKill">Kill Movers</paper-button>
             <paper-button slot="top" id="clear" on-tap="_clear">Clear</paper-button>
             <paper-input slot="top" id="pnfsidof" label="Find file id from path:"
                          on-keyup="_ifEnterGetPnfsid"></paper-input>
@@ -174,21 +171,19 @@
             <vaadin-grid aria-label="Disk Transfers" id="transfers"
                          active-item="{{activeItem}}"
                          multi-sort="true" size="[[tableSize]]">
-                <template is="dom-if" if="[[showAdminComponents]]">
-                    <vaadin-grid-selection-column>
-                        <template class="header">
-                            <input aria-label="Select All" type="checkbox"
-                                   on-click="_toggleAll"
-                                   checked="[[_isChecked(selectionAction)]]"
-                                   indeterminate="[[_isIndeterminate(selectionAction)]]">
-                        </template>
-                        <template>
-                            <input aria-label="Select Row" type="checkbox"
-                                   on-change="_selectItem"
-                                   checked="{{selected::change}}">
-                        </template>
-                    </vaadin-grid-selection-column>
-                </template>
+                <vaadin-grid-selection-column>
+                    <template class="header">
+                        <input aria-label="Select All" type="checkbox"
+                               on-click="_toggleAll"
+                               checked="[[_isChecked(selectionAction)]]"
+                               indeterminate="[[_isIndeterminate(selectionAction)]]">
+                    </template>
+                    <template>
+                        <input aria-label="Select Row" type="checkbox"
+                               on-change="_selectItem"
+                               checked="{{selected::change}}">
+                    </template>
+                </vaadin-grid-selection-column>
                 <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="state">
