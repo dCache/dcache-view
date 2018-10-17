@@ -135,6 +135,13 @@
         </style>
 
         <iron-ajax
+                id="AjaxId"
+                method="GET"
+                handle-as="json"
+                on-response="_handleIdResponse"
+                on-error="_handleIdError">
+        </iron-ajax>
+        <iron-ajax
                 id="AjaxDelete"
                 method="DELETE"
                 handle-as="json"
@@ -150,13 +157,18 @@
             <strong>Killing movers ...</strong>
         </div>
         <hr/>
-        <template is="dom-if" if="[[showAdminComponents]]">
-            <paper-toolbar id="entrytoolbar">
+        <paper-toolbar id="entrytoolbar">
+            <template is="dom-if" if="[[showAdminComponents]]">
                 <paper-button slot="top" id="kill" on-tap="_handleMoverKill">
                     Kill Movers
                 </paper-button>
-            </paper-toolbar>
-        </template>
+            </template>
+            <paper-button slot="top" id="clear" on-tap="_clear">Clear</paper-button>
+            <paper-input slot="top" id="pnfsidof" label="Find file id from path:"
+                         on-keyup="_ifEnterGetPnfsid"></paper-input>
+            <iron-label slot="top" on-tap="_openFileInfoDialogFromLabel"
+                        id="pnfsid"></iron-label>
+        </paper-toolbar>
         <paper-checkbox checked="{{showall}}">Show All Columns</paper-checkbox>
         <div class="tablediv">
             <vaadin-grid aria-label="Disk Transfers" id="transfers"
@@ -199,26 +211,6 @@
                                 [[item.moverStatus]]
                             </span>
                         </template>
-                    </vaadin-grid-column>
-                </vaadin-grid-column-group>
-                <vaadin-grid-column-group resizable hidden="[[!showall]]">
-                    <template class="header">
-                        <vaadin-grid-sorter path="path">
-                            Path
-                        </vaadin-grid-sorter>
-                    </template>
-                    <vaadin-grid-column width="225px">
-                        <template class="header">
-                            <vaadin-grid-filter aria-label="Path"
-                                                path="path"
-                                                value="[[_filterPath]]">
-                                <input slot="filter"
-                                       placeholder="Path"
-                                       value="{{_filterPath::input}}"
-                                       focus-target>
-                            </vaadin-grid-filter>
-                        </template>
-                        <template>[[item.path]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group resizable>
@@ -544,7 +536,7 @@
                                                                (index) => 'transfers',
                                                                (index) => '',
                                                                'transfers',
-                                                                11);
+                                                                10);
 
                 /*
                  * This must be assigned only after the decorator has been
@@ -658,6 +650,16 @@
 
             /* --------------------- Path & Mover Kill --------------------- */
 
+            _clear() {
+                this.$.pnfsidof.value = "";
+                this.$.pnfsid.innerText = "";
+                this._setPnfsIdFilter("");
+            }
+
+            _getTransferId(transfer) {
+                return `${transfer.cellName}-${transfer.domainName}-${transfer.serialId}`;
+            }
+
             _handleDelete(event) {
                 delete this.killedUrls[event.detail.url];
                 if (this.decorator && Object.keys(this.killedUrls).length === 0) {
@@ -683,6 +685,16 @@
                 this.handleError(`Could not kill mover(s): ${message}`);
             }
 
+            _handleIdError(event) {
+                const message = `Could not process id request for ${this.$.pnfsidof.value}: `;
+                this.handleError(message + event.detail.error.message);
+            }
+
+            _handleIdResponse(event) {
+                this.$.pnfsid.innerText = event.detail.response.pnfsId;
+                this._setPnfsIdFilter(event.detail.response.pnfsId);
+            }
+
             _handleMoverKill() {
                 this.rendering = true;
 
@@ -690,14 +702,30 @@
                     if (item.pool && !item.pool.includes('unknown') && item.moverId) {
                         this._sendMoverKill(item.pool, item.moverId);
                     } else {
-                        this.handleError(`Cannot kill mover for transfer
-                            ${item.cellName}-${item.domainName}-${item.serialId}:
-                            undefined mover.`);
+                        this.handleError(`Cannot kill mover for transfer ${this._getTransferId(item)}: undefined mover.`);
                     }
                 });
 
                 this.rendering = false;
                 this.decorator.clearSelected(this);
+            }
+
+            _ifEnterGetPnfsid(e) {
+                if (e.keyCode === 13) {
+                    this._sendIdRequest();
+                }
+            }
+
+            _openFileInfoDialogFromLabel(e) {
+                this.openFileInfoDialog(e.target.innerText, null);
+            }
+
+            _sendIdRequest() {
+                this.$.AjaxId.url
+                    = this.getUrl(`namespace${this.$.pnfsidof.value}`,
+                    null);
+                this.$.AjaxId.headers = this.getHeaders();
+                this.$.AjaxId.generateRequest();
             }
 
             _sendMoverKill(pool, id) {
@@ -707,6 +735,11 @@
                 this.$.AjaxDelete.headers = this.getHeaders();
                 this.$.AjaxDelete.rejectWithRequest = true;
                 this.$.AjaxDelete.generateRequest();
+            }
+
+            _setPnfsIdFilter(text) {
+                this.shadowRoot.querySelector('#idFilterInput').value = text;
+                this.shadowRoot.querySelector('#idFilter').value = text;
             }
         }
 
