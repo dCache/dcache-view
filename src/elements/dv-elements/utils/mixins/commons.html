@@ -153,6 +153,29 @@
                 //this equals "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ"
                 return `Basic ${window.btoa('anonymous:nopassword')}`;
             }
+
+            getFileWebDavUrl(path, operationType)
+            {
+                /**
+                 * TODO: check the timestamp on the window.CONFIG["webdav"]
+                 * and if it's old get a fresh list.
+                 */
+                if (path.startsWith("/")) {
+                    path = path.replace(/\/\//g, "/");
+                } else {
+                    throw new TypeError("Invalid path: only absolute path is accepted.");
+                }
+                const arr = window.CONFIG["webdav"] ?
+                    window.CONFIG["webdav"][operationType] : window.CONFIG["dcache-view.endpoints.webdav"] ?
+                        [window.CONFIG["dcache-view.endpoints.webdav"]] :
+                        [`${window.location.protocol}//${window.location.hostname}:2880`];
+                const len = arr.length;
+                const url = [];
+                for (let i=0; i<len; i++) {
+                    url.push(arr[i].endsWith("/") ? `${arr[i].replace(/.$/,'')}${path}` : `${arr[i]}${path}`)
+                }
+                return url;
+            }
         }
     })
 </script>

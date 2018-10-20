@@ -130,12 +130,10 @@
             {
                 return new Promise((resolve, reject) => {
                     const worker = new Worker('./scripts/tasks/download-task.js');
-                    const webdav = window.CONFIG["dcache-view.endpoints.webdav"];
-                    const fileURL = webdav === "" ?
-                        `${window.location.protocol}//${window.location.hostname}:2880${this.file.filePath}` :
-                        webdav.endsWith("/") ? `${webdav.substring(0, webdav.length - 1)}${this.file.filePath}` :
-                            `${webdav}${this.file.filePath}`;
-
+                    /**
+                     * TODO: if the first one fail (i.e. returned array from this.getWebDavDoorFilePath) try another.
+                     */
+                    const fileURL = this.getFileWebDavUrl(this.file.filePath, "read")[0];
                     worker.addEventListener('message', (e) => {
                         resolve(e.data);
                         worker.terminate();

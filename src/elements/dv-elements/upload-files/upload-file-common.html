@@ -48,14 +48,6 @@
                         value: true,
                         notify: true
                     },
-                    url: {
-                        type: String,
-                        value: function () {
-                            return window.CONFIG["dcache-view.endpoints.webdav"] === "" ?
-                                `${window.location.protocol}//${window.location.hostname}:2880` :
-                                window.CONFIG["dcache-view.endpoints.webdav"];
-                        }
-                    },
                     path: {
                         type: String,
                         notify: true
@@ -73,7 +65,7 @@
 
             upload(file)
             {
-                const uploadUrl = `${this.url}${this.path}${file.name}`;
+                const uploadUrl = this.getFileWebDavUrl(`${this.path}${file.name}`, "write")[0];
                 new UploadHandler({
                     file: file,
                     upauth: this.getAuthValue(),

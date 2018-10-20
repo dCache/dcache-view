@@ -28,7 +28,7 @@
         </div>
     </template>
     <script>
-        class UploadFilesButton extends Polymer.Element
+        class UploadFilesButton extends DcacheViewMixins.Commons(Polymer.Element)
         {
             constructor()
             {
@@ -91,11 +91,7 @@
                     this.dispatchEvent(new CustomEvent('dv-namespace-upload-toast-append-child', {
                             detail: {child: el}, bubbles: true, composed: true}));
                     const upLs = el;
-                    const uploadURL = window.CONFIG["dcache-view.endpoints.webdav"] === "" ?
-                        `${window.location.protocol}//${window.location.hostname}:2880${path}${files[i].name}` :
-                        path.startsWith('/') ?
-                        `${window.CONFIG["dcache-view.endpoints.webdav"]}${path.slice(1)}${files[i].name}` :
-                        `${window.CONFIG["dcache-view.endpoints.webdav"]}${path}${files[i].name}`;
+                    const uploadURL = this.getFileWebDavUrl(`${path}${files[i].name}`, "write")[0];
                     const uploader = new UploadHandler({
                         file: files[i],
                         upauth: app.getAuthValue(),
