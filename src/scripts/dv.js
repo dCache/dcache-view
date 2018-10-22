@@ -351,13 +351,19 @@
         app.closingTime = 3000;
     };
 
-    app.getAuthValue = function ()
+    app.getAuthValue = function (authentication)
     {
+        if (authentication) {
+            return `${authentication.scheme} ${authentication.value}`;
+        }
+        if (!!sessionStorage.getItem("hasAuthClientCertificate")) {
+            return "";
+        }
+        //kept for legacy
         if (sessionStorage.upauth !== undefined) {
             return sessionStorage.authType + ' ' + sessionStorage.upauth;
-        } else {
-            return "Basic " + window.btoa('anonymous:nopassword');
         }
+        return "Basic " + window.btoa('anonymous:nopassword');
     };
 
     app.dragNdropMoveFiles = function (destinationPath, dropFlag)
