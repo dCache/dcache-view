@@ -62,6 +62,20 @@
             .cell {
                 box-sizing: border-box;
             }
+            @-webkit-keyframes blinker {
+                from {opacity: 1.0;}
+                to {opacity: 0.0;}
+            }
+            #qos-transition-icon {
+                width: 14px;
+                height: 14px;
+                text-decoration: blink;
+                -webkit-animation-name: blinker;
+                -webkit-animation-duration: 0.6s;
+                -webkit-animation-iteration-count:infinite;
+                -webkit-animation-timing-function:ease-in-out;
+                -webkit-animation-direction: alternate;
+            }
 
             @media only screen and (min-width: 960px) {
                 /* larger screen: */
@@ -108,7 +122,9 @@
                 </div>
             </div>
             <div class="cell ctime">[[creationTime]]</div>
-            <div class="cell qos"><i>[[qosValue]]</i></div>
+            <div class="cell qos">
+                <iron-icon id="qos-transition-icon" class="none" icon="arrow-forward"></iron-icon>
+                <i>[[qosValue]]</i></div>
             <div class="cell size" id="hovering">
                 <span>[[formattedSize]]</span>
             </div>
@@ -260,6 +276,13 @@
 
             _fileCurrentQOSValue(qos)
             {
+
+                if (qos && qos.constructor === Array) {
+                    this.qosValue = qos[0];
+                    this.$['qos-transition-icon'].classList.remove("none");
+                    return;
+                }
+                this.$['qos-transition-icon'].classList.add("none");
                 switch (qos) {
                     case "disk":
                         this.qosValue = "Disk";

@@ -425,51 +425,53 @@
 
     function updateFeListAndMetaDataDrawer(status, itemIndex)
     {
-        if (app.$.metadata.selected === 'drawer'){
-            app.$.metadata.querySelector('file-metadata').currentQos = status;
+        if (app.$.metadata.selected === 'drawer') {
+            //FIXME: use event
+            app.$.metadata.querySelector('file-metadata').currentQos =
+                status.constructor === Array ? `in transition to ${status[0]}` : status ;
         }
+        //FIXME: use event
         const vf = app.$.homedir.querySelector('view-file');
         vf.shadowRoot.querySelector('#feList')
             .set(`items.${itemIndex}.currentQos`, status);
         vf.shadowRoot.querySelector('#feList').notifyPath(`items.${itemIndex}.currentQos`);
     }
 
-    function periodicalCurrentQosRequest(options)
-    {
-        const namespace = document.createElement('dcache-namespace');
-        namespace.auth = sessionStorage.upauth;
-        namespace.promise.then( (req) => {
-            if (req.response.targetQos !== undefined) {
-                updateFeListAndMetaDataDrawer('&#8594; '+ options.targetQos, options.itemIndex);
-
-                //ask every two seconds
-                setTimeout(periodicalCurrentQosRequest(options), 2000);
-            } else if (req.response.currentQos === options.targetQos) {
-                updateFeListAndMetaDataDrawer(req.response.currentQos, options.itemIndex);
-
-                app.$.toast.text = "Transition complete! ";
-                app.$.toast.show();
-            } else {
-                updateFeListAndMetaDataDrawer(options.currentQos, options.itemIndex);
-
-                app.$.toast.text = "Transition terminated. ";
-                app.$.toast.show();
-            }
-        }).catch(
-            function(err) {
-                app.$.toast.text = err.message + " ";
-                app.$.toast.show();
-            }
-        );
-        namespace.getqos({
-            url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
-            path: options.path
-        });
-    }
-
     window.addEventListener('qos-in-transition', function(event) {
-        //make request after 0.1 seconds
-        setTimeout(periodicalCurrentQosRequest(event.detail.options), 100);
+        updateFeListAndMetaDataDrawer([`${event.detail.options.targetQos}`], event.detail.options.itemIndex);
+        //make request after 0.2 seconds
+        setTimeout(
+            () => {
+            const qosWorker = new Worker('./scripts/tasks/request-current-qos.js');
+            qosWorker.addEventListener('message', function(e) {
+                switch (e.data.status) {
+                    case "successful":
+                        updateFeListAndMetaDataDrawer(e.data.file.currentQos, event.detail.options.itemIndex);
+                        app.$.toast.text = "Transition complete! ";
+                        break;
+                    case "error":
+                        updateFeListAndMetaDataDrawer(event.detail.options.currentQos, event.detail.options.itemIndex);
+                        app.$.toast.text = "Transition terminated. ";
+                        break;
+                }
+                qosWorker.terminate();
+                app.$.toast.show();
+            }, false);
+
+            qosWorker.addEventListener('error', function(e) {
+                console.info(e);
+                app.$.toast.text = e.message + " ";
+                app.$.toast.show();
+                qosWorker.terminate()
+            }, false);
+
+            qosWorker.postMessage({
+                "auth": app.getAuthValue(),
+                "endpoint": `${window.CONFIG["dcache-view.endpoints.webapi"]}`,
+                "options": event.detail.options,
+                "periodical": true
+            });
+        }, 200);
     });
 
     window.addEventListener('paper-responsive-change', function (event) {
