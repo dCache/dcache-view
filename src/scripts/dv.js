@@ -360,17 +360,10 @@
         if (sourcePath === destinationPath) {
             return;
         }
-        let errMsg;
-        app.mvObj.files.forEach((file) => {
+        const len = app.mvObj.files.length;
+        app.mvObj.files.forEach((file, i) => {
             let namespace = document.createElement('dcache-namespace');
             namespace.auth = app.getAuthValue();
-
-            namespace.mv({
-                url: "/api/v1/namespace",
-                path: `${sourcePath}/${file.fileName}`,
-                destination: `${destinationPath}/${file.fileName}`
-            });
-
             namespace.promise.then( () => {
                 if (currentViewPath === sourcePath) {
                     window.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
@@ -390,39 +383,27 @@
                             detail: {files: [item]},bubbles: true, composed: true}));
                     }
                 }
+                return file;
+            }).then((file) => {
+                app.$.toast.text = ``;
+                if (i+1 === len) {
+                    app.$.toast.text = `Done. ${len} files moved from source path ${sourcePath} to ${destinationPath}. `;
+                    app.$.toast.show();
+                }
+                if (i+1 > len) {
+                    app.$.toast.text = `${file.fileName} moved from source path ${sourcePath} to ${destinationPath}. `;
+                    app.$.toast.show();
+                }
             }).catch((err)=>{
-                errMsg = err.message;
+                app.$.toast.text = err.toString();
+                app.$.toast.show();
+            });
+            namespace.mv({
+                url: "/api/v1/namespace",
+                path: `${sourcePath}/${file.fileName}`,
+                destination: `${destinationPath}/${file.fileName}`
             });
         });
-
-        if (errMsg === undefined) {
-            const div = document.createElement('div');
-            const boldSource = document.createElement('code');
-            const boldDestination = document.createElement('code');
-            boldSource.innerHTML = sourcePath;
-            boldDestination.innerHTML = destinationPath;
-
-            boldSource.setAttribute("style", "color:yellow; font-weight: bold;");
-            boldDestination.setAttribute("style", "color:yellow; font-weight: bold;");
-
-            div.appendChild(boldSource);
-            div.appendChild(document.createTextNode(" to destination path: "));
-            div.appendChild(boldDestination);
-            div.appendChild(document.createTextNode(". "));
-            div.setAttribute("style", "display:inline;");
-
-            app.$.toast.text = app.mvObj.files.length + " files have been moved from source path: ";
-            app.$.toast.insertBefore(div, app.$.toast.querySelector('span'));
-
-            app.$.toast.addEventListener('iron-overlay-closed', ()=>{
-                if (app.$.toast.contains(div)) {
-                    app.$.toast.removeChild(div);
-                }
-            });
-        } else {
-            app.$.toast.text = errMsg;
-        }
-        app.$.toast.show();
         app.mvObj = {};
     };
 
