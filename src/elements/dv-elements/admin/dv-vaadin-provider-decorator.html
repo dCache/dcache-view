@@ -185,12 +185,12 @@
                         if (xhr.status == 200) {
                             resolve(xhr);
                         } else {
-                            reject(Error(xhr.statusText));
+                            reject(Error(`${this.vaadingrid.id}: ${xhr.status} ${xhr.statusText}`));
                         }
                     }
 
                     xhr.onerror = () => {
-                        reject(Error("Network Error"));
+                        reject(Error(`${this.vaadingrid.id}: Network Error`));
                     }
 
                     xhr.open('GET',
