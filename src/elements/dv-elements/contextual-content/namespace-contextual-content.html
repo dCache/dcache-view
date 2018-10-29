@@ -129,13 +129,16 @@
     <script>
         class NamespaceContextualContent extends Polymer.Element
         {
-            constructor(t,n)
+            constructor(t,n,authentication)
             {
                 super();
                 this.singleSelection = n === 0;
                 this.multipleSelection = n === 1;
                 this.currentDir = n === 2;
                 this.targetNode = t;
+                if (authentication) {
+                    this.authenticationParameters = authentication;
+                }
             }
 
             static get is()
@@ -264,7 +267,10 @@
                 if (window.CONFIG.isSomebody && e.composedPath()[0].id === "changeQos") {
                     this.dispatchEvent(
                         new CustomEvent('dv-namespace-open-subcontextmenu', {
-                            detail: {targetNode: this.targetNode}, bubbles: true, composed: true}));
+                            detail: {targetNode: this.targetNode, authentication: this.authenticationParameters},
+                            bubbles: true,
+                            composed: true
+                        }));
                 }
                 if (e.composedPath()[0].id !== "changeQos") {
                     this.dispatchEvent(new CustomEvent('dv-namespace-close-subcontextmenu', {
@@ -539,7 +545,7 @@
                 this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
                     bubbles: true, composed: true
                 }));
-                const viewer = new FilesViewer(this.targetNode);
+                const viewer = new FilesViewer(this.targetNode, this.authenticationParameters);
                 this.dispatchEvent(
                     new CustomEvent('dv-namespace-open-files-viewer', {
                         detail: {node: viewer}, bubbles: true, composed: true

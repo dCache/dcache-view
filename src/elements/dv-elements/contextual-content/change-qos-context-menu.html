@@ -38,14 +38,17 @@
         </paper-listbox>
     </template>
     <script>
-        class ChangeQosContextualMenu extends Polymer.Element
+        class ChangeQosContextualMenu extends DcacheViewMixins.Commons(Polymer.Element)
         {
-            constructor(t)
+            constructor(t, authentication)
             {
                 super();
                 this.path = t.filePath;
                 this.currentQos = t.fileMetaData.currentQos;
                 this.targetNode = t;
+                if (authentication) {
+                    this.authenticationParameters = authentication;
+                }
             }
 
             static get is()
@@ -106,7 +109,7 @@
                     bubbles: true, composed: true
                 }));
                 const namespace = document.createElement('dcache-namespace');
-                namespace.auth = sessionStorage.upauth;
+                namespace.auth = this.getAuthValue();
 
                 namespace.promise.then(() => {
                     this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {

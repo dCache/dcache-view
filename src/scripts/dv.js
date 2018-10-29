@@ -165,7 +165,7 @@
     {
         if (!app.$.centralSubContextMenu.opened) {
             app.removeAllChildren(app.$.centralSubContextMenu);
-            const content = new ChangeQosContextualMenu(e.detail.targetNode);
+            const content = new ChangeQosContextualMenu(e.detail.targetNode, e.detail.authentication);
 
             const vx = window.innerWidth;
             const w = 198;

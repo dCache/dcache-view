@@ -7,12 +7,15 @@
 
 <script>
     'use strict';
-    class DndUpload extends Polymer.Element
+    class DndUpload extends DcacheViewMixins.Commons(Polymer.Element)
     {
-        constructor(pt)
+        constructor(pt, authentication)
         {
             super();
             this.path = pt;
+            if (authentication) {
+                this.authenticationParameters = authentication;
+            }
         }
 
         static get is() {
@@ -73,7 +76,7 @@
             return new Promise((resolve, reject) => {
                 const url = `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`;
                 const namespace = document.createElement('dcache-namespace');
-                namespace.auth = sessionStorage.upauth;
+                namespace.auth = this.getAuthValue();
                 namespace.promise.then(()=> {
                     return resolve(name);
                 }).catch(err => reject(err));

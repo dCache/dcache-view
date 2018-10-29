@@ -262,12 +262,6 @@
                 ];
             }
 
-            _computedUpw(path)
-            {
-                return !(sessionStorage.upauth === undefined || sessionStorage.upauth == null) ?
-                    window.atob(sessionStorage.upauth) : "anonymous:nopassword";
-            }
-
             _computedDraggable(isSelected)
             {
                 return !!isSelected;
@@ -288,11 +282,10 @@
             _url(path)
             {
                 const isHome = path===null || path === "" || path === "/";
-                const x = sessionStorage.upauth !== undefined ?
-                    isHome === true ? "/?children=true&qos=true" :
-                        `${path}/?children=true&qos=true` : isHome === true ?
-                        "/?children=true" : `${path}/?children=true`;
-                return `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace${x}`;
+                const filePath = this.getAuthValue() !== "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ=" ? isHome === true ?
+                    "/?children=true&qos=true" : `${path}/?children=true&qos=true` : isHome === true ?
+                    "/?children=true" : `${path}/?children=true`;
+                return `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace${filePath}`;
             }
 
             _computeParentPath(path)

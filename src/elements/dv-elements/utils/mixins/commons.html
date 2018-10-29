@@ -13,6 +13,13 @@
          */
         return class extends superclass
         {
+            static get properties() {
+                return {
+                    authenticationParameters: {
+                        type: Object
+                    }
+                };
+            }
             convertToUnixPermissions(mode)
             {
                 const S_IRUSR = 0o0400; // owner has read permission
@@ -130,6 +137,21 @@
                 while (node.firstChild) {
                     node.removeChild(node.firstChild);
                 }
+            }
+
+            getAuthValue()
+            {
+                if (this.authenticationParameters) {
+                    return `${this.authenticationParameters.scheme} ${this.authenticationParameters.value}`;
+                }
+                if (!!sessionStorage.getItem("hasAuthClientCertificate")) {
+                    return "";
+                }
+                if (sessionStorage.upauth !== undefined) {
+                    return sessionStorage.authType + ' ' + sessionStorage.upauth;
+                }
+                //this equals "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ"
+                return `Basic ${window.btoa('anonymous:nopassword')}`;
             }
         }
     })

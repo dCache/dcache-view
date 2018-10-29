@@ -70,9 +70,9 @@
         </app-header-layout>
     </template>
     <script>
-        class FilesViewer extends Polymer.Element
+        class FilesViewer extends DcacheViewMixins.Commons(Polymer.Element)
         {
-            constructor(file)
+            constructor(file, authentication)
             {
                 super();
                 if (file) this.file = file;
@@ -80,6 +80,9 @@
                 this._cleanUpListener = this._cleanUp.bind(this);
                 this._downloadListener = this._download.bind(this);
                 this._errorListener = this._error.bind(this);
+                if (authentication) {
+                    this.authenticationParameters = authentication;
+                }
             }
             static get is()
             {
@@ -145,7 +148,7 @@
                     worker.postMessage({
                         'url' : fileURL,
                         'mime' : this.file.fileMetaData.fileMimeType,
-                        'upauth' : sessionStorage.getItem('upauth'),
+                        'upauth' : this.getAuthValue(),
                         'return': this.file.fileMetaData.fileMimeType.includes('json') ? 'json' : ''
                     });
                 });

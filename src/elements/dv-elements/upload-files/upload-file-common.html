@@ -3,13 +3,16 @@
 <dom-module id="upload-file-common">
     <script>
         `use-strict`;
-        class UploadFileCommon extends Polymer.Element
+        class UploadFileCommon extends DcacheViewMixins.Commons(Polymer.Element)
         {
-            constructor(path)
+            constructor(path, authentication)
             {
                 super();
                 this.path = path.endsWith("/") ? path : `${path}/`;
                 this.browser = app.checkBrowser();
+                if (authentication) {
+                    this.authenticationParameters = authentication;
+                }
             }
 
             static get is()
@@ -71,10 +74,9 @@
             upload(file)
             {
                 const uploadUrl = `${this.url}${this.path}${file.name}`;
-
                 new UploadHandler({
                     file: file,
-                    upauth: sessionStorage.upauth,
+                    upauth: this.getAuthValue(),
                     url: uploadUrl,
                     onComplete: data => {
                         this.progressStatus = false;

@@ -1,4 +1,4 @@
-class RoleRequest extends Polymer.Element
+class RoleRequest extends DcacheViewMixins.Commons(Polymer.Element)
 {
     constructor()
     {
@@ -27,7 +27,7 @@ class RoleRequest extends Polymer.Element
     }
     _getB64EncodedCredential(list = "")
     {
-        if (sessionStorage.upauth === undefined || sessionStorage.upauth === "") {
+        if (this.getAuthValue() === "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ=") {
             this.rejectAssertion("You need to authenticate to assert or un-assert roles.");
             return;
         }

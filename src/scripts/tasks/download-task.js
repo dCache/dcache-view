@@ -4,7 +4,7 @@ self.addEventListener('message', function(e) {
         "Suppress-WWW-Authenticate": "Suppress",
         "Content-Type": e.data.mime
     });
-    if (!e.data.usesCert) {
+    if (e.data.upauth && e.data.upauth !== "") {
         headers.append("Authorization", `${e.data.upauth}`);
     }
     const request = new Request(e.data.url, {

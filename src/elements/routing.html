@@ -16,7 +16,7 @@
         }
 
         // Middleware
-        window.CONFIG.isSomebody = sessionStorage.upauth !== undefined;
+        window.CONFIG.isSomebody = app.getAuthValue() !== "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ=";
         window.CONFIG.isAdmin = sessionStorage.roles !== undefined &&
             sessionStorage.roles.includes('admin');
         app.config = window.CONFIG;
