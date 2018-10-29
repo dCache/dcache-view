@@ -790,11 +790,9 @@
                         delete restore.maxActive;
 
                         const space = poolData.detailsData.costData.space;
-
                         const total = this.convertBytesToNearestBinaryPrefix(space.total);
                         const free = this.convertBytesToNearestBinaryPrefix(space.free);
                         const precious = this.convertBytesToNearestBinaryPrefix(space.precious);
-                        const removable = this.convertBytesToNearestBinaryPrefix(space.removable);
 
                         pool = {
                             'cell': poolData.cellData.cellName,
@@ -815,8 +813,10 @@
                             'p2p': poolData.detailsData.costData.p2p,
                             'p2pClient': poolData.detailsData.costData.p2pClient,
                             'disk': {
-                                'total': total, 'precious': precious,
-                                'free': free, 'removable': removable
+                                'total': space.total,
+                                'precious': space.precious,
+                                'free': space.free,
+                                'removable': space.removable
                             }
                         };
 

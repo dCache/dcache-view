@@ -70,7 +70,7 @@
     </template>
 
     <script>
-        class LayoutBar extends Polymer.Element {
+        class LayoutBar extends DcacheViewMixins.Commons(Polymer.Element) {
 
             static get is() {
                 return 'layout-bar';
@@ -96,10 +96,10 @@
                     return;
                 }
 
-                const total = data.total ? parseFloat(data.total) : 0.0;
-                const p = data.precious ? parseFloat(data.precious) : 0.0;
-                const r = data.removable ? parseFloat(data.removable) : 0.0;
-                const f = data.free ? parseFloat(data.free) : 0.0;
+                const total = data.total && this.isNumber(data.total) ? parseFloat(data.total) : 0.0;
+                const p = data.precious && this.isNumber(data.precious) ? parseFloat(data.precious) : 0.0;
+                const r = data.removable && this.isNumber(data.removable) ? parseFloat(data.removable) : 0.0;
+                const f = data.free && this.isNumber(data.free) ? parseFloat(data.free) : 0.0;
                 const rest = total === 0.0 ? 0.0 : total - (p + r + f);
 
                 let precious = total === 0.0 ? 0.0 : (100 * p / total).toFixed(1) * 1;

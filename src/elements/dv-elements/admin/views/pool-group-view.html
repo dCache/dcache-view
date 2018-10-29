@@ -200,21 +200,22 @@
                 let removable = 0;
 
                 this.incoming.forEach(group => {
-                    total += group.total;
-                    free += group.free;
-                    precious += group.precious;
-                    removable += group.removable;
+                    total += group.disk.total;
+                    free += group.disk.free;
+                    precious += group.disk.precious;
+                    removable += group.disk.removable;
                 });
 
                 this.incoming.push({
                     'group': 'all-pools',
-                    'total': total,
-                    'precious': precious,
-                    'free': free,
-                    'removable': removable,
+                    'total': this.convertBytesToNearestBinaryPrefix(total),
+                    'precious': this.convertBytesToNearestBinaryPrefix(precious),
+                    'free': this.convertBytesToNearestBinaryPrefix(free),
                     'disk': {
-                        'total': total, 'precious': precious,
-                        'free': free, 'removable': removable
+                        'total': total,
+                        'precious': precious,
+                        'free': free,
+                        'removable': removable
                     }
                 });
 
@@ -256,13 +257,12 @@
                 const result = event.detail.response;
                 const group = this.getSubpathFromUrl(event.detail.url, 4);
 
-                if (!result.groupSpaceData) {
+                if (!result.groupSpaceData || !this.isNumber(result.groupSpaceData.total)) {
                     this.incoming.push({
                         'group': group,
-                        'total': 0,
-                        'precious': 0,
-                        'free': 0,
-                        'removable': 0,
+                        'total': "0 bytes",
+                        'precious': "0 bytes",
+                        'free': "0 bytes",
                         'disk': {
                             'total': 0, 'precious': 0,
                             'free': 0, 'removable': 0
@@ -272,16 +272,16 @@
                     const total = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.total);
                     const free = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.free);
                     const precious = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.precious);
-                    const removable = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.removable);
                     this.incoming.push({
                         'group': group,
                         'total': total,
                         'precious': precious,
                         'free': free,
-                        'removable': removable,
                         'disk': {
-                            'total': total, 'precious': precious,
-                            'free': free, 'removable': removable
+                            'total': result.groupSpaceData.total,
+                            'precious': result.groupSpaceData.precious,
+                            'free': result.groupSpaceData.free,
+                            'removable': result.groupSpaceData.removable
                         }
                     });
                 }
