@@ -1,6 +1,5 @@
 <link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
 
-<link rel="import" href="../../../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../../../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../../../../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../../../../bower_components/iron-scroll-threshold/iron-scroll-threshold.html">
@@ -75,12 +74,6 @@
                 height: 20px;
             }
         </style>
-        <iron-ajax id="ajax"
-                   method="GET"
-                   content-type="application/json"
-                   handle-as="json" on-response="handleResponse"
-                   on-error="handleError" loading="{{loading}}">
-        </iron-ajax>
         <div id="content" class="paper-material" elevation="1">
             <iron-list id="feList" items="[]"
                        selected-item="{{selectedItem}}"
@@ -107,7 +100,7 @@
     </template>
 
     <script>
-        class ViewFile extends DcacheViewMixins.Commons(Polymer.Element)
+        class ViewFile extends DcacheViewMixins.Namespace(DcacheViewMixins.Commons(Polymer.Element))
         {
             constructor(path)
             {
@@ -300,9 +293,9 @@
                 }
             }
 
-            handleResponse(e)
+            handleResponse(response)
             {
-                const children = e.detail.response.children;
+                const children = response.children;
 
                 if (!(children.length === 0 && this.__counter__ === 0)) {
                     children.forEach((child) => {
@@ -315,7 +308,7 @@
                     }
                 }
                 if (Object.keys(this.currentDirMetaData).length === 0) {
-                    const a = JSON.parse(JSON.stringify(e.detail.response));
+                    const a = JSON.parse(JSON.stringify(response));
                     delete a['children'];
                     this.currentDirMetaData = a;
                     this.currentDirMetaData.fileName = this.currentDirName;
@@ -323,10 +316,11 @@
                 this._updateContentElevationAttribute();
             }
 
-            handleError(request)
+            handleError(error)
             {
-                let msg = request.detail.error.message;
-                let code = request.detail.request.__data.status;
+                const err = JSON.parse(error.substr(error.indexOf("{")));
+                let msg = err.message;
+                const code = err.status ? err.status: 500;
                 this.$.content.setAttribute("elevation", 0);
 
                 switch (parseInt(code)) {
@@ -338,7 +332,6 @@
                         msg = "Access Denied! Please login using a credentials with the right permission.";
                         break;
                     default:
-                        code = code === undefined ? "500": code;
                         msg = msg === undefined ?
                             "Something is terribly wrong! Please contact your admin.": msg;
                 }
@@ -400,18 +393,23 @@
             }
             __listDirectory()
             {
-                const limit = 100;
-                let offset = this.__counter__ * limit;
-                let authzValue = app.getAuthValue();
-
-                this.$.ajax.headers = {
-                    "Authorization": authzValue,
-                    "Accept": "application/json",
-                    "Suppress-WWW-Authenticate": "Suppress"
+                this.loading = true;
+                const message = {
+                    'endpoint' : `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
+                    'file' : this.currentDirMetaData,
+                    'filePath' : this.path,
+                    'scope' : 'partial',
+                    'limit' : 100,
+                    'offset' : this.__counter__ * 100,
+                    'upauth' : this.getAuthValue()
                 };
-                this.$.ajax.url = this.url;
-                this.$.ajax.params = {"limit":limit, "offset": offset};
-                this.$.ajax.generateRequest();
+                this.fileMetadataPromise(message).then(metadata => {
+                    this.handleResponse(metadata);
+                    this.loading = false;
+                }).catch(error => {
+                    this.handleError(error.message);
+                    this.loading = false;
+                })
             }
 
             _multipleSelectionShortcuts(event)

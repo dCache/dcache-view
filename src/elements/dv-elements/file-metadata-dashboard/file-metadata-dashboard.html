@@ -179,9 +179,9 @@
         </app-header-layout>
     </template>
     <script>
-        class FileMetadataDashboard extends Polymer.Element
+        class FileMetadataDashboard extends DcacheViewMixins.Namespace(DcacheViewMixins.Commons(Polymer.Element))
         {
-            constructor(file, path, idx)
+            constructor(file, path, idx, auth)
             {
                 super();
                 this._setIndexListener_ = this._setIndexListener.bind(this);
@@ -193,6 +193,9 @@
                 this.path = path === "" ? "/": path;
 
                 this.pnfsId = file.pnfsId ? file.pnfsId : "0";
+                if (auth) {
+                    this.authenticationParameters = auth;
+                }
 
                 if (idx === 1) {
                     this.index = -10;
@@ -230,7 +233,7 @@
                         type: String,
                         value: "0",
                         notify: true,
-                        observer: '_requestFileMetadata'
+                        observer: '_requestFileMetadataWithPnfsId'
                     },
                     index: {
                         type: Number,
@@ -338,22 +341,14 @@
             }
             _requestAllChildren()
             {
-                const namespaceRequest =  new DcacheNamespace();
-                namespaceRequest.auth = app.getAuthValue();
-                const options = {
-                    url: window.location.origin,
-                    path: this.path,
-                    children: true
-                };
-                namespaceRequest.ls(options);
-                namespaceRequest.promise.then((request) => {
+                this._requestFileMetadata({"scope": "partial", "limit": "max"}).then(data => {
                     this.refreshRequire = false;
-                    this.setProperties({children: request.response.children});
-                }).catch((err) => {
+                    this.setProperties({children: data.children});
+                }).catch(err => {
                     this.errorMessage = err.message;
                     this.icon = 'icons:warning';
                     this.$.empty.querySelector('iron-icon').classList.replace('empty-icon', 'warning-icon');
-                });
+                })
             }
             _setPieChartData(children, len)
             {
@@ -426,27 +421,19 @@
                     this.$.pretty.classList.replace("visible", "none");
                 }
             }
-            _requestFileMetadata(pnfsId)
+            _requestFileMetadataWithPnfsId(pnfsId)
             {
                 if (pnfsId !== "0") {
-                    fetch(`./api/v1/id/${pnfsId}`, {
-                        method: 'get',
-                        headers: {
-                            "Authorization": app.getAuthValue(),
-                            "Accept": "application/json",
-                            "Suppress-WWW-Authenticate": "Suppress"
-                        }
-                    }).then((response) => {
-                        if (!(response.status >= 200 && response.status < 300)) {
-                            throw new Error(`Looks like there was a problem. Status Code: ${response.status}`);
-                        }
-                        response.json().then((data) => {
-                            this.setProperties({metadata: this._filterMetadata(data)});
-                        });
-                    }).catch((err) => {
+                    if (this.knownMetadata.acl) {
+                        this.setProperties({metadata: this._filterMetadata(this.knownMetadata)});
+                        return;
+                    }
+                    this._requestFileMetadata({'scope': 'full'}).then(data => {
+                        this.setProperties({metadata: this._filterMetadata(data)});
+                    }).catch(err => {
                         //Fail Quietly
                         this.setProperties({metadata: this._filterMetadata(this.knownMetadata)});
-                    });
+                    })
                 } else {
                     // TODO: user should never hit this block but if they do, make a request for the pnfsID
                     console.info('waiting for pnfsId value');
@@ -464,6 +451,19 @@
 
                 this.isLoading = false;
                 return metadata;
+            }
+            _requestFileMetadata(additionalMessage)
+            {
+                const message = {
+                    'endpoint' : `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
+                    'file' : this.knownMetadata,
+                    'filePath' : this.path,
+                    'upauth' : this.getAuthValue()
+                };
+                for (const key in additionalMessage) {
+                    if (additionalMessage.hasOwnProperty(key)) message[key] = additionalMessage[key];
+                }
+                return this.fileMetadataPromise(message);
             }
         }
         window.customElements.define(FileMetadataDashboard.is, FileMetadataDashboard);
