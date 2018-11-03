@@ -95,7 +95,42 @@
             node.removeChild(node.firstChild);
         }
     };
-
+    app.buildAndOpenContextMenu = function(event, contextContent, height)
+    {
+        app.$.centralSubContextMenu.close();
+        app.$.centralContextMenu.close();
+        app.removeAllChildren(app.$.centralContextMenu);
+        let x = 0, y = 0;
+        const w = 200;
+        if (event.pageX || event.pageY) {
+            x = event.pageX;
+            y = event.pageY;
+        } else if (event.clientX || event.clientY) {
+            x = event.clientX + document.body.scrollLeft +
+                document.documentElement.scrollLeft;
+            y = event.clientY + document.body.scrollTop +
+                document.documentElement.scrollTop;
+        }
+        const vx = window.innerWidth;
+        const vy = window.innerHeight;
+        if (vx - x < w && vy - y >= height) {
+            app.x = x-w;
+            app.y = y;
+        } else if (vx - x < w && vy - y < height) {
+            app.x = x-w;
+            app.y = y-height;
+        } else if (vx - x >= w && vy - y < height) {
+            app.x = x;
+            app.y = y-height;
+        } else {
+            app.x = x;
+            app.y = y;
+        }
+        app.notifyPath('x');
+        app.notifyPath('y');
+        app.$.centralContextMenu.appendChild(contextContent);
+        app.$.centralContextMenu.open();
+    };
     app.currentDirContext = function(e)
     {
         /**
@@ -107,58 +142,26 @@
          * a. https://caniuse.com/#search=Shadow%20DOM
          * b. https://caniuse.com/#search=Custom%20Elements
          */
-        app.$.centralSubContextMenu.close();
-        const contextMenu = app.$.centralContextMenu;
-        contextMenu.close();
-        app.removeAllChildren(contextMenu);
+        const vf = findViewFile(e);
+        if (vf) {
+            let h = 110, cc;
+            if (e.screenX === 0 && e.screenY === 0) {
+                const arr = e.path || (e.composedPath && e.composedPath());
+                const lr = arr.find(function (el) {
+                    return el.tagName === "LIST-ROW";
+                });
 
-        const vf = app.$.homedir.querySelector('view-file');
-        let x = 0, y = 0, h = 110, cc;
-        if (e.screenX === 0 & e.screenY === 0) {
-            const arr = e.path || (e.composedPath && e.composedPath());
-            const lr = arr.find(function (el) {
-                return el.tagName === "LIST-ROW";
-            });
-
-            if (lr.xSelected && vf._xSelectedItems.length > 1) {
-                cc = new NamespaceContextualContent({files: vf._xSelectedItems}, 1);
+                if (lr.xSelected && vf._xSelectedItems.length > 1) {
+                    cc = new NamespaceContextualContent({files: vf._xSelectedItems}, 1);
+                } else {
+                    cc = new NamespaceContextualContent(lr, 0);
+                }
+                h = 245;
             } else {
-                cc = new NamespaceContextualContent(lr, 0);
+                cc = new NamespaceContextualContent(vf.currentDirMetaData, 2);
             }
-            h = 245;
-        } else {
-            cc = new NamespaceContextualContent(vf.currentDirMetaData, 2);
+            app.buildAndOpenContextMenu(e, cc, h)
         }
-
-        const w = 200;
-        if (e.pageX || e.pageY) {
-            x = e.pageX;
-            y = e.pageY;
-        } else if (e.clientX || e.clientY) {
-            x = e.clientX + document.body.scrollLeft +
-                document.documentElement.scrollLeft;
-            y = e.clientY + document.body.scrollTop +
-                document.documentElement.scrollTop;
-        }
-        const vx = window.innerWidth;
-        const vy = window.innerHeight;
-        if (vx - x < w && vy - y >= h) {
-            app.x = x-w;
-            app.y = y;
-        } else if (vx - x < w && vy - y < h) {
-            app.x = x-w;
-            app.y = y-h;
-        } else if (vx - x >= w && vy - y < h) {
-            app.x = x;
-            app.y = y-h;
-        } else {
-            app.x = x;
-            app.y = y;
-        }
-        app.notifyPath('x');
-        app.notifyPath('y');
-        contextMenu.appendChild(cc);
-        contextMenu.open();
     };
 
     app.subContextMenu = function(e)
@@ -234,38 +237,40 @@
     app.drop = function(e)
     {
         let event = e || event, iC = true, path, flag = false;
-        if (event.detail === 0) {
-            event.preventDefault && event.preventDefault();
-            dndCounter = 0;
-            path = app.$.homedir.querySelector('view-file').path;
-        } else {
-            const targetNode = event.detail.file;
-            path = event.detail.filePath;
-            iC = path === app.$.homedir.querySelector('view-file').path;
-            targetNode.removeAttribute('in-drop-zone');
-            event = event.detail.evt;
-            app.clearDelayedLs();
-            flag = true;
-        }
+        const vf = findViewFile(e);
+        if (vf) {
+            if (event.detail === 0) {
+                event.preventDefault && event.preventDefault();
+                dndCounter = 0;
+                path = vf.path;
+            } else {
+                const targetNode = event.detail.file;
+                path = event.detail.filePath;
+                iC = path === vf.path;
+                targetNode.removeAttribute('in-drop-zone');
+                event = event.detail.evt;
+                app.clearDelayedLs();
+                flag = true;
+            }
 
-        if (event.dataTransfer.types.includes('text/plain')) {
-            app.dragNdropMoveFiles(path, flag);
-        } else {
-            app.$.dropZoneToast.close();
-            const upload = new DndUpload(path);
-            upload.isCurrentView = iC;
-            upload.start(event);
+            if (event.dataTransfer.types.includes('text/plain')) {
+                app.dragNdropMoveFiles(path, flag);
+            } else {
+                app.$.dropZoneToast.close();
+                const upload = new DndUpload(path);
+                upload.isCurrentView = iC;
+                upload.start(event);
+            }
         }
     };
     app.dragenter = function(e)
     {
         let event = e || event;
-
         let name;
         if (event.detail === 0) {
             event.preventDefault && event.preventDefault();
             dndCounter++;
-            name = app.getfileName(app.$.homedir.querySelector('view-file').path);
+            name = app.getfileName(findViewFile(event).path);
         } else {
             name = event.detail.file.fileMetaData ?
                 event.detail.file.fileMetaData.fileName: event.detail.file.name;
@@ -283,12 +288,12 @@
     {
         dndCounter--;
     };
-    app.dragend = function()
+    app.dragend = function(e)
     {
         dndCounter = 0;
 
         //Remove all the in-drop-zone and is-dragging attributes of list-row(s)
-        const vf = app.$.homedir.querySelector('view-file');
+        const vf = findViewFile(e);
         const allListRows = [...vf.$.feList.querySelectorAll('list-row')];
         const len = allListRows.length;
         for (let i=0; i<len; i++) {
@@ -423,6 +428,32 @@
         app.mvObj = {};
     };
 
+    function findViewFile(e)
+    {
+        const arr = e.path || (e.composedPath && e.composedPath());
+        const vf = arr.find(function(el) {
+            return el.tagName === "VIEW-FILE";
+        });
+        if (vf) {
+            return vf;
+        }
+        const namespace = arr.find(function(el) {
+            return el.id === "homedir";
+        });
+        const arr2 = namespace.children;
+        const len = arr2.length;
+        let j = -1;
+        for (let i = 0; i < len; i++) {
+            if (arr2[i].tagName === "VIEW-FILE") {
+                j = i;
+                break;
+            }
+        }
+        if (j > -1) {
+            return arr2[j];
+        }
+    }
+
     function updateFeListAndMetaDataDrawer(status, itemIndex)
     {
         if (app.$.metadata.selected === 'drawer') {
@@ -532,7 +563,7 @@
         app.mvObj = {};
         app.notifyPath('mvObj');
 
-        const vf = app.$.homedir.querySelector('view-file');
+        const vf = findViewFile(e);
         app.mvObj.files= vf._xSelectedItems;
         app.mvObj.source = vf.path;
 
