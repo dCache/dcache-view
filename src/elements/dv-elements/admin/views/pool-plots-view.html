@@ -347,6 +347,11 @@
                     rendering: {
                         type: Boolean,
                         notify: true
+                    },
+
+                    errorMessage: {
+                        type: String,
+                        value: ''
                     }
                 }
             }
@@ -497,8 +502,12 @@
 
             _handleHistogramError(event) {
                 this.plotDataResponses += 1;
-                this.handleError(`Could not process histogram:
-                    ${event.detail.error.message}`);
+                this.errorMessage = `${this.errorMessage} ${event.detail.error.message}`;
+
+                if (this.plotDataResponses === this.currentChildren.length) {
+                    this._setNameFilter(this.$.nameFilter.value);
+                    this.rendering = false;
+                }
             }
 
             _handlePoolsResponse(event) {
@@ -652,6 +661,11 @@
                 this.charts = [];
                 this.charts = matching;
                 this.hiddenCharts = excluded;
+
+                if (this.errorMessage !== '') {
+                    this.handleError(`Error in retrieving histograms: ${this.errorMessage}`);
+                    this.errorMessage = '';
+                }
             }
 
             _sortByTitle(a, b) {
