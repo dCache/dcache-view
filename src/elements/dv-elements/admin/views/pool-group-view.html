@@ -183,7 +183,12 @@
                     incoming: {
                         type: Array,
                         value: []
-                    }
+                    },
+
+                    spaceError: {
+                        type: String,
+                        value: ''
+                    },
                 }
             }
 
@@ -220,6 +225,11 @@
 
                 this.groups = this.incoming;
                 this.incoming = [];
+
+                if (this.spaceError !== '') {
+                    this.handleError(`Error in space info request: ${this.spaceError}`);
+                    this.spaceError = '';
+                }
             }
 
             _handleGroupsError(event) {
@@ -248,8 +258,7 @@
             }
 
             _handleSpaceError(event) {
-                this.handleError(`Could not process space info request:
-                  ${message + event.detail.error.message}`);
+                this.spaceError = `${this.spaceError} ${event.detail.error.message}`;
             }
 
             _handleSpaceResponse(event) {
