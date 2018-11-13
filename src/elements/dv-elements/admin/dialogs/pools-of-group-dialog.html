@@ -627,6 +627,11 @@
                         type: Boolean,
                         value: false,
                         notify: true
+                    },
+
+                    errorMessage: {
+                        type: String,
+                        value: ''
                     }
                 }
             }
@@ -695,7 +700,8 @@
             }
 
             _handlePoolsError(event) {
-                this.handleError(`Could not process pools of group request: ${event.detail.error.message}`);
+                this.errorMessage = `${this.errorMessage} ${event.detail.error.message}`;
+                this._handlePoolInfoResponse(event);
             }
 
             _handlePoolInfoResponse(event) {
@@ -829,6 +835,11 @@
                 this.pools = pools;
                 this.queues = queues;
                 this.incoming = [];
+
+                if (this.errorMessage !== '') {
+                    this.handleError(`Error processing pool requests: ${this.errorMessage}`);
+                    this.errorMessage = '';
+                }
             }
 
             _queueAttribute(queue, item, attribute) {
