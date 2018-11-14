@@ -111,6 +111,13 @@
                 Upload file(s)
             </paper-icon-item>
 
+            <paper-icon-item id="webdavUrl"
+                             class$="[[_computedClass('webdavUrl', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="link" slot="item-icon"></iron-icon>
+                Get WebDAV link
+            </paper-icon-item>
+
             <paper-icon-item id="metadata"
                              class$="[[_computedClass('metadata', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
@@ -127,7 +134,7 @@
         </paper-listbox>
     </template>
     <script>
-        class NamespaceContextualContent extends Polymer.Element
+        class NamespaceContextualContent extends DcacheViewMixins.Commons(Polymer.Element)
         {
             constructor(t,n,authentication)
             {
@@ -185,6 +192,7 @@
                 if (this.singleSelection) {
                     this.$.delete.addEventListener('tap', this._delete.bind(this));
                     this.$.metadata.addEventListener('tap', this._metadata.bind(this));
+                    this.$.webdavUrl.addEventListener('tap', this._getWebDavURL.bind(this));
                     this.$.move.addEventListener('tap', this._move.bind(this));
                     this.$.qosInfo.addEventListener('tap', this._qosInfo.bind(this));
                     this.$.rename.addEventListener('tap', this._rename.bind(this));
@@ -212,6 +220,7 @@
                 } else if (this.currentDir) {
                     this.$.create.addEventListener('tap', this._create.bind(this));
                     this.$.metadata.addEventListener('tap', this._metadata.bind(this));
+                    this.$.webdavUrl.addEventListener('tap', this._getWebDavURL.bind(this));
                     this.$.qosInfo.addEventListener('tap', this._qosInfo.bind(this));
                     this.$.upload.addEventListener('tap', this._upload.bind(this));
                 }
@@ -231,6 +240,7 @@
                 if (this.singleSelection) {
                     this.$.delete.removeEventListener('tap', this._delete.bind(this));
                     this.$.metadata.removeEventListener('tap', this._metadata.bind(this));
+                    this.$.webdavUrl.removeEventListener('tap', this._getWebDavURL.bind(this));
                     this.$.move.removeEventListener('tap', this._move.bind(this));
                     this.$.qosInfo.removeEventListener('tap', this._qosInfo.bind(this));
                     this.$.rename.removeEventListener('tap', this._rename.bind(this));
@@ -251,6 +261,7 @@
                 } else if (this.currentDir) {
                     this.$.create.removeEventListener('tap', this._create.bind(this));
                     this.$.metadata.removeEventListener('tap', this._metadata.bind(this));
+                    this.$.webdavUrl.removeEventListener('tap', this._getWebDavURL.bind(this));
                     this.$.qosInfo.removeEventListener('tap', this._qosInfo.bind(this));
                     this.$.upload.removeEventListener('tap', this._upload.bind(this));
                 }
@@ -523,8 +534,8 @@
 
             _setDisabledAttribute(id, singleSelection, multipleSelection, t)
             {
-                if (multipleSelection && (id === 'open' || id === 'metadata' || id === 'rename' ||
-                    id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
+                if (multipleSelection && (id === 'open' || id === 'metadata' || id === 'webdavUrl' ||
+                    id === 'rename' || id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
                     this.$[id].setAttribute('disabled', "");
                 }
 
@@ -551,6 +562,29 @@
                         detail: {node: viewer}, bubbles: true, composed: true
                     })
                 );
+            }
+            _getWebDavURL(e)
+            {
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
+
+                if (!this.targetNode.filePath) {
+                    this.targetNode.filePath = this.currentPath;
+                }
+
+                const el = document.createElement('textarea');
+                el.value = this.getFileWebDavUrl(this.targetNode.filePath, "read")[0];
+                el.setAttribute('readonly', '');
+                el.style.position = 'absolute';
+                el.style.left = '-9999px';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+
+                this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                    detail: {message: "Copied to clipboard."}, bubbles: true, composed: true}));
             }
         }
         window.customElements.define(NamespaceContextualContent.is, NamespaceContextualContent);
