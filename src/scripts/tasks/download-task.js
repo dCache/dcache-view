@@ -8,23 +8,19 @@ self.addEventListener('message', function(e) {
         headers.append("Authorization", `${e.data.upauth}`);
     }
     const request = new Request(e.data.url, {
-        headers: headers
+        headers: headers,
+        mode: "cors",
+        redirect: "follow"
     });
 
-    fetch(request).then((file) => {
+    fetch(request).then(file => {
         switch (e.data.return) {
             case 'json':
                 return file.json();
-            case 'blob':
-                return file.blob();
             default:
-                return file.arrayBuffer();
+                return file.blob();
         }
-    }).then((data)=>{
-        if (e.data.return === 'json') {
-            self.postMessage(data);
-        } else {
-            self.postMessage(data, [data])
-        }
-    }).catch((err)=>{throw new Error(err)})
+    }).then(data => {
+        self.postMessage(data);
+    }).catch(err => {setTimeout(function(){throw error;});})
 }, false);
