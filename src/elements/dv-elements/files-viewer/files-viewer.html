@@ -147,7 +147,7 @@
                         'url' : fileURL,
                         'mime' : this.file.fileMetaData.fileMimeType,
                         'upauth' : this.getAuthValue(),
-                        'return': this.file.fileMetaData.fileMimeType.includes('json') ? 'json' : ''
+                        'return': this.file.fileMetaData.fileMimeType.includes('json') ? 'json' : 'blob'
                     });
                 });
             }
