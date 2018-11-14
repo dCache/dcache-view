@@ -64,7 +64,7 @@ gulp.task('copy-scripts', function() {
 
 gulp.task('copy-pdfjs', function() {
     return gulp.src([
-        './src/bower_components/pdfjs-dist/build/*'
+        './src/bower_components/pdfjs-dist/build/**/*'
     ], {
         base: ''
     })
@@ -82,8 +82,8 @@ gulp.task('vulcanize', function() {
         .pipe(gulp.dest('./target/elements'));
 });
 
-gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-scripts', 'copy-pdfjs']);
+gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-scripts']);
 
 gulp.task('default', ['bower', 'build'], function () {
-    gulp.start('vulcanize','copy-webcomponents');
+    gulp.start('vulcanize','copy-webcomponents', 'copy-pdfjs');
 });
