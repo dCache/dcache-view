@@ -109,7 +109,7 @@
 
                 window.dispatchEvent(
                     new CustomEvent('dv-namespace-view-file-created', {
-                        detail: {}, bubbles: true, composed: true}));
+                        detail: {path: path}, bubbles: true, composed: true}));
 
                 window.dispatchEvent(
                     new CustomEvent('dv-namespace-current-path', {
