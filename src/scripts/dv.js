@@ -453,6 +453,24 @@
             return arr2[j];
         }
     }
+    function getFileWebDavUrl(path, operationType)
+    {
+        if (path.startsWith("/")) {
+            path = path.replace(/\/\//g, "/");
+        } else {
+            throw new TypeError("Invalid path: only absolute path is accepted.");
+        }
+        const arr = window.CONFIG["webdav"] ?
+            window.CONFIG["webdav"][operationType] : window.CONFIG["dcache-view.endpoints.webdav"] ?
+                [window.CONFIG["dcache-view.endpoints.webdav"]] :
+                [`${window.location.protocol}//${window.location.hostname}:2880`];
+        const len = arr.length;
+        const url = [];
+        for (let i=0; i<len; i++) {
+            url.push(arr[i].endsWith("/") ? `${arr[i].replace(/.$/,'')}${path}` : `${arr[i]}${path}`)
+        }
+        return url;
+    }
 
     function updateFeListAndMetaDataDrawer(status, itemIndex)
     {
@@ -597,36 +615,30 @@
             Polymer.dom.flush();
         } else {
             //Download the file
-            const webdav = window.CONFIG["dcache-view.endpoints.webdav"];
-            const fileURL = webdav === "" ?
-                `${window.location.protocol}//${window.location.hostname}:2880${e.detail.file.filePath}` :
-                webdav.endsWith("/") ? `${webdav.substring(0, webdav.length - 1)}${e.detail.file.filePath}` :
-                `${webdav}${e.detail.file.filePath}`;
+            const worker = new Worker('./scripts/tasks/download-task.js');
+            const fileURL = getFileWebDavUrl(e.detail.file.filePath, "read")[0];
+            worker.addEventListener('message', (response) => {
+                worker.terminate();
+                const windowUrl = window.URL || window.webkitURL;
+                const url = windowUrl.createObjectURL(response.data);
+                const link = app.$.download;
+                link.href = url;
+                link.download = e.detail.file.fileMetaData.fileName;
+                link.click();
+                windowUrl.revokeObjectURL(url);
 
-            fetch(fileURL, {
-                mode: "cors",
-                headers: {
-                    "Authorization": `${app.getAuthValue()}`,
-                    "Suppress-WWW-Authenticate": "Suppress",
-                    "Content-Type" : `${e.detail.file.fileMetaData.fileMimeType}`
-                }
-            })
-                .then((file) => {
-                    return file.blob();
-                })
-                .then((blob) => {
-                    const windowUrl = window.URL || window.webkitURL;
-                    const url = windowUrl.createObjectURL(blob);
-                    const link = app.$.download;
-                    link.href = url;
-                    link.download = e.detail.file.fileMetaData.fileName;
-                    link.click();
-                    windowUrl.revokeObjectURL(url);//Maybe it might be wise to delay this
-                })
-                .catch((err)=>{
-                    app.$.toast.text = `${err.message} `;
-                    app.$.toast.show()
-                });
+            }, false);
+            worker.addEventListener('error', (err)=> {
+                worker.terminate();
+                app.$.toast.text = `${err.message} `;
+                app.$.toast.show()
+            }, false);
+            worker.postMessage({
+                'url' : fileURL,
+                'mime' : e.detail.file.fileMetaData.fileMimeType,
+                'upauth' : app.getAuthValue(),
+                'return': 'blob'
+            });
         }
     });
     window.addEventListener('dv-namespace-open-subcontextmenu', e => app.subContextMenu(e));
