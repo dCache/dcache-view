@@ -45,35 +45,15 @@
      * @deprecated
      * TODO: move this to the listener
      */
-    app.ls = function(path)
+    app.ls = function(path, auth)
     {
-        app.$.homedir.removeChild(app.$.homedir.querySelector('view-file'));
-        const el1 = new ViewFile(path);
-        app.$.homedir.appendChild(el1);
-
-        setTimeout(()=>{
-            app.$.selectedTitle.shadowRoot.querySelector("#pagination").innerHTML = "";
-
-            const elRoot = new PaginationButton("Root", "/");
-            app.$.selectedTitle.shadowRoot.querySelector("#pagination").appendChild(elRoot);
-            if ( path == "/" || path == null || path == undefined || path.type == 'tap') {
-                elRoot.shadowRoot.querySelector('a').classList.add("active");
-            } else {
-                elRoot.shadowRoot.querySelector('a').classList.remove("active");
-                const dirNames = path.split("/");
-                let pt =  "";
-                for (let i = 1; i < dirNames.length; i++) {
-                    pt += "/" + dirNames[i];
-                    const el = new PaginationButton(dirNames[i], pt);
-                    app.$.selectedTitle.shadowRoot.querySelector("#pagination").appendChild(el);
-                    el.shadowRoot.querySelector('a').classList.remove("active");
-                    if ( i == (dirNames.length-1) ) {
-                        el.shadowRoot.querySelector('a').classList.add("active");
-                    }
-                }
-            }
-        },100);
-        el1.__listDirectory();
+        const currentVF = findViewFile();
+        const parent = currentVF.parentNode;
+        parent.removeChild(currentVF);
+        const newVF = new ViewFile(path);
+        if (auth) newVF.authenticationParameters = auth;
+        parent.appendChild(newVF);
+        newVF.__listDirectory();
     };
 
     app.lsHomeDir = function()
@@ -430,27 +410,8 @@
 
     function findViewFile(e)
     {
-        const arr = e.path || (e.composedPath && e.composedPath());
-        const vf = arr.find(function(el) {
-            return el.tagName === "VIEW-FILE";
-        });
-        if (vf) {
-            return vf;
-        }
-        const namespace = arr.find(function(el) {
-            return el.id === "homedir";
-        });
-        const arr2 = namespace.children;
-        const len = arr2.length;
-        let j = -1;
-        for (let i = 0; i < len; i++) {
-            if (arr2[i].tagName === "VIEW-FILE") {
-                j = i;
-                break;
-            }
-        }
-        if (j > -1) {
-            return arr2[j];
+        if (app.route === "home") {
+            return app.$["homedir"].querySelector('view-file');
         }
     }
     function getFileWebDavUrl(path, operationType)

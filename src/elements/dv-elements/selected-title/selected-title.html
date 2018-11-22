@@ -133,7 +133,7 @@
         <div class$="[[_computedRowClass(isUserLogin)]]"></div>
     </template>
     <script>
-        class SelectedTitle extends Polymer.Element
+        class SelectedTitle extends DcacheViewMixins.Commons(Polymer.Element)
         {
             constructor()
             {
@@ -379,6 +379,30 @@
             {
                 this._selectedItems = [];
                 this.isSelected = false;
+
+                if (this.pgRoute === "home") {
+                    this.removeAllChildren(this.$["pagination"]);
+                    const path = e.detail.path;
+                    const elRoot = new PaginationButton("Root", "/");
+                    this.$["pagination"].appendChild(elRoot);
+                    if (path === undefined || path === "" || path === "/") {
+                        elRoot.shadowRoot.querySelector('a').classList.add("active");
+                    } else {
+                        elRoot.shadowRoot.querySelector('a').classList.remove("active");
+                        const dirNames = path.split("/");
+                        const len = dirNames.length;
+                        let pt =  "";
+                        for (let i = 1; i < len; i++) {
+                            pt += "/" + dirNames[i];
+                            const el = new PaginationButton(dirNames[i], pt);
+                            this.$["pagination"].appendChild(el);
+                            el.shadowRoot.querySelector('a').classList.remove("active");
+                            if (i === len-1) {
+                                el.shadowRoot.querySelector('a').classList.add("active");
+                            }
+                        }
+                    }
+                }
             }
             _computedClass(isSelected)
             {
