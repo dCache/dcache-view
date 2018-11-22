@@ -128,6 +128,13 @@
                 super.ready();
                 this.$.feList.scrollTarget = this.$.content;
                 this.$.threshold.scrollTarget = this.$.content;
+                Polymer.RenderStatus.afterNextRender(this, () => {
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-current-authenticationParameters', {
+                                detail: {authenticationParameters: this.authenticationParameters},
+                            bubbles: true, composed: true})
+                    );
+                });
             }
             connectedCallback()
             {

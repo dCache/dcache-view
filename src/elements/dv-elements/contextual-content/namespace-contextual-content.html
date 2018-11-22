@@ -154,6 +154,9 @@
                 this.targetNode = t;
                 if (authentication) {
                     this.authenticationParameters = authentication;
+                    if (!this.targetNode.authenticationParameters) {
+                        this.targetNode.authenticationParameters = authentication;
+                    }
                 }
             }
 
