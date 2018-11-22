@@ -132,13 +132,13 @@
                 });
 
                 if (lr.xSelected && vf._xSelectedItems.length > 1) {
-                    cc = new NamespaceContextualContent({files: vf._xSelectedItems}, 1);
+                    cc = new NamespaceContextualContent({files: vf._xSelectedItems}, 1, vf.authenticationParameters);
                 } else {
-                    cc = new NamespaceContextualContent(lr, 0);
+                    cc = new NamespaceContextualContent(lr, 0, vf.authenticationParameters);
                 }
                 h = 245;
             } else {
-                cc = new NamespaceContextualContent(vf.currentDirMetaData, 2);
+                cc = new NamespaceContextualContent(vf.currentDirMetaData, 2, vf.authenticationParameters);
             }
             app.buildAndOpenContextMenu(e, cc, h)
         }
@@ -237,7 +237,7 @@
                 app.dragNdropMoveFiles(path, flag);
             } else {
                 app.$.dropZoneToast.close();
-                const upload = new DndUpload(path);
+                const upload = new DndUpload(path, vf.authenticationParameters);
                 upload.isCurrentView = iC;
                 upload.start(event);
             }
@@ -571,8 +571,12 @@
         app.drop(e);
     });
     window.addEventListener('dv-namespace-open-file', function (e) {
+        let auth;
+        if (e.detail.file.authenticationParameters !== undefined) {
+            auth = e.detail.file.authenticationParameters;
+        }
         if (e.detail.file.fileMetaData.fileType === "DIR") {
-            app.ls(e.detail.file.filePath);
+            app.ls(e.detail.file.filePath, auth);
             Polymer.dom.flush();
         } else {
             //Download the file
@@ -597,7 +601,7 @@
             worker.postMessage({
                 'url' : fileURL,
                 'mime' : e.detail.file.fileMetaData.fileMimeType,
-                'upauth' : app.getAuthValue(),
+                'upauth' : app.getAuthValue(auth),
                 'return': 'blob'
             });
         }
@@ -615,12 +619,20 @@
     });
     window.addEventListener('dv-namespace-open-filemetadata-panel', e => {
         if (app.$.metadata.selected === "main") {
+            let auth;
+            if (e.detail.file.authenticationParameters) {
+                auth = e.detail.file.authenticationParameters;
+            }
             app.removeAllChildren(app.$.metadataDrawer);
             const file = e.detail.file;
             const fm = file.fileMetaData ?
-                new FileMetadataDashboard(Object.assign({},file.fileMetaData), file.filePath, 0) :
-                new FileMetadataDashboard(Object.assign({},
-                    app.$.homedir.querySelector('view-file').currentDirMetaData), file.filePath, 1);
+                new FileMetadataDashboard(Object.assign({}, file.fileMetaData), file.filePath, 0, auth) :
+                new FileMetadataDashboard(
+                    Object.assign({}, findViewFile().currentDirMetaData),
+                    file.filePath,
+                    1,
+                    auth
+                );
             app.$.metadataDrawer.appendChild(fm);
             app.$.metadata.openDrawer();
         } else {

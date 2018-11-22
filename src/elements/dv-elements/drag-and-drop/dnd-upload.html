@@ -97,7 +97,7 @@
                 detail: {child: uploadToast}, bubbles: true, composed: true}));
 
             const progressBar = uploadToast.shadowRoot.querySelector('paper-progress');
-            const fileUploader = new UploadFileCommon(this.path);
+            const fileUploader = new UploadFileCommon(this.path, this.authenticationParameters);
 
             fileUploader.addEventListener('complete', e => {
                 progressBar.indeterminate = fileUploader.progressStatus;
@@ -142,7 +142,7 @@
 
         _subDirFileUpload (file, path)
         {
-            const fileUploader = new UploadFileCommon(path);
+            const fileUploader = new UploadFileCommon(path, this.authenticationParameters);
             fileUploader.addEventListener('complete', e => {});
 
             fileUploader.addEventListener('uploading', e => {});

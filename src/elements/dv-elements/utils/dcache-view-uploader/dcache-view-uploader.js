@@ -48,7 +48,9 @@ UploadHandler.prototype.upload = function()
     const xhr = new XMLHttpRequest();
     xhr.open(this.httpMethod, this.url, true);
     xhr.setRequestHeader('Content-Type', this.contentType);
-    xhr.setRequestHeader('Authorization', this.upauth);
+    if (this.auth && this.auth !=="") {
+        xhr.setRequestHeader('Authorization', this.upauth);
+    }
     xhr.setRequestHeader('Suppress-WWW-Authenticate', "Suppress");
     if (xhr.upload) {
         xhr.upload.addEventListener('progress', this.onProgress);
