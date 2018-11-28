@@ -65,6 +65,8 @@
             .label {
                 min-width: 150px;
                 max-width: 150px;
+            }
+            .bold {
                 font-weight: bold;
             }
             .value {
@@ -118,15 +120,27 @@
                 letter-spacing: -.012em;
                 line-height: 20px;
             }
-            .warning {
-                color: rgb(221, 44, 0) !important;
+            .header-container {
+                padding-left: 10px;
+            }
+            .flex-centre {
+                justify-content: center
+            }
+            .small {
+                color: #1c7cf1;
+                font-size: 0.67em;
+            }
+            .red {
+                color: rgb(221, 44, 0);
             }
         </style>
         <div class="display-flex column">
             <paper-material elevation="2">
                 <div class="paper-material-inner display-flex border-top" style="background: #f5f5f5">
                     <div class="display-flex vertically-align image-holder">
-                        <user-image fallback-value="[[username]]" email="[[email]]"></user-image>
+                        <user-image email="[[email]]" size="60"
+                                    fallback-value="[[username]]"
+                                    gravatar-switch="{{gravatarSwitch}}"></user-image>
                     </div>
 
                     <div class="display-flex column flex"
@@ -142,40 +156,80 @@
             <paper-material>
                 <div class="paper-material-inner display-flex column">
                     <div class="display-flex row vertically-align">
-                        <div class="label">Home directory path</div>
+                        <div class="label bold">Home directory path</div>
                         <div class="value flex">
                             [[homeDir]]
                         </div>
                         <paper-button class="btn" on-tap="_view" data-path$="[[homeDir]]">view</paper-button>
                     </div>
                     <div class="display-flex row vertically-align">
-                        <div class="label">Root directory path</div>
+                        <div class="label bold">Root directory path</div>
                         <div class="value flex">
                             [[rootDir]]
                         </div>
                         <paper-button class="btn" on-tap="_view" data-path$="[[rootDir]]">view</paper-button>
                     </div>
                     <div class="display-flex row vertically-align">
-                        <div class="label">Email address</div>
+                        <div class="label bold">Email address</div>
                         <div class$="[[_computedEmailCss(email)]]">[[email]]</div>
                     </div>
                     <div class="display-flex row vertically-align">
-                        <div class="label">User identifier (UID)</div>
+                        <div class="label bold">User identifier (UID)</div>
                         <div class="value">[[uid]]</div>
                     </div>
                     <div class="display-flex row vertically-align">
-                        <div class="label">Group identifier (GID)</div>
+                        <div class="label bold">Group identifier (GID)</div>
                         <div class="value">[[gids]]</div>
                     </div>
                 </div>
             </paper-material>
 
             <paper-material>
-                <div style="padding-left: 10px;">
+                <div class="header-container">
+                    <div class="header">
+                        Profile Image
+                    </div>
+                    <small class="small">
+                        Choose which profile image to use.
+                    </small>
+                </div>
+                <div class="paper-material-inner display-flex column">
+                    <div class="display-flex row vertically-align">
+                        <div class="value flex">
+                            Available options:
+                        </div>
+                    </div>
+                    <div class="display-flex row vertically-align">
+                        <div class="bold label-addPadding">Identicon -</div>
+                        <div class="value flex">
+                            <small class="small">&nbsp;generated based on username</small>
+                        </div>
+                        <paper-toggle-button id="identicon"
+                                             checked="[[!gravatarSwitch]]"
+                                             on-change="_requestIdenticonImage"
+                                             data-id="identicon"
+                                             class="toggleBtn"></paper-toggle-button>
+                    </div>
+                    <div class="display-flex row vertically-align">
+                        <div class="bold label-addPadding">Gravatar -</div>
+                        <div class="value flex">
+                            <small class="small">&nbsp;see https://en.gravatar.com/ for detail</small>
+                        </div>
+                        <paper-toggle-button id="gravatar"
+                                             checked="[[gravatarSwitch]]"
+                                             on-change="_requestGravatarImage"
+                                             data-id="gravatar"
+                                             class="toggleBtn"></paper-toggle-button>
+                    </div>
+                </div>
+            </paper-material>
+
+            <paper-material>
+                <div class="header-container">
                     <div class="header">
                         Roles
                     </div>
-                    <small style="color: #1c7cf1; font-size: 0.67em;">
+                    <small class="small">
                         These are optional switch that affect how dCache behaves
                     </small>
                 </div>
@@ -191,29 +245,34 @@
                         </paper-toggle-button>
                     </div>
 
-                    <div class$="[[_computedClass('no-roles')]]" style="justify-content: center">
-                        <div style="color: rgb(221, 44, 0);">
+                    <div class$="[[_computedClass('no-roles')]]" class="flex-centre">
+                        <div class="red">
                             <iron-icon icon="visibility-off"></iron-icon>
                             <span> No roles to assert</span>
                         </div>
                     </div>
-                    <template is="dom-repeat" items="[[listOfAllRoles]]">
-                        <div class="display-flex row vertically-align">
-                            <div class="label label-addPadding">[[item]]</div>
-                            <div class="value flex"></div>
-                            <paper-toggle-button on-change="_roleAssertion"
-                                                 data-roles="[[item]]"
-                                                 checked="[[_currentStatus(item)]]"
-                                                 class="toggleBtn"></paper-toggle-button>
-                        </div>
-                    </template>
                 </div>
+                <template is="dom-repeat" items="[[listOfAllRoles]]">
+                    <div class="display-flex row vertically-align">
+                        <div class="label bold label-addPadding">[[item]]</div>
+                        <div class="value flex"></div>
+                        <paper-toggle-button on-change="_roleAssertion"
+                                             data-roles="[[item]]"
+                                             checked="[[_currentStatus(item)]]"
+                                             class="toggleBtn"></paper-toggle-button>
+                    </div>
+                </template>
             </paper-material>
         </div>
     </template>
     <script>
         class UserProfile extends Polymer.Element
         {
+            constructor()
+            {
+                super();
+                this.gravatarSwitch = sessionStorage.useGravatar === "yes";
+            }
             static get is()
             {
                 return 'user-profile';
@@ -232,7 +291,7 @@
                         type: String,
                         notify: true,
                         value: function () {
-                            return sessionStorage.getItem("email");
+                            return !!sessionStorage.getItem("email") ? sessionStorage.getItem("email"): 'not available';
                         }
                     },
                     uid: {
@@ -284,6 +343,11 @@
                                 return x.indexOf(item) < 0;
                             }));
                         }
+                    },
+                    gravatarSwitch: {
+                        type: Boolean,
+                        notify: true,
+                        observer: '_imageSwitchChange'
                     }
                 }
             }
@@ -317,7 +381,7 @@
             {
                 let classes = 'value flex';
                 if (email === "not available") {
-                    classes += ' warning';
+                    classes += ' red';
                 }
                 return classes;
             }
@@ -382,6 +446,42 @@
                 });
                 rr.assert(roles, redirectTo);
             }
+            _requestIdenticonImage(e)
+            {
+                if (this.$['identicon'].checked === true) {
+                    this.dispatchEvent(new CustomEvent('dv-user-image-request', {
+                        detail: {type: "identicon"}, bubbles: true, composed: true
+                    }));
+                } else {
+                    this._requestGravatar();
+                }
+            }
+            _requestGravatarImage(e)
+            {
+                if (this.$['gravatar'].checked === true) {
+                    this._requestGravatar();
+                } else {
+                    this.dispatchEvent(new CustomEvent('dv-user-image-request', {
+                        detail: {type: "identicon"}, bubbles: true, composed: true
+                    }));
+                }
+            }
+            _requestGravatar()
+            {
+                const email = sessionStorage["email"];
+                if (!!email) {
+                    this.dispatchEvent(new CustomEvent('dv-user-image-request', {
+                        detail: {type: "gravatar"}, bubbles: true, composed: true
+                    }));
+                } else {
+                    this.$['gravatar'].checked = false;
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: "To use Gravatar image, a valid and registered email " +
+                                "must be associated with this account."}, bubbles: true, composed: true
+                    }));
+                }
+            }
+
         }
         window.customElements.define(UserProfile.is, UserProfile);
     </script>
