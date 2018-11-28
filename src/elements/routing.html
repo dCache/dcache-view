@@ -128,7 +128,7 @@
             }
 
             let up = new UserProfile();
-            app.$.userProfileContainer.innerHTML = "";
+            app.removeAllChildren(app.$.userProfileContainer);
             app.$.userProfileContainer.appendChild(up);
             app.route = 'user-profile';
             app.params = "";
