@@ -88,6 +88,8 @@
             }
             user-image {
                 --user-image-border-radius: 5px;
+                --user-image-width: 20px;
+                --user-image-height: 20px;
             }
             .dropdown-content .dropdown-divider {
                 height: 1px;
@@ -105,7 +107,7 @@
         </style>
         <div class="dropdown">
             <div on-tap="_open" class="dropbtn">
-                <user-image size="20" fallback-value="[[username]]" email="[[email]]"></user-image>
+                <user-image fallback-value="[[username]]" email="[[email]]"></user-image>
                 <iron-icon icon="icons:arrow-drop-down"></iron-icon>
             </div>
             <div id="dropdownPanel" class="dropdown-content">

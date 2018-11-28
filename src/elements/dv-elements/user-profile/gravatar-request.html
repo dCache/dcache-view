@@ -3,14 +3,10 @@
 
 <dom-module id="gravatar-request">
     <template>
-        <iron-jsonp-library
-                id="jsonp"
-                library-url="[[libraryUrl]]"
-                library-loaded="{{loaded}}"
-                library-error-message="{{errorMessage}}"></iron-jsonp-library>
+        <div id="jsonp-holder"></div>
     </template>
     <script>
-        class GravatarRequest extends Polymer.Element
+        class GravatarRequest extends DcacheViewMixins.Namespace(DcacheViewMixins.Commons(Polymer.Element))
         {
             constructor()
             {
@@ -39,13 +35,8 @@
                         notify: true,
                         observer: '_generateLibraryUrl'
                     },
-                    errorMessage: {
-                        type: String,
-                        observer: '_errorOccurred'
-                    },
-                    loaded: {
-                        type: Boolean,
-                        observer: '_generateGravatarSrc'
+                    _runningHash: {
+                        type: String
                     },
                     _counter: {
                         type: Number,
@@ -74,17 +65,26 @@
             }
             _generateLibraryUrl(hash)
             {
-                if (hash.length > 0 && this._counter < hash.length) {
-                    this.$.jsonp.libraryUrl =
-                        `https://en.gravatar.com/${hash[this._counter]}.json?callback=%%callback%%`;
-                    this._counter++;
-                } else {
-                    throw new Error("No associated Gravatar available with these emails.");
+                if (hash) {
+                    if (this._counter > hash.length) {
+                        throw new Error("No associated Gravatar available with these emails.");
+                    }
+                    if (hash.length > 0 && this._counter < hash.length) {
+                        this.removeAllChildren(this.$["jsonp-holder"]);
+                        const jsonp  = /** @type {!IronJsonpLibrary} */ (
+                            document.createElement('iron-jsonp-library'));
+                        jsonp.addEventListener('library-loaded-changed', this._generateGravatarSrc.bind(this));
+                        jsonp.addEventListener('library-error-message-changed', this._errorOccurred.bind(this));
+                        this.$['jsonp-holder'].appendChild(jsonp);
+                        this._runningHash = hash[this._counter];
+                        jsonp.libraryUrl = `https://en.gravatar.com/${this._runningHash}.json?callback=%%callback%%`;
+                        this._counter++;
+                    }
                 }
             }
-            _errorOccurred(err)
+            _errorOccurred(event)
             {
-                if (err !== null) {
+                if (event && !!(event.detail) && !!(event.detail.value)) {
                     try {
                         this._generateLibraryUrl(this.hash);
                     } catch (e) {
@@ -92,13 +92,13 @@
                     }
                 }
             }
-            _generateGravatarSrc(isSuccessful)
+            _generateGravatarSrc(event)
             {
-                if (isSuccessful) {
+                if (event.detail.value) {
                     window.CONFIG.avatarSrc =
-                        `https://secure.gravatar.com/avatar/${this.hash[+this._counter-1]}?s=${this.size}`;
+                        `https://secure.gravatar.com/avatar/${this._runningHash}?s=${this.size}`;
                     this.dispatchEvent(new CustomEvent('gravatar-request-successful', {detail: {
-                        link: `https://secure.gravatar.com/avatar/${this.hash[+this._counter-1]}?s=${this.size}`}}));
+                        link: `https://secure.gravatar.com/avatar/${this._runningHash}?s=${this.size}`}}));
                 }
             }
         }
