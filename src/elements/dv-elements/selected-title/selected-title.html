@@ -117,7 +117,7 @@
                     <paper-tooltip>create new folder</paper-tooltip>
                 </div>
                 <div>
-                    <upload-files-button></upload-files-button>
+                    <upload-files-button authentication-parameters="[[authenticationParameters]]"></upload-files-button>
                 </div>
                 <div>
                     <paper-icon-button class="info"
@@ -141,6 +141,7 @@
                 this._isSelectedChanged_ = this._isSelectedChanged.bind(this);
                 this._setCurrentPath_ = this._setCurrentPath.bind(this);
                 this._resetViewFileDependentParameters_ = this._resetViewFileDependentParameters.bind(this);
+                this._setAuthenticationParameters_ = this._setAuthenticationParameters.bind(this);
             }
             ready()
             {
@@ -163,6 +164,7 @@
                 window.addEventListener('dv-namespace-x-selected-items-changed', this._isSelectedChanged_);
                 window.addEventListener('dv-namespace-current-path', this._setCurrentPath_);
                 window.addEventListener('dv-namespace-view-file-created', this._resetViewFileDependentParameters_);
+                window.addEventListener('dv-namespace-current-authenticationParameters', this._setAuthenticationParameters_);
             }
 
             disconnectedCallback()
@@ -171,6 +173,7 @@
                 window.removeEventListener('dv-namespace-x-selected-items-changed', this._isSelectedChanged_);
                 window.removeEventListener('dv-namespace-current-path', this._setCurrentPath_);
                 window.removeEventListener('dv-namespace-view-file-created', this._resetViewFileDependentParameters_);
+                window.removeEventListener('dv-namespace-current-authenticationParameters', this._setAuthenticationParameters_);
             }
 
             static get properties()
@@ -268,7 +271,7 @@
                     const name = e.detail.newFolderName;
                     const namespace = new DcacheNamespace();
 
-                    namespace.auth = app.getAuthValue();
+                    namespace.auth = this.getAuthValue();
                     namespace.promise.then(() => {
                         this.dispatchEvent(new CustomEvent('dv-namespace-close-central-dialogbox', {
                             detail: {}, bubbles: true, composed: true})
@@ -319,7 +322,7 @@
                 const noOfMovedItems = this._selectedItems.length;
                 const fileType = this._selectedItems.length === 1 ? "item": "items";
                 const mv = new MoveFile();
-                mv.auth = app.getAuthValue();
+                mv.auth = this.getAuthValue();
                 mv.currentPath = this.currentPath;
                 mv.mvFiles = this._selectedItems;
 
@@ -411,6 +414,10 @@
             _computedRowClass(isSelected)
             {
                 return isSelected ? ` row` : ` none`;
+            }
+            _setAuthenticationParameters(e)
+            {
+                this.authenticationParameters = e.detail.authenticationParameters;
             }
         }
         window.customElements.define(SelectedTitle.is, SelectedTitle);

@@ -30,9 +30,12 @@
     <script>
         class UploadFilesButton extends DcacheViewMixins.Commons(Polymer.Element)
         {
-            constructor()
+            constructor(auth)
             {
                 super();
+                if(auth) {
+                    this.authenticationParameters = auth;
+                }
                 this._handleFileSelection = this.handleFileSelection.bind(this);
                 this._openFilePicker_ = this._openFilePicker.bind(this);
                 this._setCurrentPath_ = this._setCurrentPath.bind(this);
@@ -94,7 +97,7 @@
                     const uploadURL = this.getFileWebDavUrl(`${path}${files[i].name}`, "write")[0];
                     const uploader = new UploadHandler({
                         file: files[i],
-                        upauth: app.getAuthValue(),
+                        upauth: this.getAuthValue(),
                         url: uploadURL,
                         onComplete: function (data) {
                             const progressBar = upLs.shadowRoot.querySelector('paper-progress');
