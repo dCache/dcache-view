@@ -5,6 +5,7 @@
 
 <link rel="import" href="../files-viewer/files-viewer.html">
 <link rel="import" href="../qbi-dialog-content/qbi-dialog-content.html">
+<link rel="import" href="../file-sharing/shareable-file-generation/shareable-file-generation.html">
 <dom-module id="namespace-contextual-content">
     <template>
         <style>
@@ -54,7 +55,7 @@
             .none {
                 display: none;
             }
-            #open {
+            #open, #move {
                 border-bottom: 1px solid #cacaca;
             }
             #delete, #download {
@@ -92,6 +93,13 @@
                              multipleSelection, currentDir, targetNode)]]">
                 <iron-icon icon="move-icons:movefolder" slot="item-icon"></iron-icon>
                 Move to ...
+            </paper-icon-item>
+
+            <paper-icon-item  id="share"
+                              class$="[[_computedClass('share', singleSelection,
+                              multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="social:share" slot="item-icon"></iron-icon>
+                Share
             </paper-icon-item>
             <paper-icon-item id="rename"
                              class$="[[_computedClass('rename', singleSelection,
@@ -208,6 +216,7 @@
                     this.$.move.addEventListener('tap', this._move.bind(this));
                     this.$.qosInfo.addEventListener('tap', this._qosInfo.bind(this));
                     this.$.rename.addEventListener('tap', this._rename.bind(this));
+                    this.$.share.addEventListener('tap', this._share.bind(this));
 
                     switch (this.targetNode.fileMetaData.fileType) {
                         case "DIR":
@@ -256,6 +265,7 @@
                     this.$.move.removeEventListener('tap', this._move.bind(this));
                     this.$.qosInfo.removeEventListener('tap', this._qosInfo.bind(this));
                     this.$.rename.removeEventListener('tap', this._rename.bind(this));
+                    this.$.share.removeEventListener('tap', this._share.bind(this));
 
                     switch (this.targetNode.fileMetaData.fileType) {
                         case "DIR":
@@ -310,6 +320,22 @@
                 this.dispatchEvent(
                     new CustomEvent('dv-namespace-open-file', {
                         detail: {file: this.targetNode}, bubbles: true, composed: true}));
+            }
+
+            _share()
+            {
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
+                const fileSharingForm = new ShareableFileGeneration(this.targetNode.fileMetaData.fileName,
+                    this.currentPath.endsWith('/') ?
+                    `${this.currentPath}${this.targetNode.fileMetaData.fileName}`:
+                    `${this.currentPath}/${this.targetNode.fileMetaData.fileName}`,
+                    this.authenticationParameters);
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-open-central-dialogbox', {
+                        detail: {node: fileSharingForm}, bubbles: true, composed: true})
+                );
             }
 
             _metadata()
@@ -546,8 +572,9 @@
 
             _setDisabledAttribute(id, singleSelection, multipleSelection, t)
             {
-                if (multipleSelection && (id === 'open' || id === 'metadata' || id === 'webdavUrl' ||
-                    id === 'rename' || id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
+                if (multipleSelection && (id === 'open' || id === 'share' ||
+                    id === 'metadata' || id === 'webdavUrl' || id === 'rename' ||
+                    id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
                     this.$[id].setAttribute('disabled', "");
                 }
 

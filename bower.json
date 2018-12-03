@@ -35,7 +35,8 @@
     "google-chart": "#2.0.0",
     "vaadin-grid": "#4.1.7",
     "web-animations-js": "#2.3.1",
-    "pdfjs-dist": "mozilla/pdfjs-dist#2.0.550"
+    "pdfjs-dist": "mozilla/pdfjs-dist#2.0.550",
+    "qr.js": "lifthrasiir/qr.js#4234f130e5137626f8193aba2132575ae1602f39"
   },
   "resolutions": {
     "dcache-namespace": "0.0.8"
