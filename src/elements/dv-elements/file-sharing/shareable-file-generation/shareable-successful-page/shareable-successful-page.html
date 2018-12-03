@@ -1,0 +1,150 @@
+<link rel="import" href="../../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../../../bower_components/paper-styles/paper-styles.html">
+<script src="../../../../../bower_components/qr.js/qr.js"></script>
+<dom-module id="shareable-successful-page">
+    <template>
+        <style is="custom-style" include="paper-material-styles">
+            :host {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 0 10px 15px 10px;
+            }
+            .description {
+                display: flex;
+                align-items: center;
+                height: 40px;
+                width: 100%;
+                overflow-x: auto;
+            }
+            .result {
+                flex: 1 1 auto;
+                display: flex;
+                padding: 0 10px;
+                box-sizing: border-box;
+            }
+            .text-container {
+                flex: 1 1 auto;
+                box-sizing: border-box;
+                border-right: 1px solid #ccc;
+                padding-right: 10px;
+            }
+            .qr-container {
+                width: 190px;
+                margin-left: 10px;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+            }
+            .image-container {
+                flex: 1 1 auto;
+                box-sizing: border-box;
+                padding: 5%;
+            }
+            .image-container > img {
+                width: 100%;
+            }
+
+            .link, .macaroon {
+                display: flex;
+                flex-direction: column;
+                height: 48%;
+                box-sizing: border-box;
+            }
+            .link {
+                margin-bottom: 10px;
+            }
+            .macaroon {
+                margin-top: 5px;
+                border-top: 1px solid #ccc;
+            }
+            .top, .button {
+                height: 26px;
+                box-sizing: border-box;
+            }
+            .body {
+                flex: 1 1 auto;
+                display: flex;
+                box-sizing: border-box;
+            }
+            .macaroon .button, .link .button {
+                margin-top: 4px;
+            }
+            .txt {
+                flex: 1 1 auto;
+                word-wrap: break-word;
+                text-align: justify;
+                text-justify: inter-word;
+                text-indent: 0;
+                resize: none;
+                overflow-y: scroll;
+            }
+            .button paper-button {
+                height: 100%;
+                width: 100%;
+                margin: 0;
+            }
+            .blue {
+                background: #03a9f4;
+                color: white;
+                border-radius: 0;
+            }
+            .green {
+                background: #009688;
+                color: white;
+                border-radius: 0;
+            }
+            .blue iron-icon, .green iron-icon {
+                width: 18px;
+            }
+        </style>
+        <div class="description">
+            <p>
+                File name: <b>[[fileName]]</b>. Copy the generated shareable link or download the QR code.
+            </p>
+        </div>
+        <div class="result">
+            <div class="text-container">
+                <div class="link">
+                    <div class="top">
+                        <span><b>Shareable Link:</b></span>
+                    </div>
+                    <div class="body">
+                        <textarea id="linkText" class="txt" readonly title="">[[generatedLink]]</textarea>
+                    </div>
+                    <div class="button">
+                        <paper-button class="blue" on-tap="_copyLink" raised>
+                            <iron-icon icon="link"> </iron-icon>&nbsp;Copy link</paper-button>
+                    </div>
+                </div>
+                <div class="macaroon">
+                    <div class="top">
+                        <span><b>Macaroon:</b></span>
+                    </div>
+                    <div class="body">
+                        <textarea id="macaroonText" class="txt" readonly title="">[[macaroon]]</textarea>
+                    </div>
+                    <div class="button">
+                        <paper-button class="green" on-tap="_copyMacaroon" raised>
+                            <iron-icon icon="content-copy"> </iron-icon>&nbsp;Copy macaroon</paper-button>
+                    </div>
+                </div>
+            </div>
+            <div class="qr-container">
+                <div class="top">
+                    <span><b>QR Code for the shareable link:</b></span>
+                </div>
+                <div class="image-container paper-material" elevation="1">
+                    <img src$="[[src]]">
+                    <div class="button">
+                        <paper-button on-tap="_downloadQR">
+                            <iron-icon icon="file-download"></iron-icon>Download the QR code</paper-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <script src="shareable-successful-page.js"></script>
+</dom-module>
