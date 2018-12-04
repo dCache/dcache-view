@@ -93,6 +93,11 @@
                 let path;
                 if (this._node.parentPath) {
                     path = this._node.parentPath;
+                } else if (this._node.filePath) {
+                    path = this._node.filePath.slice(0, 1-this._node.filePath.lastIndexOf("/"))
+                } else {
+                    this._abortRename();
+                    return;
                 }
                 const renameWorker = new Worker('./scripts/tasks/namespace-move-operation.js');
                 renameWorker.addEventListener('message', (e) => {
