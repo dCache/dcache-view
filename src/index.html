@@ -250,6 +250,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </paper-item>
 
                                     <paper-item>
+                                        <a data-route="shared-files" href$="{{baseUrl}}shared-files">
+                                            <paper-fab icon="folder-shared"
+                                                       title="shared files" class="orange" mini></paper-fab>
+                                        </a>
+                                    </paper-item>
+
+                                    <paper-item>
                                         <a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
                                             <paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
                                         </a>
@@ -294,6 +301,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                         <view-file id="homeDir"></view-file>
                                                     </div>
                                                 </paper-header-panel>
+                                            </section>
+
+                                            <section data-route="shared-files"
+                                                     class="fit" style="background-color:#ececec;">
+                                                <shared-files-page id="shared-with-me" on-click="click"
+                                                                   on-contextmenu="currentDirContext"></shared-files-page>
                                             </section>
 
                                             <section data-route="admin" class="fit"

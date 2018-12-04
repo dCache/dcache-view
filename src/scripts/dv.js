@@ -51,7 +51,13 @@
         const parent = currentVF.parentNode;
         parent.removeChild(currentVF);
         const newVF = new ViewFile(path);
-        if (auth) newVF.authenticationParameters = auth;
+        if (auth) {
+            newVF.authenticationParameters = auth;
+        } else {
+            if (app.route === "shared-file") {
+                newVF.authenticationParameters = parent.__dataHost.authenticationParameters;
+            }
+        }
         parent.appendChild(newVF);
         newVF.__listDirectory();
     };
@@ -412,6 +418,22 @@
     {
         if (app.route === "home") {
             return app.$["homedir"].querySelector('view-file');
+        } else if (app.route === "shared-files") {
+            const fileSharingPage = app.$["shared-with-me"];
+            const sharedDirectoryView = fileSharingPage.$["shared-directory-view"];
+            if (!sharedDirectoryView.classList.contains("none")) {
+                const len = sharedDirectoryView.$["container"].children.length;
+                let j = -1;
+                for (let i = 0; i < len; i++) {
+                    if (sharedDirectoryView.$["container"].children[i].tagName === "VIEW-FILE") {
+                        j = i;
+                        break;
+                    }
+                }
+                if (j > -1) {
+                    return sharedDirectoryView.$["container"].children[j];
+                }
+            }
         }
     }
     function getFileWebDavUrl(path, operationType)
@@ -622,6 +644,8 @@
             let auth;
             if (e.detail.file.authenticationParameters) {
                 auth = e.detail.file.authenticationParameters;
+            } else if (e.detail.file.macaroon) {
+                auth = {"scheme": "Bearer", "value": e.detail.file.macaroon};
             }
             app.removeAllChildren(app.$.metadataDrawer);
             const file = e.detail.file;
