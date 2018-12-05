@@ -134,8 +134,35 @@
             app.params = "";
         });
 
+        page('/shared-link', function (dt) {
+            if (dt.querystring) {
+                const arr = dt.querystring.split('&');
+                if (arr.length === 0 || !dt.querystring.includes("m=")) {
+                    page.redirect(app.baseUrl);
+                    window.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {
+                            message: "Bad Request. The query parameter of the shareable link must contain the macaroon."
+                        }, bubbles: true,
+                        composed: true
+                    }));
+                    return;
+                }
+                const macaroon = arr.filter(function(el) {
+                    if(el.match('m') !== null) return true; })[0].split('=')[1];
+                app.$['selectedTitle']._shared();
+                window.dispatchEvent(new CustomEvent('dv-namespace-file-sharing-add-macaroon', {
+                    detail: {macaroon: macaroon}}));
+            }
+            page.redirect("/shared-files");
+        });
+
+        page('/shared-files', function () {
+            app.route = 'shared-files';
+            app.params = "";
+        });
+
         // 404
-        page('*', function() {
+        page('*', function(dt) {
             /**
              * Handle OpenID Connect Server Redirect
              */
@@ -184,6 +211,9 @@
 
                 userAuth.send("Bearer");
                 sessionStorage.removeItem('redirect');
+                return;
+            } else if (dt.pathname === "/#!/shared-link") {
+                page(`/shared-link?${dt.querystring}`);
                 return;
             }
 

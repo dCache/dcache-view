@@ -60,13 +60,13 @@
             .pagination > div {
                 display:inline-flex;
             }
-            #pagination {
+            #pagination, #shared-pagination {
                 display: inline-block;
                 padding: 0;
                 margin: 0;
                 @apply(--layout-horizontal);
             }
-            #pagination pagination-button {
+            #pagination pagination-button, #shared-pagination pagination-button {
                 display: inline;
             }
             paper-tooltip {
@@ -94,6 +94,11 @@
                 color:#b8b8b8;
                 margin-right:8px;
                 font-size:0.7em;
+            }
+            .shared {
+                text-transform: none;
+                font-size:0.87em;
+                color: #36476c;
             }
         </style>
         <div class="row" class$="[[_computedRowClass(isNamespace)]]">
@@ -131,6 +136,37 @@
             <div class="stamp">dCache.org</div>
         </div>
         <div class$="[[_computedRowClass(isUserLogin)]]"></div>
+        <div class="row" class$="[[_computedRowClass(isSharedPage)]]">
+            <div class="stamp">dCache.org</div>
+            <div class="flex3 pagination">
+                <paper-button class="shared"
+                              on-tap="_shared">Shared with me</paper-button>
+                <div id="shared-pagination"></div>
+            </div>
+            <div class="standardTools flex" id="sharing-standardTools">
+                <div class$="[[_computedClass(isSelected)]]">
+                    <paper-icon-button class="move"
+                                       icon="move-icons:movefolder"
+                                       on-tap="_move"></paper-icon-button>
+                    <paper-tooltip>move the selected file to another directory</paper-tooltip>
+                </div>
+                <div>
+                    <paper-icon-button class="create"
+                                       icon="create-new-folder"
+                                       on-tap="_create"></paper-icon-button>
+                    <paper-tooltip>create new folder</paper-tooltip>
+                </div>
+                <div>
+                    <upload-files-button></upload-files-button>
+                </div>
+                <div>
+                    <paper-icon-button class="info"
+                                       icon="icons:info"
+                                       on-tap="_metadataInfo"></paper-icon-button>
+                    <paper-tooltip>metadata information</paper-tooltip>
+                </div>
+            </div>
+        </div>
     </template>
     <script>
         class SelectedTitle extends DcacheViewMixins.Commons(Polymer.Element)
@@ -142,6 +178,7 @@
                 this._setCurrentPath_ = this._setCurrentPath.bind(this);
                 this._resetViewFileDependentParameters_ = this._resetViewFileDependentParameters.bind(this);
                 this._setAuthenticationParameters_ = this._setAuthenticationParameters.bind(this);
+                this._sharingPageSwitch_ = this._sharingPageSwitchListener.bind(this);
             }
             ready()
             {
@@ -161,10 +198,12 @@
             connectedCallback()
             {
                 super.connectedCallback();
+                this.$["sharing-standardTools"].style.visibility = "hidden";
                 window.addEventListener('dv-namespace-x-selected-items-changed', this._isSelectedChanged_);
                 window.addEventListener('dv-namespace-current-path', this._setCurrentPath_);
                 window.addEventListener('dv-namespace-view-file-created', this._resetViewFileDependentParameters_);
                 window.addEventListener('dv-namespace-current-authenticationParameters', this._setAuthenticationParameters_);
+                window.addEventListener('dv-file-sharing-page-switch', this._sharingPageSwitch_);
             }
 
             disconnectedCallback()
@@ -174,6 +213,7 @@
                 window.removeEventListener('dv-namespace-current-path', this._setCurrentPath_);
                 window.removeEventListener('dv-namespace-view-file-created', this._resetViewFileDependentParameters_);
                 window.removeEventListener('dv-namespace-current-authenticationParameters', this._setAuthenticationParameters_);
+                window.removeEventListener('dv-file-sharing-page-switch', this._sharingPageSwitch_);
             }
 
             static get properties()
@@ -205,6 +245,11 @@
                         notify: true
                     },
 
+                    isSharedPage: {
+                        type: Boolean,
+                        notify: true
+                    },
+
                     _selectedItems: {
                         type: Array,
                         value: [],
@@ -230,18 +275,27 @@
                     case "home":
                         this.isUserLogin = false;
                         this.isAdmin = false;
+                        this.isSharedPage = false;
                         this.isNamespace = true;
                         break;
                     case "admin":
                     case "user-profile":
                         this.isUserLogin = false;
                         this.isNamespace = false;
+                        this.isSharedPage = false;
                         this.isAdmin = true;
                         break;
                     case "user-login":
                         this.isNamespace = false;
                         this.isAdmin = false;
+                        this.isSharedPage = false;
                         this.isUserLogin = true;
+                        break;
+                    case "shared-files":
+                        this.isUserLogin = false;
+                        this.isAdmin = false;
+                        this.isNamespace = false;
+                        this.isSharedPage = true;
                         break;
                 }
             }
@@ -254,6 +308,7 @@
                 this.dispatchEvent(
                     new CustomEvent('dv-namespace-open-filemetadata-panel', {
                         detail: {file: {
+                            authenticationParameters: this.authenticationParameters,
                             filePath: path,
                             fileMetaData: this.isSelected ? Object.assign({}, this._selectedItems[0]): undefined
                         }}, bubbles: true, composed: true
@@ -418,6 +473,18 @@
             _setAuthenticationParameters(e)
             {
                 this.authenticationParameters = e.detail.authenticationParameters;
+            }
+            _shared()
+            {
+                this.$["sharing-standardTools"].style.visibility = "hidden";
+                this.dispatchEvent(
+                    new CustomEvent('dv-file-sharing-show-file-list-page', {bubbles: true, composed: true}));
+            }
+            _sharingPageSwitchListener(e)
+            {
+                if (e.detail.page === "shared-directory-view") {
+                    this.$["sharing-standardTools"].style.visibility = "visible";
+                }
             }
         }
         window.customElements.define(SelectedTitle.is, SelectedTitle);
