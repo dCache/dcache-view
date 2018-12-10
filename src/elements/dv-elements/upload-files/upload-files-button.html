@@ -20,7 +20,7 @@
             }
         </style>
         <div>
-            <input id="files" type="file" multiple>
+            <input id="files" on-tap="_resetValue" type="file" multiple>
             <label for="files">
                 <paper-icon-button icon="icons:cloud-upload"></paper-icon-button>
                 <paper-tooltip>upload files</paper-tooltip>
@@ -160,6 +160,10 @@
             _setCurrentPath(e)
             {
                 this.currentPath = e.detail.currentPath;
+            }
+            _resetValue(e)
+            {
+                this.$["files"].value = null;
             }
         }
         window.customElements.define(UploadFilesButton.is, UploadFilesButton);
