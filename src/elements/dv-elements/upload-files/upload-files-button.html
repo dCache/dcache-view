@@ -18,7 +18,7 @@
     </style>
     <template>
         <div>
-            <input id="files" type="file" multiple>
+            <input id="files" on-tap="_resetValue" type="file" multiple>
             <label for="files">
                 <paper-icon-button icon="icons:cloud-upload"></paper-icon-button>
                 <paper-tooltip>upload files</paper-tooltip>
@@ -131,6 +131,10 @@
                     Polymer.dom.flush();
                 }
                 Polymer.dom.flush();
+            },
+            _resetValue: function(e)
+            {
+                this.$["files"].value = null;
             }
         });
     </script>
