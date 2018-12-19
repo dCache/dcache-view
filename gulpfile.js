@@ -1,89 +1,86 @@
-var gulp = require('gulp');
-var vulcanize = require('gulp-vulcanize');
-var bower = require('gulp-bower');
-var gutil = require('gulp-util');
+'use strict';
 
-gulp.task('bower', function() {
-    return bower();
-});
+const gulp = require('gulp');
+const del = require('del');
+const mergeStream = require('merge-stream');
+const polymerBuild = require('polymer-build');
 
-gulp.task('copy-favicons', function() {
-    return gulp.src([
-        'src/favicons/*'
-    ], {
-        base: ''
+const polymerJson = require('./polymer.json');
+const polymerProject = new polymerBuild.PolymerProject(polymerJson);
+const buildDirectory = 'target';
+const copyAllArray = [
+    {"source" : "./src/robots.txt", "destination": buildDirectory},
+    {"source" : "./src/index.html", "destination": buildDirectory},
+    {"source" : "./src/favicons/*", "destination": `${buildDirectory}/favicons`},
+    {"source" : "./src/styles/main.css", "destination": `${buildDirectory}/styles`},
+    {"source" : "./target/elements/src/elements/elements.html", "destination": `${buildDirectory}/elements`},
+    {"source" : "./src/scripts/**/*", "destination": `${buildDirectory}/scripts`, "exclude": ["./src/scripts/config.js"]},
+    {"source" : "./src/bower_components/pdfjs-dist/build/**/*", "destination": `${buildDirectory}/bower_components/pdfjs-dist/build`},
+    {"source" : "./src/bower_components/webcomponentsjs/webcomponents-loader.js", "destination": `${buildDirectory}/bower_components/webcomponentsjs`}
+];
+
+function waitFor(stream) {
+    return new Promise((resolve, reject) => {
+        stream.on('end', resolve);
+        stream.on('error', reject);
+    });
+}
+function copy(source, destination, exclude) {
+    let arr;
+    if (exclude && exclude !== "") {
+        const len = exclude.length;
+        for (let i=0; i<len; i++) {
+            exclude[i] = `!${exclude[i]}`;
+        }
+        arr = [source, ...exclude]
+    } else {
+        arr = [source];
+    }
+    return gulp.src(arr, {base: ''})
+        .pipe(gulp.dest(`${destination}`));
+}
+function build() {
+    return new Promise((resolve, reject) => {
+        let sourcesStreamSplitter = new polymerBuild.HtmlSplitter();
+        let dependenciesStreamSplitter = new polymerBuild.HtmlSplitter();
+        console.log(`Deleting ${buildDirectory} directory...`);
+        del([buildDirectory])
+            .then(() => {
+                let sourcesStream = polymerProject.sources()
+                    .pipe(sourcesStreamSplitter.split())
+                    .pipe(sourcesStreamSplitter.rejoin());
+                let dependenciesStream = polymerProject.dependencies()
+                    .pipe(dependenciesStreamSplitter.split())
+                    .pipe(dependenciesStreamSplitter.rejoin());
+                let buildStream = mergeStream(sourcesStream, dependenciesStream)
+                    .once('data', () => {
+                        console.log('Analyzing build dependencies...');
+                    });
+                buildStream = buildStream.pipe(polymerProject.bundler());
+                buildStream = buildStream.pipe(gulp.dest(`${buildDirectory}/elements`));
+                return waitFor(buildStream);
+            })
+            .then(() => {
+                console.log('Bundling complete!');
+                resolve();
+            });
     })
-        .pipe(gulp.dest('./target/favicons'));
+}
+gulp.task('copy-all', function (done) {
+    console.log('Start copying files...');
+    const len = copyAllArray.length;
+    for (let i = 0; i < len; i++) {
+        console.log(`copying ${copyAllArray[i].source} to ${copyAllArray[i].destination}`);
+        copy(copyAllArray[i].source, copyAllArray[i].destination,
+            copyAllArray[i].exclude ? copyAllArray[i].exclude: "")
+    }
+    console.log('Files copying completed!');
+    done();
 });
-
-gulp.task('copy-index', function() {
-    return gulp.src([
-        'src/index.html'
-    ], {
-        base: ''
-    })
-        .pipe(gulp.dest('./target'));
+gulp.task('build', build);
+gulp.task('delete', function (done) {
+    console.log(`Deleting ./target/elements/src directory...`);
+    del(['./target/elements/src']);
+    done();
 });
-
-gulp.task('copy-robots', function() {
-    return gulp.src([
-        'src/robots.txt'
-    ], {
-        base: ''
-    })
-        .pipe(gulp.dest('./target'));
-});
-
-gulp.task('copy-webcomponents', function() {
-    return gulp.src([
-        './src/bower_components/webcomponentsjs/*'
-    ], {
-        base: ''
-    })
-        .pipe(gulp.dest('./target/bower_components/webcomponentsjs'));
-});
-
-gulp.task('copy-css', function() {
-    return gulp.src([
-        'src/styles/main.css'
-    ], {
-        base: ''
-    })
-        .pipe(gulp.dest('./target/styles'));
-});
-
-gulp.task('copy-scripts', function() {
-    return gulp.src([
-        'src/scripts/**/*',
-        '!src/scripts/config.js'
-    ], {
-        base: ''
-    })
-        .pipe(gulp.dest('./target/scripts'));
-});
-
-gulp.task('copy-pdfjs', function() {
-    return gulp.src([
-        './src/bower_components/pdfjs-dist/build/**/*'
-    ], {
-        base: ''
-    })
-        .pipe(gulp.dest('./target/bower_components/pdfjs-dist/build'));
-});
-
-gulp.task('vulcanize', function() {
-    return gulp.src('src/elements/elements.html')
-        .pipe(vulcanize({
-            stripComments: true,
-            inlineScripts: true,
-            inlineCss: true
-        }))
-        .on('error', gutil.log)
-        .pipe(gulp.dest('./target/elements'));
-});
-
-gulp.task('build', ['copy-favicons', 'copy-index', 'copy-robots', 'copy-css', 'copy-scripts']);
-
-gulp.task('default', ['bower', 'build'], function () {
-    gulp.start('vulcanize','copy-webcomponents', 'copy-pdfjs');
-});
+gulp.task('default', gulp.series('build', 'copy-all', 'delete'));
