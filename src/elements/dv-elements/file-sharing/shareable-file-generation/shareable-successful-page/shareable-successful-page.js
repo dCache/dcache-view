@@ -7,7 +7,7 @@ class ShareableSuccessfulPage extends Polymer.Element
         this.fullPath = fp;
         this.macaroon = m;
 
-        this.generatedLink = `${window.location.href}#!/shared-link?m=${this.macaroon}`;
+        this.generatedLink = `${window.location.origin}/#!/shared-link?m=${this.macaroon}`;
         this.src = QRCode.generatePNG(this.generatedLink, {
             modulesize: 5,
             margin: 4,
