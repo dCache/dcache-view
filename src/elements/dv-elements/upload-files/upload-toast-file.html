@@ -4,7 +4,7 @@
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../../bower_components/iron-label/iron-label.html">
 <link rel="import" href="../../../bower_components/file-icon/file-icon.html">
-
+<link rel="import" href="./error/upload-error-dialog.html">
 <dom-module id="upload-toast-file">
     <template>
         <style>
@@ -114,6 +114,18 @@
                 color:#fff;
                 font-size: 1em !important;
             }
+            .none {
+                display: none;
+            }
+            .button-container {
+                display: inline;
+            }
+            .button-container paper-button {
+                text-transform: none;
+                color: #674c4f;
+                padding: 0;
+                margin: 0;
+            }
         </style>
         <div class="main">
             <div id="fileStatusInfo">
@@ -123,28 +135,31 @@
                     </div>
                     <div id="fileInfo">
                         <div id="fileName">
-                            <div id="fileNameHolder">
-                                {{fileName}}
-                            </div>
+                            <div id="fileNameHolder">[[fileName]]</div>
                         </div>
                         <div id="statusMessage">
                             <span>Status:</span>
-                            <label class$="[[_computedClass(hasError,isComplete,inProgress)]]"> {{message}}</label>
+                            <label id="message"
+                                   class$="[[_computedClass(hasError,isComplete,inProgress)]]">[[message]]</label>
+                            <label id="button-container" class="none">
+                                <paper-button on-tap="_detailError">
+                                    File upload failed! Click here for details.</paper-button>
+                            </label>
                         </div>
                     </div>
                     <div id="statusIcon">
-                        <template is="dom-if" if="{{isComplete}}" restamp>
+                        <template is="dom-if" if="[[isComplete]]" restamp>
                             <div class="statusContent">
                                 <iron-icon icon="icons:check-circle" class="completeIcon"></iron-icon>
                             </div>
                         </template>
-                        <template is="dom-if" if="{{hasError}}" restamp>
+                        <template is="dom-if" if="[[hasError]]" restamp>
                             <div class="statusContent">
                                 <iron-icon icon="icons:warning" class="errorIcon"></iron-icon>
                             </div>
                         </template>
-                        <template is="dom-if" if="{{inProgress}}" restamp>
-                            <div class="statusContent"><b class="progressIcon">{{progressValue}}</b></div>
+                        <template is="dom-if" if="[[inProgress]]" restamp>
+                            <div class="statusContent"><b class="progressIcon">[[progressValue]]</b></div>
                         </template>
                     </div>
                 </div>
@@ -203,7 +218,8 @@
                     message: {
                         type: String,
                         value: "uploading...",
-                        notify: true
+                        notify: true,
+                        observer: '_messageChanged'
                     },
                     progressValue: {
                         type: String,
@@ -226,6 +242,24 @@
                 this.updateStyles();
 
                 return classes;
+            }
+            _messageChanged(message)
+            {
+                if (message === "") {
+                    this.$['button-container'].classList.replace('none', 'button-container');
+                    this.$['message'].style.display = 'none';
+                } else {
+                    this.$['button-container'].classList.add('none');
+                    this.$['message'].style.display = 'inline';
+                }
+            }
+            _detailError()
+            {
+                const content = new UploadErrorDialog();
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-open-central-dialogbox', {
+                        detail: {node: content}, bubbles: true, composed: true})
+                );
             }
         }
         window.customElements.define(UploadToastFile.is, UploadToastFile)
