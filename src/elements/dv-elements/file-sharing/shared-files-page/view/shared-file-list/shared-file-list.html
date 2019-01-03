@@ -2,6 +2,7 @@
 <link rel="import" href="../../../../../../bower_components/paper-styles/element-styles/paper-material-styles.html">
 <link rel="import" href="../add-macaroon-form/add-macaroon-form.html">
 <link rel="import" href="../../../../rename-input/rename-input.html">
+<link rel="import" href="../../../../user-profile/user-image/user-image.html">
 <dom-module id="shared-file-list">
     <template>
         <style include="paper-material-styles">
@@ -132,11 +133,15 @@
                 display: flex;
                 flex-direction: row;
             }
-            .user-image {
+            .user-image-container {
                 display: flex;
                 align-items: center;
                 margin-right: 5px;
+            }
+            user-image {
                 --user-image-border-radius: 50%;
+                --user-image-width: 20px;
+                --user-image-height: 20px;
             }
             .expiring-date {}
             .row[header] .activities {
@@ -193,10 +198,10 @@
                                 <div id="fileName"><span>[[item.fileName]]</span></div>
                             </div>
                             <div class="owner cell">
-                                <div class="user-image">
-                                    <user-image size="20"
-                                                email="[[email]]"
-                                                fallback-value="[[item.owner.name]]"></user-image>
+                                <div class="user-image-container">
+                                    <user-image email="[[email]]"
+                                                name="[[item.owner.name]]"
+                                                profile-identifier="shared-file-list"></user-image>
                                 </div>
                                 <div>[[_checkOwner(item.owner.name)]]</div>
                             </div>
