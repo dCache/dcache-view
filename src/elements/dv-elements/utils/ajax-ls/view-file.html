@@ -248,6 +248,9 @@
                     _temporarySelectedItemsHolder: {
                         type: Array,
                         value: ()=>{return [];}
+                    },
+                    _namespaceRequestMessage: {
+                        type: String
                     }
                 }
             }
@@ -303,7 +306,7 @@
             handleResponse(response)
             {
                 const children = response.children;
-
+                this._namespaceRequestMessage = "successful";
                 if (!(children.length === 0 && this.__counter__ === 0)) {
                     children.forEach((child) => {
                         this.$.feList.push('items', child)
@@ -326,7 +329,7 @@
             handleError(error)
             {
                 const err = JSON.parse(error.substr(error.indexOf("{")));
-                let msg = err.message;
+                this._namespaceRequestMessage = err.message;
                 const code = err.status ? err.status: 500;
                 this.$.content.setAttribute("elevation", 0);
 
@@ -336,18 +339,15 @@
                         page.redirect(`/user-login?r=${encodeURIComponent(a)}`);
                         break;
                     case 403:
-                        msg = "Access Denied! Please login using a credentials with the right permission.";
+                        this._namespaceRequestMessage = "Access Denied! Please login using a credentials with the right permission.";
                         break;
                     default:
-                        msg = msg === undefined ?
+                        this._namespaceRequestMessage = this._namespaceRequestMessage === undefined ?
                             "Something is terribly wrong! Please contact your admin.": msg;
                 }
-
-                let dle = new DirectoryLsError(msg, code);
+                const dle = new DirectoryLsError(this._namespaceRequestMessage, code);
                 this.$.content.appendChild(dle);
-
                 this.currentDirMetaData = {"fileName": this.currentDirName, "fileType": "DIR", "size" : 512};
-
                 Polymer.dom.flush();
                 this.updateStyles();
             }
@@ -760,7 +760,8 @@
             {
                 this.dispatchEvent(
                     new CustomEvent('dv-namespace-receive-children', {
-                        detail: {children: this.$.feList.items}, bubbles: true, composed: true}));
+                        detail: {message: this._namespaceRequestMessage,
+                            children: this.$.feList.items}, bubbles: true, composed: true}));
             }
         }
         window.customElements.define(ViewFile.is, ViewFile);

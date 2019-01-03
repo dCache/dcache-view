@@ -144,17 +144,17 @@
                             <small>&nbsp;based on MIME Type</small>
                         </p>
                     </div>
-                    <div id="previewContainer" class="preview-container">
+                    <div id="preview-container" class="preview-container">
                         <google-chart
                                 type='pie'
                                 data="[[_data]]"
                                 class="children-count"
                                 options="[[_options]]"></google-chart>
                     </div>
-                    <div id="empty" class="none">
-                        <iron-icon class="empty-icon" icon="[[icon]]"></iron-icon>
+                    <div id="message-container" class="none">
+                        <iron-icon class$="[[messageIconClass]]" icon="[[messageIcon]]"></iron-icon>
                         <small>No data to analyse</small>
-                        <b>[[errorMessage]]</b>
+                        <b>[[message]]</b>
                     </div>
                 </div>
             </app-header>
@@ -188,7 +188,9 @@
                 this._setChildren_ = this._setChildren.bind(this);
                 this._close_ = this._close.bind(this);
                 this._rawOrFormatted_ = this._rawOrFormatted.bind(this);
-
+                if (!file.fileMimeType && file.fileType === "DIR") {
+                    file.fileMimeType = "application/vnd.dcache.folder";
+                }
                 this.knownMetadata = file;
                 this.path = path === "" ? "/": path;
 
@@ -200,12 +202,10 @@
                 if (idx === 1) {
                     this.index = -10;
                     window.addEventListener('dv-namespace-receive-children', this._setChildren_);
-
                     window.dispatchEvent(
                         new CustomEvent('dv-namespace-request-children', {bubbles: true, composed: true}));
                 } else {
                     window.addEventListener('dv-namespace-receive-item-index', this._setIndexListener_);
-
                     window.dispatchEvent(
                         new CustomEvent('dv-namespace-request-item-index', {
                             detail: {item: file}, bubbles: true, composed: true}));
@@ -285,12 +285,12 @@
                         },
                         notify: true
                     },
-                    icon: {
+                    messageIcon: {
                         type: String,
                         value: 'icons:announcement',
                         notify: true
                     },
-                    errorMessage: {
+                    message: {
                         type: String,
                         value: 'Empty Directory',
                         notify: true
@@ -299,19 +299,18 @@
                         type: Boolean,
                         value: true,
                         notify: true
+                    },
+                    messageIconClass: {
+                        type: String,
+                        value: "empty-icon",
+                        notify: true
                     }
                 }
             }
             ready()
             {
                 super.ready();
-                Polymer.RenderStatus.afterNextRender(this, function() {
-                    if (this.formatStatus) {
-                        this.__formatStyleSwitch(true);
-                    } else {
-                        this.__formatStyleSwitch(false);
-                    }
-                });
+                Polymer.RenderStatus.afterNextRender(this, () => this.__formatStyleSwitch(this.formatStatus));
             }
             _indexChanged(idx)
             {
@@ -323,8 +322,8 @@
             {
                 const len = children.length;
                 if (len > 0) {
-                    this.$.empty.classList.replace('empty', 'none');
-                    this.$.previewContainer.classList.replace('none', 'preview-container');
+                    this.$['message-container'].classList.replace('empty', 'none');
+                    this.$['preview-container'].classList.replace('none', 'preview-container');
                     if (len >= 100) {
                         if (this.refreshRequire) {
                             this._requestAllChildren();
@@ -335,8 +334,8 @@
 
                     this._setPieChartData(children, len);
                 } else {
-                    this.$.empty.classList.replace('none', 'empty');
-                    this.$.previewContainer.classList.replace('preview-container', 'none');
+                    this.$['message-container'].classList.replace('none', 'empty');
+                    this.$['preview-container'].classList.replace('preview-container', 'none');
                 }
             }
             _requestAllChildren()
@@ -345,9 +344,9 @@
                     this.refreshRequire = false;
                     this.setProperties({children: data.children});
                 }).catch(err => {
-                    this.errorMessage = err.message;
-                    this.icon = 'icons:warning';
-                    this.$.empty.querySelector('iron-icon').classList.replace('empty-icon', 'warning-icon');
+                    this.message = err.message;
+                    this.messageIcon = 'icons:warning';
+                    this.messageIconClass = 'warning-icon';
                 })
             }
             _setPieChartData(children, len)
@@ -393,7 +392,13 @@
             }
             _setChildren(e)
             {
-                this.children = e.detail.children;
+                if (e.detail.message === "successful") {
+                    this.children = e.detail.children;
+                } else {
+                    this.message = e.detail.message;
+                    this.messageIcon = 'icons:warning';
+                    this.messageIconClass = 'warning-icon';
+                }
             }
             _close()
             {
