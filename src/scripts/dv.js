@@ -103,7 +103,7 @@
         app.removeAllChildren(contextMenu);
 
         const vf = app.$.homedir.querySelector('view-file');
-        let x = 0, y = 0, h = 110, cc;
+        let x = 0, y = 0, h = 120, cc;
         if (e.screenX === 0 & e.screenY === 0) {
             const arr = e.path || (e.composedPath && e.composedPath());
             const lr = arr.find(function (el) {
@@ -115,7 +115,7 @@
             } else {
                 cc = new NamespaceContextualContent(lr, 0);
             }
-            h = 245;
+            h = 260;
         } else {
             cc = new NamespaceContextualContent(vf.currentDirMetaData, 2);
         }
