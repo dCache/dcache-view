@@ -131,7 +131,7 @@
          */
         const vf = findViewFile(e);
         if (vf) {
-            let h = 110, cc;
+            let h = 160, cc;
             if (e.screenX === 0 && e.screenY === 0) {
                 const arr = e.path || (e.composedPath && e.composedPath());
                 const lr = arr.find(function (el) {
@@ -143,7 +143,7 @@
                 } else {
                     cc = new NamespaceContextualContent(lr, 0, vf.authenticationParameters);
                 }
-                h = 245;
+                h = 310;
             } else {
                 cc = new NamespaceContextualContent(vf.currentDirMetaData, 2, vf.authenticationParameters);
             }
