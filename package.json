@@ -17,5 +17,5 @@
     "prebuild": "npm install && bower install",
     "build": "gulp"
   },
-  "version": "1.5.2"
+  "version": "1.5.3"
 }
