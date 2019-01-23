@@ -16,7 +16,7 @@ const copyAllArray = [
     {"source" : "./target/elements/src/elements/elements.html", "destination": `${buildDirectory}/elements`},
     {"source" : "./src/scripts/**/*", "destination": `${buildDirectory}/scripts`, "exclude": ["./src/scripts/config.js"]},
     {"source" : "./src/bower_components/pdfjs-dist/build/**/*", "destination": `${buildDirectory}/bower_components/pdfjs-dist/build`},
-    {"source" : "./src/bower_components/webcomponentsjs/webcomponents-loader.js", "destination": `${buildDirectory}/bower_components/webcomponentsjs`}
+    {"source" : "./src/bower_components/webcomponentsjs/**/*", "destination": `${buildDirectory}/bower_components/webcomponentsjs`}
 ];
 
 function waitFor(stream) {
