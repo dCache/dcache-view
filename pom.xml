@@ -4,7 +4,7 @@
 
     <groupId>org.dcache</groupId>
     <artifactId>dcache-view</artifactId>
-    <version>1.4.8-SNAPSHOT</version>
+    <version>1.4.8</version>
     <packaging>pom</packaging>
     <inceptionYear>2016</inceptionYear>
 
@@ -54,7 +54,7 @@
         <url>https://github.com/dCache/dcache-view</url>
         <connection>scm:git:https://github.com/dCache/dcache-view.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/dCache/dcache-view.git</developerConnection>
-        <tag>1.4</tag>
+        <tag>v1.4.8</tag>
     </scm>
 
     <repositories>
