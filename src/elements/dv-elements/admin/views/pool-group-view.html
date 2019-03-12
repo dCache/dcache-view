@@ -121,7 +121,7 @@
                     </template>
                     <vaadin-grid-column width="150px">
                         <template class="header"></template>
-                        <template>[[item.total]]</template>
+                        <template>[[item.total-text]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -132,7 +132,7 @@
                     </template>
                     <vaadin-grid-column width="150px">
                         <template class="header"></template>
-                        <template>[[item.free]]</template>
+                        <template>[[item.free-text]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -143,7 +143,7 @@
                     </template>
                     <vaadin-grid-column width="150px">
                         <template class="header"></template>
-                        <template>[[item.precious]]</template>
+                        <template>[[item.precious-text]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -213,9 +213,12 @@
 
                 this.incoming.push({
                     'group': 'all-pools',
-                    'total': this.convertBytesToNearestBinaryPrefix(total),
-                    'precious': this.convertBytesToNearestBinaryPrefix(precious),
-                    'free': this.convertBytesToNearestBinaryPrefix(free),
+                    'total': total,
+                    'total-text': this.convertBytesToNearestBinaryPrefix(total),
+                    'precious': precious,
+                    'precious-text': this.convertBytesToNearestBinaryPrefix(precious),
+                    'free': free,
+                    'free-text': this.convertBytesToNearestBinaryPrefix(free),
                     'disk': {
                         'total': total,
                         'precious': precious,
@@ -269,23 +272,26 @@
                 if (!result.groupSpaceData || !this.isNumber(result.groupSpaceData.total)) {
                     this.incoming.push({
                         'group': group,
-                        'total': "0 bytes",
-                        'precious': "0 bytes",
-                        'free': "0 bytes",
+                        'total': 0,
+                        'total-text': this.convertBytesToNearestBinaryPrefix(0),
+                        'precious': 0,
+                        'precious-text': this.convertBytesToNearestBinaryPrefix(0),
+                        'free': 0,
+                        'free-text': this.convertBytesToNearestBinaryPrefix(0),
                         'disk': {
                             'total': 0, 'precious': 0,
                             'free': 0, 'removable': 0
                         }
                     });
                 } else {
-                    const total = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.total);
-                    const free = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.free);
-                    const precious = this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.precious);
                     this.incoming.push({
                         'group': group,
-                        'total': total,
-                        'precious': precious,
-                        'free': free,
+                        'total': result.groupSpaceData.total,
+                        'total-text': this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.total),
+                        'precious': result.groupSpaceData.precious,
+                        'precious-text': this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.precious),
+                        'free': result.groupSpaceData.free,
+                        'free-text': this.convertBytesToNearestBinaryPrefix(result.groupSpaceData.free),
                         'disk': {
                             'total': result.groupSpaceData.total,
                             'precious': result.groupSpaceData.precious,
