@@ -253,7 +253,7 @@
                     </template>
                     <vaadin-grid-column width="50px">
                         <template class="header"></template>
-                        <template>[[item.availableSpace]]</template>
+                        <template>[[item.availableSpaceText]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -264,7 +264,7 @@
                     </template>
                     <vaadin-grid-column width="50px">
                         <template class="header"></template>
-                        <template>[[item.reservedSpace]]</template>
+                        <template>[[item.reservedSpaceText]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -275,7 +275,7 @@
                     </template>
                     <vaadin-grid-column width="50px">
                         <template class="header"></template>
-                        <template>[[item.totalSpace]]</template>
+                        <template>[[item.totalSpaceText]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
             </vaadin-grid>
@@ -465,7 +465,7 @@
                     </template>
                     <vaadin-grid-column width="50px">
                         <template class="header"></template>
-                        <template>[[item.sizeInBytes]]</template>
+                        <template>[[item.sizeInBytesText]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -476,7 +476,7 @@
                     </template>
                     <vaadin-grid-column width="50px">
                         <template class="header"></template>
-                        <template>[[item.usedSizeInBytes]]</template>
+                        <template>[[item.usedSizeInBytesText]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -487,7 +487,7 @@
                     </template>
                     <vaadin-grid-column width="50px">
                         <template class="header"></template>
-                        <template>[[item.allocatedSpaceInBytes]]</template>
+                        <template>[[item.allocatedSpaceInBytesText]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -769,9 +769,10 @@
             _handleLinkGroupResponse(groups) {
                 groups.forEach((g) => {
                     const total = g.availableSpace + g.reservedSpace;
-                    g.availableSpace = this.convertBytesToNearestBinaryPrefix(g.availableSpace);
-                    g.reservedSpace = this.convertBytesToNearestBinaryPrefix(g.reservedSpace);
-                    g.totalSpace = this.convertBytesToNearestBinaryPrefix(total);
+                    g.availableSpaceText = this.convertBytesToNearestBinaryPrefix(g.availableSpace);
+                    g.reservedSpaceText = this.convertBytesToNearestBinaryPrefix(g.reservedSpace);
+                    g.totalSpace = total;
+                    g.totalSpaceText = this.convertBytesToNearestBinaryPrefix(total);
 
                     g.allowed = '';
 
@@ -825,9 +826,9 @@
 
             _handleSpaceTokenResponse(tokens) {
                 tokens.forEach((t) => {
-                    t.sizeInBytes = this.convertBytesToNearestBinaryPrefix(t.sizeInBytes);
-                    t.usedSizeInBytes = this.convertBytesToNearestBinaryPrefix(t.usedSizeInBytes);
-                    t.allocatedSpaceInBytes = this.convertBytesToNearestBinaryPrefix(t.allocatedSpaceInBytes);
+                    t.sizeInBytesText = this.convertBytesToNearestBinaryPrefix(t.sizeInBytes);
+                    t.usedSizeInBytesText = this.convertBytesToNearestBinaryPrefix(t.usedSizeInBytes);
+                    t.allocatedSpaceInBytesText = this.convertBytesToNearestBinaryPrefix(t.allocatedSpaceInBytes);
                     if (t.expirationTime) {
                         t.expirationTime = this.convertDatestampToObject(t.expirationTime);
                     } else {
