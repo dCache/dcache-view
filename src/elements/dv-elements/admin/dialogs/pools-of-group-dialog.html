@@ -421,7 +421,7 @@
                             <vaadin-grid-column width="150px">
                                 <template class="header">
                                 </template>
-                                <template>[[item.total]]</template>
+                                <template>[[item.total-text]]</template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
                         <vaadin-grid-column-group>
@@ -433,7 +433,7 @@
                             <vaadin-grid-column width="150px">
                                 <template class="header">
                                 </template>
-                                <template>[[item.free]]</template>
+                                <template>[[item.free-text]]</template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
                         <vaadin-grid-column-group>
@@ -445,7 +445,7 @@
                             <vaadin-grid-column width="150px">
                                 <template class="header">
                                 </template>
-                                <template>[[item.precious]]</template>
+                                <template>[[item.precious-text]]</template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
                         <vaadin-grid-column-group>
@@ -796,9 +796,6 @@
                         delete restore.maxActive;
 
                         const space = poolData.detailsData.costData.space;
-                        const total = this.convertBytesToNearestBinaryPrefix(space.total);
-                        const free = this.convertBytesToNearestBinaryPrefix(space.free);
-                        const precious = this.convertBytesToNearestBinaryPrefix(space.precious);
 
                         pool = {
                             'cell': poolData.cellData.cellName,
@@ -810,9 +807,12 @@
                             'version': poolData.cellData.version,
                             'mode': poolData.detailsData.poolMode,
                             'status': this._status(poolData.detailsData.poolMode),
-                            'total': total,
-                            'free': free,
-                            'precious': precious,
+                            'total': space.total,
+                            'total-text': this.convertBytesToNearestBinaryPrefix(space.total),
+                            'free': space.free,
+                            'free-text': this.convertBytesToNearestBinaryPrefix(space.free),
+                            'precious': space.precious,
+                            'precious-text': this.convertBytesToNearestBinaryPrefix(space.precious),
                             'movers': poolData.detailsData.costData.mover,
                             'stores': store,
                             'restores': restore,
