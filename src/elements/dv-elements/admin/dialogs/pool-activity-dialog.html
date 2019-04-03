@@ -296,14 +296,14 @@
                         </vaadin-grid-column-group>
                         <vaadin-grid-column-group>
                             <template class="header">
-                                <vaadin-grid-sorter path="timeInSeconds">
-                                    Time/Secs
+                                <vaadin-grid-sorter path="timeInMilliseconds">
+                                    Time/Ms
                                 </vaadin-grid-sorter>
                             </template>
                             <vaadin-grid-column width="100px">
                                 <template class="header">
                                 </template>
-                                <template>[[item.timeInSeconds]]</template>
+                                <template>[[item.timeInMilliseconds]]</template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
                         <vaadin-grid-column-group>
@@ -468,14 +468,14 @@
                         </vaadin-grid-column-group>
                         <vaadin-grid-column-group>
                             <template class="header">
-                                <vaadin-grid-sorter path="timeInSeconds">
-                                    Time/Secs
+                                <vaadin-grid-sorter path="timeInMilliseconds">
+                                    Time/Ms
                                 </vaadin-grid-sorter>
                             </template>
                             <vaadin-grid-column width="100px">
                                 <template class="header">
                                 </template>
-                                <template>[[item.timeInSeconds]]</template>
+                                <template>[[item.timeInMilliseconds]]</template>
                             </vaadin-grid-column>
                         </vaadin-grid-column-group>
                         <vaadin-grid-column-group>
@@ -1122,7 +1122,7 @@
                             item.bytes = this.convertSize(item.bytes, mb);
                         } else {
                             item.bytes = this.convertSize(0, mb);
-                            item.timeInSeconds = 0;
+                            item.timeInMilliseconds = 0;
                         }
                         break;
                     case 2:
