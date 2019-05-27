@@ -13,7 +13,7 @@ self.addEventListener('message', function(e) {
             const write = [];
             const webdav = [];
             doors.forEach((door) => {
-                if (door.tags && door.tags.includes("dcache-view")) {
+                if (door.tags && door.tags.includes("dcache-view") && door.root === "/") {
                     webdav.push(door);
                 }
             });
