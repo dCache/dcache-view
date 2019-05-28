@@ -218,9 +218,11 @@
              *  includes the role (Authorization).
              */
             getHeaders() {
+                const authParameter = sessionStorage.upauth !== undefined ?
+                    {"scheme": sessionStorage.authType, "value": sessionStorage.upauth} : undefined;
                 return {
                     'Content-Type': this.contentType,
-                    'Authorization': app.getAuthValue(),
+                    'Authorization': app.getAuthValue(authParameter),
                     'Suppress-WWW-Authenticate': "Suppress"
                 }
             }
