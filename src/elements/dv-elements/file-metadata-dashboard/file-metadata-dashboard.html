@@ -192,7 +192,7 @@
                     file.fileMimeType = "application/vnd.dcache.folder";
                 }
                 this.knownMetadata = file;
-                this.path = path === "" ? "/": path;
+                this.path = path === "" ? "/": this.encodePath(path);
 
                 this.pnfsId = file.pnfsId ? file.pnfsId : "0";
                 if (auth) {

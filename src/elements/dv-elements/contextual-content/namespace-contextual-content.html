@@ -457,7 +457,7 @@
                 });
                 namespace.rm({
                     url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
-                    path: fullPath
+                    path: this.encodePath(fullPath)
                 });
             }
 
@@ -500,7 +500,7 @@
 
                     namespace.mkdir({
                         url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
-                        path: this.currentPath,
+                        path: this.encodePath(this.currentPath),
                         name: e.detail.newFolderName
                     });
                 });

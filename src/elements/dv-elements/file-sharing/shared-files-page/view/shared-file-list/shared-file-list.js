@@ -325,7 +325,7 @@ class SharedFileList extends DcacheViewMixins.Commons(Polymer.Element)
             fileMetaDataWorker.postMessage({
                 'endpoint' : `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
                 'file' : item,
-                'filePath' : item.filePath,
+                'filePath' : this.encodePath(item.filePath),
                 'scope' : 'full',
                 'limit' : 100,
                 'upauth' : this.getAuthValue()
