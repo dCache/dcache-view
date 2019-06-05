@@ -21,7 +21,7 @@
         </div>
     </template>
     <script>
-        class RenameInput extends Polymer.Element
+        class RenameInput extends DcacheViewMixins.Commons(Polymer.Element)
         {
             constructor(file, auth)
             {
@@ -116,7 +116,9 @@
                 renameWorker.postMessage({
                     "endpoint": window.CONFIG["dcache-view.endpoints.webapi"],
                     "upauth": this.auth,
-                    "source": path.endsWith("/") ? `${path}${this._previousValue}` : `${path}/${this._previousValue}`,
+                    "source": path.endsWith("/") ?
+                        this.encodePath(`${path}${this._previousValue}`) :
+                        this.encodePath(`${path}/${this._previousValue}`),
                     "destination": path.endsWith("/") ? `${path}${this.value}` : `${path}/${this.value}`
                 });
             }
