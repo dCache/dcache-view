@@ -473,6 +473,8 @@ class SharedFileList extends DcacheViewMixins.Commons(Polymer.Element)
             span.appendChild(t);
             this.removeAllChildren(listRow);
             listRow.appendChild(t);
+            this.sharedFiles[index].fileName = e.detail.newFileName;
+            this.sharedFiles.notifyPath(`sharedFiles.${index}.fileName`);
         }
     }
 }

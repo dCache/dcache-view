@@ -121,6 +121,7 @@
                 this._sendItemIndex_ = this._sendItemIndex.bind(this);
                 this._reset_ = this._reset.bind(this);
                 this._renameInputStart_ = this._renameInputStart.bind(this);
+                this._renameInputEnd_ = this._renameInputEnd.bind(this);
                 this._sendCurrentChildren_ = this._sendCurrentChildren.bind(this);
             }
             ready()
@@ -143,7 +144,7 @@
 
                 this.addEventListener('keydown', this._multipleSelectionShortcuts);
                 this.addEventListener('keyup', this._resetMultipleSelectionShortcuts);
-                this.addEventListener('dv-namespace-rename-input', this._renameInputEnd);
+                this.addEventListener('dv-namespace-rename-input', this._renameInputEnd_);
 
                 window.addEventListener('dv-namespace-remove-items', this._removeItems_);
                 window.addEventListener('dv-namespace-add-items', this._addItems_);
@@ -160,7 +161,7 @@
 
                 this.removeEventListener('keydown', this._multipleSelectionShortcuts);
                 this.removeEventListener('keyup', this._resetMultipleSelectionShortcuts);
-                this.removeEventListener('dv-namespace-rename-input', this._renameInputEnd);
+                this.removeEventListener('dv-namespace-rename-input', this._renameInputEnd_);
 
                 window.removeEventListener('dv-namespace-remove-items', this._removeItems_);
                 window.removeEventListener('dv-namespace-add-items', this._addItems_);
@@ -386,6 +387,10 @@
                 span.appendChild(t);
                 this.removeAllChildren(listRow.$.nameContainer);
                 listRow.$.nameContainer.appendChild(span);
+
+                const index = this.__findItemIndexOnAList(this.$.feList.items, e.detail.pnfsId, "pnfsId");
+                this.$.feList.items[index].fileName = e.detail.newFileName;
+                this.$.feList.notifyPath(`items.${index}.fileName`);
             }
 
             _loadNamespaceData()
@@ -661,7 +666,8 @@
             {
                 searchKey = !searchKey ? 'fileName': searchKey;
                 return list.findIndex(el => {
-                    return el[`${searchKey}`] === item[`${searchKey}`];
+                    return item === Object(item) ?
+                        el[`${searchKey}`] === item[`${searchKey}`] : el[`${searchKey}`] === item;
                 });
             }
 
