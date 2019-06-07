@@ -232,8 +232,8 @@
                     this.currentOffset = -1;
                     this._notifyTableSizeChanged(this.currentItems.length);
                     this._notifyTimeoutReset();
-                    app.$.toast.text = error;
-                    app.$.toast.show();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: error}, bubbles: true, composed: true}));
                 });
             }
 

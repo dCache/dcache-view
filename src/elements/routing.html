@@ -205,8 +205,8 @@
                     sessionStorage.removeItem('nonce');
                     const searchParams = `"page":"${redirectInfoObj.page}","path":"${redirectInfoObj.path}"`;
                     page(`/user-login?r=${encodeURIComponent(searchParams)}`);
-                    app.$.toast.text = e.detail.message + " ";
-                    app.$.toast.show();
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: e.detail.message}, bubbles: true, composed: true}));
                 });
 
                 userAuth.send("Bearer");
@@ -217,8 +217,8 @@
                 return;
             }
 
-            app.$.toast.text = `Can't find: ${url}. Redirected you to Home Page`;
-            app.$.toast.show();
+            this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                detail: {message: `Can't find: ${url}. Redirected you to Home Page`}, bubbles: true, composed: true}));
             page.redirect(app.baseUrl);
         });
 
