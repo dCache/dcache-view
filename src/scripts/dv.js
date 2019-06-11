@@ -393,18 +393,14 @@
                 }
                 return file;
             }).then((file) => {
-                app.$.toast.text = ``;
                 if (i+1 === len) {
-                    app.$.toast.text = `Done. ${len} files moved from source path ${sourcePath} to ${destinationPath}. `;
-                    app.$.toast.show();
+                    openToast(`Done. ${len} files moved from source path ${sourcePath} to ${destinationPath}.`)
                 }
                 if (i+1 > len) {
-                    app.$.toast.text = `${file.fileName} moved from source path ${sourcePath} to ${destinationPath}. `;
-                    app.$.toast.show();
+                    openToast(`${file.fileName} moved from source path ${sourcePath} to ${destinationPath}.`);
                 }
             }).catch((err)=>{
-                app.$.toast.text = err.toString();
-                app.$.toast.show();
+                openToast(err.toString());
             });
             namespace.mv({
                 url: "/api/v1/namespace",
@@ -455,7 +451,11 @@
         }
         return url;
     }
-
+    function openToast(message) {
+        app.$.toast.close();
+        app.$.toast.text = `${message} `;
+        app.$.toast.show()
+    }
     function updateFeListAndMetaDataDrawer(status, itemIndex)
     {
         if (app.$.metadata.selected === 'drawer') {
@@ -480,21 +480,19 @@
                 switch (e.data.status) {
                     case "successful":
                         updateFeListAndMetaDataDrawer(e.data.file.currentQos, event.detail.options.itemIndex);
-                        app.$.toast.text = "Transition complete! ";
+                        openToast("Transition complete!");
                         break;
                     case "error":
                         updateFeListAndMetaDataDrawer(event.detail.options.currentQos, event.detail.options.itemIndex);
-                        app.$.toast.text = "Transition terminated. ";
+                        openToast("Transition terminated!");
                         break;
                 }
                 qosWorker.terminate();
-                app.$.toast.show();
             }, false);
 
             qosWorker.addEventListener('error', function(e) {
                 console.info(e);
-                app.$.toast.text = e.message + " ";
-                app.$.toast.show();
+                openToast(e.message);
                 qosWorker.terminate()
             }, false);
 
@@ -618,8 +616,7 @@
             }, false);
             worker.addEventListener('error', (err)=> {
                 worker.terminate();
-                app.$.toast.text = `${err.message} `;
-                app.$.toast.show()
+                openToast(`${err.message}`);
             }, false);
             worker.postMessage({
                 'url' : fileURL,
@@ -695,8 +692,7 @@
         app.$.uploadToast.querySelector("#uploadList").appendChild(child);
     });
     window.addEventListener('dv-namespace-show-message-toast', (e) => {
-        app.$.toast.text = `${e.detail.message} `;
-        app.$.toast.show()
+        openToast(`${e.detail.message}`);
     });
     window.addEventListener('dv-namespace-ls-path', (e) => {
         if (app.route !== "home") page("/");
