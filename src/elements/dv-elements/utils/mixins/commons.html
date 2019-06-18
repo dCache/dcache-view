@@ -155,6 +155,17 @@
                 return `Basic ${window.btoa('anonymous:nopassword')}`;
             }
 
+            /**
+             * Get file webdav url.
+             *
+             * @param {
+             *     path: @type {String} @required
+             *          file path DO NOT ENCODE PATH
+             *
+             *     operationType: @type {String} @required
+             *          This is can be either read | write
+             * }
+             */
             getFileWebDavUrl(path, operationType)
             {
                 /**
@@ -162,7 +173,7 @@
                  * and if it's old get a fresh list.
                  */
                 if (path.startsWith("/")) {
-                    path = path.replace(/\/\//g, "/");
+                    path = this.encodePath(path.replace(/\/\//g, "/"));
                 } else {
                     throw new TypeError("Invalid path: only absolute path is accepted.");
                 }
@@ -176,6 +187,20 @@
                     url.push(arr[i].endsWith("/") ? `${arr[i].replace(/.$/,'')}${path}` : `${arr[i]}${path}`)
                 }
                 return url;
+            }
+            encodePath(path)
+            {
+                if (path === "/") {
+                    return path;
+                }
+                const arr = (path.replace(/^\/+|\/+$/g, '')).split("/");
+                if (arr.length === 0) {
+                    return encodeURIComponent(arr[0]);
+                }
+                arr.forEach(function(element, index) {
+                    arr[index] = encodeURIComponent(element);
+                });
+                return `/${arr.join('/')}`;
             }
         }
     })

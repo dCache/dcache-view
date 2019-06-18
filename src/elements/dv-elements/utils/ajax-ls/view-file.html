@@ -289,19 +289,12 @@
                 const filePath = this.getAuthValue() !== "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ=" ? isHome === true ?
                     "/?children=true&qos=true" : `${path}/?children=true&qos=true` : isHome === true ?
                     "/?children=true" : `${path}/?children=true`;
-                return `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace${filePath}`;
+                return `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace${this.encodePath(filePath)}`;
             }
 
             _computeParentPath(path)
             {
-                if ( this.path == null || this.path === "" || this.path === "/" ) {
-                    path = "/";
-                    return path;
-                } else {
-                    path = decodeURIComponent(this.path);
-                    path = path.replace(/=/g, "/");
-                    return `${path}/`;
-                }
+                return this.path == null || this.path === "" || this.path === "/" ? "/" : `${this.path}/`;
             }
 
             handleResponse(response)
@@ -408,7 +401,7 @@
                 const message = {
                     'endpoint' : `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
                     'file' : this.currentDirMetaData,
-                    'filePath' : this.path,
+                    'filePath' : this.encodePath(this.path),
                     'scope' : 'partial',
                     'limit' : 100,
                     'offset' : this.__counter__ * 100,

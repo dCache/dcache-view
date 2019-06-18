@@ -43,7 +43,7 @@
             constructor(t, authentication)
             {
                 super();
-                this.path = t.filePath;
+                this.path = this.encodePath(t.filePath);
                 this.currentQos = t.fileMetaData.currentQos;
                 this.targetNode = t;
                 if (authentication) {

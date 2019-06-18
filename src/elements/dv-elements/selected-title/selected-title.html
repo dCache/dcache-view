@@ -357,7 +357,7 @@
 
                     namespace.mkdir({
                         url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
-                        path: this.currentPath,
+                        path: this.encodePath(this.currentPath),
                         name: name
                     });
                 });
