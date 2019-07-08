@@ -1,7 +1,14 @@
 self.addEventListener('message', function(e) {
     const endpoint = e.data.apiEndpoint.endsWith("/") ? e.data.apiEndpoint : `${e.data.apiEndpoint}/`;
-    fetch(`${endpoint}doors`, {headers: {"accept": "application/json",
-            "suppress-www-authenticate": "Suppress"}})
+    const header = new Headers({
+        "accept": "application/json",
+        "content-type": "application/json",
+        "suppress-www-authenticate": "Suppress"
+    });
+    if (e.data.auth && e.data.auth !== "") {
+        header.append('Authorization', e.data.auth);
+    }
+    fetch(`${endpoint}doors`, {headers: header})
         .then((response) => {
             if (!(response.status >= 200 && response.status < 300)) {
                 throw new Error("Network problem.");
