@@ -65,6 +65,7 @@
     app.lsHomeDir = function()
     {
         app.route = "home";
+        page("/");
         app.ls(sessionStorage.homeDirectory);
     };
 
