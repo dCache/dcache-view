@@ -30,7 +30,7 @@
                 this._previousValue = file.fileMetaData.fileName;
                 this._pnfsId = file.fileMetaData.pnfsId;
                 this.value = file.fileMetaData.fileName;
-                if (auth) {
+                if (auth === "" || auth) {
                     this.auth = auth;
                 }
             }
