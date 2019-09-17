@@ -405,8 +405,10 @@
              * Common to all RESTful admin service calls.
              */
             setXHRHeaders(xhr) {
+                const authParameter = sessionStorage.upauth !== undefined ?
+                    {"scheme": sessionStorage.authType, "value": sessionStorage.upauth} : undefined;
                 xhr.setRequestHeader('Content-Type', this.contentType);
-                xhr.setRequestHeader('Authorization', app.getAuthValue());
+                xhr.setRequestHeader('Authorization', app.getAuthValue(authParameter));
                 xhr.setRequestHeader('Suppress-WWW-Authenticate', "Suppress");
             }
 
