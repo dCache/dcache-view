@@ -198,44 +198,6 @@
                 this.refreshAndReset(this._sendGroupRequest.bind(this), 60000);
             }
 
-            _addAllPools() {
-                let total = 0;
-                let free = 0;
-                let precious = 0;
-                let removable = 0;
-
-                this.incoming.forEach(group => {
-                    total += group.disk.total;
-                    free += group.disk.free;
-                    precious += group.disk.precious;
-                    removable += group.disk.removable;
-                });
-
-                this.incoming.push({
-                    'group': 'all-pools',
-                    'total': total,
-                    'total-text': this.convertBytesToNearestBinaryPrefix(total),
-                    'precious': precious,
-                    'precious-text': this.convertBytesToNearestBinaryPrefix(precious),
-                    'free': free,
-                    'free-text': this.convertBytesToNearestBinaryPrefix(free),
-                    'disk': {
-                        'total': total,
-                        'precious': precious,
-                        'free': free,
-                        'removable': removable
-                    }
-                });
-
-                this.groups = this.incoming;
-                this.incoming = [];
-
-                if (this.spaceError !== '') {
-                    this.handleError(`Error in space info request: ${this.spaceError}`);
-                    this.spaceError = '';
-                }
-            }
-
             _handleGroupsError(event) {
                 this.handleError(`Could not process pool groups request:
                     ${event.detail.error.message}`);
@@ -250,10 +212,11 @@
                 });
 
                 if (names.length > 0) {
-                    this.numberOfGroups = names.length;
+                    this.numberOfGroups = names.length + 1;
                     names.forEach(group => {
                         this._sendSpaceRequest(group);
                     });
+                    this._sendSpaceRequest('all-pools');
                 } else {
                     this.numberOfGroups = 0;
                     this.handleError('Request returned no pool groups; ' +
@@ -302,7 +265,13 @@
                 }
 
                 if (this.incoming.length === this.numberOfGroups) {
-                    this._addAllPools();
+                    this.groups = this.incoming;
+                    this.incoming = [];
+
+                    if (this.spaceError !== '') {
+                        this.handleError(`Error in space info request: ${this.spaceError}`);
+                        this.spaceError = '';
+                    }
                 }
             }
 
