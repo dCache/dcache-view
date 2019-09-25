@@ -667,7 +667,8 @@
                         this.convertToNameValueObject('Runtime Configured Max', data.repositoryData.runtimeConfiguredMax),
                         this.convertToNameValueObject('Gap', data.repositoryData.gap),
                         this.convertToNameValueObject('LRU Timestamp', data.sweeperData.lruTimestamp),
-                        this.convertToNameValueObject('LRU Queue Size', data.sweeperData.lruQueueSize)];
+                        this.convertToNameValueObject('LRU Queue Size', data.sweeperData.lruQueueSize),
+                        this.convertToNameValueObject('Free space reclaim margin', data.sweeperData.margin)];
             }
 
             _displayActivity(e) {
