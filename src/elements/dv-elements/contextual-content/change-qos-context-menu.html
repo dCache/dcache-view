@@ -141,16 +141,10 @@
                 } else {
                     for (let i=0; i<window.CONFIG.qos.length; i++) {
                         if (window.CONFIG.qos[i].backendCapability.name === currentQos) {
-                            if (window.CONFIG.qos[i].backendCapability.transition.length > 0) {
-                                for (let j=0; j < window.CONFIG.qos[i].backendCapability.transition.length; j++) {
-                                    return window.CONFIG.qos[i].backendCapability.transition[j] !== buttonName;
-                                }
-                            } else {
-                                return true;
-                            }
-                            break;
+                            return !window.CONFIG.qos[i].backendCapability.transition.includes(buttonName);
                         }
                     }
+                    return true;
                 }
             }
         }
