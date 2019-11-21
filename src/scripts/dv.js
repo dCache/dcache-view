@@ -1,7 +1,7 @@
 (function(document) {
     'use strict';
 
-    //console.info("Polymer version:", Polymer.version);
+    console.debug(`Polymer version: ${Polymer.version}`);
 
     var app = document.querySelector('#app');
 
@@ -700,6 +700,11 @@
                         window.location.protocol.slice(0, -1): window.location.protocol}`
             });
         }
+        /**
+         * Create Server-Side-Event Channel
+         * NOTE: This required that sse-channel-utilities.js is loaded into the context
+         */
+        initiateSSE();
     });
     window.addEventListener('dv-namespace-open-upload-toast', (e) => {
         app.$.uploadToast.close();

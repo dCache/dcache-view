@@ -90,12 +90,13 @@ class UserProfileDropdown extends Polymer.Element
             }
         }
     }
-    _loginout()
+    async _loginout()
     {
         this.$.dropdownPanel.classList.remove('show');
         if (this.state.includes('Log out')) {
             //logout
             //TODO: think of showing a message that the user is being logged out
+            await deleteChannelPromise(window.CONFIG.sse.channel);
             sessionStorage.clear();
             Polymer.dom.flush();
             this.updateStyles();
