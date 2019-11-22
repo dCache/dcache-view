@@ -79,6 +79,33 @@ function deleteChannelPromise(url) {
     })
 }
 
+function watchChannel(address, type) {
+    const watchWorker = new Worker('scripts/tasks/server-side-event/receive-events.js');
+    watchWorker.addEventListener('message', (e) => {
+        console.info(`watching channel ${address} ...`);
+        changeCurrentSSEStatus(SSEStatus.RUNNING);
+        console.info(e.data);
+    });
+    watchWorker.addEventListener('error', function(e) {
+        console.debug("Error watching stream of Events");
+        console.debug(e);
+        if (!!e.message && e.message.includes("Reconnecting")) {
+            changeCurrentSSEStatus(SSEStatus.DISCONNECTED);
+        } else if (e.message.includes("500")) {
+            changeCurrentSSEStatus(SSEStatus.SERVER_ERROR);
+        } else {
+            changeCurrentSSEStatus(SSEStatus.ERROR);
+        }
+        watchWorker.terminate();
+    });
+    watchWorker.postMessage({
+        "apiEndpoint": `${window.CONFIG["dcache-view.endpoints.webapi"]}`,
+        "auth": getAuthValue(),
+        "channel-url": address,
+        "type": type
+    });
+}
+
 async function establishSSEventChannelAsync() {
     console.group('Establishing Server Sent Events Channel');
     const sseWorkerPayloadMsg = {
@@ -118,6 +145,7 @@ function initiateSSE() {
             throw new Error("Please specify the address of the channel.");
         }
         window.CONFIG["sse"].channel = address;
+        watchChannel(address, "inotify");
     }).catch(err => {
         console.debug(err);
     });
