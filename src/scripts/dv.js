@@ -1,7 +1,7 @@
 (function(document) {
     'use strict';
 
-    console.debug(`Polymer version: ${Polymer.version}`);
+    //console.debug(`Polymer version: ${Polymer.version}`);
 
     var app = document.querySelector('#app');
 
