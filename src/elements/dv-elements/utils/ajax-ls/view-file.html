@@ -123,6 +123,8 @@
                 this._renameInputStart_ = this._renameInputStart.bind(this);
                 this._renameInputEnd_ = this._renameInputEnd.bind(this);
                 this._sendCurrentChildren_ = this._sendCurrentChildren.bind(this);
+                this._eventsChannelStatus_ = this._eventsChannelStatus.bind(this);
+                this._eventsChannelStatus(window.CONFIG["sse"].status); // need to called once for init
             }
             ready()
             {
@@ -153,6 +155,7 @@
                 window.addEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
                 window.addEventListener('dv-namespace-open-rename-dialogbox', this._renameInputStart_);
                 window.addEventListener('dv-namespace-request-children', this._sendCurrentChildren_);
+                window.addEventListener('dv-sse-channel-status-change', this._eventsChannelStatus_);
             }
             disconnectedCallback()
             {
@@ -170,6 +173,7 @@
                 window.removeEventListener('dv-namespace-reset-element-internal-parameters', this._reset_);
                 window.removeEventListener('dv-namespace-open-rename-dialogbox', this._renameInputStart_);
                 window.removeEventListener('dv-namespace-request-children', this._sendCurrentChildren_);
+                window.removeEventListener('dv-sse-channel-status-change', this._eventsChannelStatus_);
             }
             static get is()
             {
@@ -761,6 +765,26 @@
                     new CustomEvent('dv-namespace-receive-children', {
                         detail: {message: this._namespaceRequestMessage,
                             children: this.$.feList.items}, bubbles: true, composed: true}));
+            }
+
+            _eventsChannelStatus(event)
+            {
+                const status = event ? event.detail ? event.detail.current : event : '';
+                switch (status) {
+                    case 'created':
+                    case 'running':
+                        const inotifyInfo = sessionStorage.getItem("newlyInotify");
+                        if (!!inotifyInfo && this.path !== decodeURI(inotifyInfo.split(" ")[0]))
+                            cancelSubscription(inotifyInfo.split(" ")[1], "inotify");
+                        inotifySubscription(this.path);
+                        break;
+                    case 'disconnected':
+                        watchChannel(window.CONFIG.sse.channel, "inotify");
+                        break;
+                    case 'pending':
+                    default:
+                        break;
+                }
             }
         }
         window.customElements.define(ViewFile.is, ViewFile);

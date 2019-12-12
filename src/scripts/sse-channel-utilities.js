@@ -139,6 +139,62 @@ async function establishSSEventChannelAsync() {
     return sessionStorage.getItem("sseChannel");
 }
 
+function createSubscription(url, successfulCbFtn, body) {
+    const payload = {
+        "auth": getAuthValue(),
+        "url": url,
+        "method": "POST"
+    };
+    if (body) {
+        payload["body"] = body;
+    }
+    const eventSubscriptionWorker = new Worker('scripts/tasks/server-side-event/subscription-related-task.js');
+    eventSubscriptionWorker.addEventListener('message', (e) => {
+        successfulCbFtn(e.data);
+        eventSubscriptionWorker.terminate();
+    });
+    eventSubscriptionWorker.addEventListener('error', function(e) {
+        console.log(e);
+        eventSubscriptionWorker.terminate();
+    });
+    eventSubscriptionWorker.postMessage(payload);
+}
+
+function inotifySubscription(path) {
+    createSubscription(
+        `${sessionStorage.getItem("sseChannel")}/subscriptions/inotify`,
+        data => {
+            if (!!data) {
+                console.info(`New subscription to inotify events is created.`);
+                console.info(`The new subscription address is ${data}`);
+                sessionStorage.setItem('newlyInotify', `${encodeURI(path)} ${data}`);
+            } else {
+                console.info(`Nothing to do here... there is an active subscription based on this path: ${path}`);
+            }
+        },
+        {"path": path})
+}
+
+function cancelSubscription(url, eventType) {
+    console.log(`Cancelling a subscription ... ${url}`);
+    const subscriptionCancellationWorker = new Worker('scripts/tasks/server-side-event/subscription-related-task.js');
+    subscriptionCancellationWorker.addEventListener('message', (e) => {
+        console.info(`Cancellation of event subscription is ${e.data}!`);
+        subscriptionCancellationWorker.terminate();
+    });
+    subscriptionCancellationWorker.addEventListener('error', (e) => {
+        console.info(`Cancellation was unsuccessful!`);
+        console.log(e);
+        subscriptionCancellationWorker.terminate();
+    });
+    subscriptionCancellationWorker.postMessage({
+        "auth": getAuthValue(),
+        "url": url,
+        "method": "DELETE",
+        "eventType": eventType
+    });
+}
+
 function initiateSSE() {
     establishSSEventChannelAsync().then((address) => {
         if (!address) {
