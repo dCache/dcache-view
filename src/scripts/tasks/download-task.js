@@ -10,7 +10,8 @@ self.addEventListener('message', function(e) {
     const request = new Request(e.data.url, {
         headers: headers,
         mode: "cors",
-        redirect: "follow"
+        redirect: "follow",
+        credentials: "include"
     });
 
     fetch(request).then(file => {
