@@ -47,6 +47,7 @@ UploadHandler.prototype.upload = function()
     const content = this.file;
     const xhr = new XMLHttpRequest();
     xhr.open(this.httpMethod, this.url, true);
+    xhr.withCredentials = true;
     xhr.setRequestHeader('Content-Type', this.contentType);
     if (this.upauth && this.upauth !=="") {
         xhr.setRequestHeader('Authorization', this.upauth);
