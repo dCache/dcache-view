@@ -84,7 +84,8 @@
                                   class$="[[_computedClass(selected,item.pnfsId)]]"
                                   x-selected$="[[__computedXselected(item.xSelected)]]"
                                   file-meta-data="{{item}}" parent-path="[[parent]]"
-                                  draggable="[[_computedDraggable(item.xSelected)]]"></list-row>
+                                  draggable="[[_computedDraggable(item.xSelected)]]"
+                                  authentication-parameters="[[authenticationParameters]]"></list-row>
                     </div>
                 </template>
             </iron-list>
