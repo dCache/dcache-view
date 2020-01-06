@@ -135,6 +135,7 @@
         });
 
         page('/shared-link', function (dt) {
+            app.route = 'shared-link';
             if (dt.querystring) {
                 const arr = dt.querystring.split('&');
                 if (arr.length === 0 || !dt.querystring.includes("m=")) {
