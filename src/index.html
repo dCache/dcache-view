@@ -242,7 +242,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         </paper-item>
                                     </template>
                                     <paper-item>
-                                        <a data-route="home" href$="{{baseUrl}}">
+                                        <a data-route="home" on-tap="namespaceView">
                                             <paper-fab icon="device:storage"
                                                        title="Namespace view" class="blue" mini></paper-fab>
                                         </a>
@@ -294,11 +294,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                         <list-row-header slot="top"></list-row-header>
                                                     </paper-toolbar>
                                                     <div class="fit" id="homedir" style="padding: 0 30px;"
-                                                         on-contextmenu="currentDirContext" on-drop="drop"
-                                                         on-dragenter="dragenter" on-dragleave="dragleave"
-                                                         on-dragend="dragend" on-dragexit="dragexit" on-click="click">
-                                                        <view-file id="homeDir"></view-file>
-                                                    </div>
+                                                         on-contextmenu="currentDirContext"
+                                                         on-drop="drop" on-dragenter="dragenter"
+                                                         on-dragleave="dragleave" on-dragend="dragend"
+                                                         on-dragexit="dragexit" on-click="click"></div>
                                                 </paper-header-panel>
                                             </section>
 
