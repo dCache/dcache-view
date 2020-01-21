@@ -369,7 +369,7 @@
                 let noOfMovedItems = 1;
                 let fileType = "item";
                 const mv = document.createElement('move-file');
-                mv.auth = app.getAuthValue();
+                mv.auth = this.getAuthValue();
                 mv.currentPath = this.currentPath;
 
                 if (this.multipleSelection) {
@@ -441,7 +441,7 @@
                 const fullPath = this.currentPath.endsWith('/') ?
                     `${this.currentPath}${file.fileName}`: `${this.currentPath}/${file.fileName}`;
                 const namespace = document.createElement('dcache-namespace');
-                namespace.auth = app.getAuthValue();
+                namespace.auth = this.getAuthValue();
                 namespace.promise.then(()=>{
                     this.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
                         detail: {files: [file]},bubbles: true, composed: true
@@ -472,7 +472,7 @@
                 mkdir.header = false;
                 mkdir.addEventListener('create',(e) => {
                     const namespace = document.createElement('dcache-namespace');
-                    namespace.auth = app.getAuthValue();
+                    namespace.auth = this.getAuthValue();
 
                     namespace.promise.then(() => {
                         this.dispatchEvent(
