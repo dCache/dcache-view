@@ -42,13 +42,14 @@ self.addEventListener('message', function(e) {
     const qos = e.data.upauth === "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ=" ? "false" : "true";
     const limit = e.data.limit ? e.data.limit === 'max' ? 2147483647 : e.data.limit : 100;
     const offset = e.data.offset ? e.data.offset : 0;
+    const pnfsID = e.data.file && e.data.file.pnfsId ? e.data.file.pnfsId: undefined;
     let partialFileMetadata;
 
     if (e.data.upauth && e.data.upauth !== "") {
         headers.append("Authorization", `${e.data.upauth}`);
     }
 
-    if (!e.data.file.pnfsId && e.data.filePath) {
+    if (!pnfsID && e.data.filePath) {
         //no pnfsID
         partial(e.data.filePath).then((response) => {
             partialFileMetadata = response;

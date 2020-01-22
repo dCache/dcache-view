@@ -125,12 +125,12 @@
             _abortRename()
             {
                 this.flag = false;
-                this._dispatchRename(this._previousValue);
+                this._dispatchRename(this._previousValue, true);
             }
-            _dispatchRename(name)
+            _dispatchRename(name, isAborted)
             {
                 this.dispatchEvent(new CustomEvent('dv-namespace-rename-input', {
-                    detail: {pnfsId: this._pnfsId, newFileName: name},
+                    detail: {pnfsId: this._pnfsId, newFileName: name, isAborted: !!isAborted},
                     bubbles: true, composed: true
                 }));
             }

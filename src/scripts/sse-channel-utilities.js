@@ -85,6 +85,10 @@ function watchChannel(address, type) {
         console.info(`watching channel ${address} ...`);
         changeCurrentSSEStatus(SSEStatus.RUNNING);
         console.info(e.data);
+        window.dispatchEvent(new CustomEvent('dv-sse-events-stream', {
+            detail: e.data,
+            bubbles: true, composed: true
+        }));
     });
     watchWorker.addEventListener('error', function(e) {
         console.debug("Error watching stream of Events");

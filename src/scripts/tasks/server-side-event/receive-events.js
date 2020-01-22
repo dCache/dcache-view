@@ -9,12 +9,14 @@ self.addEventListener('message', function(e) {
     const source = new dCacheEventSource(e.data["channel-url"], init);
 
     source.addEventListener(e.data.type, (event) => {
-        console.debug(JSON.parse(event.detail.data).event);
-        self.postMessage(JSON.parse(event.detail.data).event);
+        const dt = {"type": event.type, "data": JSON.parse(event.detail.data)};
+        console.debug(dt);
+        self.postMessage(dt);
     });
     source.addEventListener("SYSTEM", (event) => {
-        console.debug(JSON.parse(event.detail.data));
-        self.postMessage(JSON.parse(event.detail.data));
+        const dt = {"type": event.type, "data": JSON.parse(event.detail.data)};
+        console.debug(dt);
+        self.postMessage(dt);
     });
     source.addEventListener('error', (event)=> {
         console.debug("Error with SSE connected");

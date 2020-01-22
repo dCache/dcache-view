@@ -14,6 +14,7 @@
 <link rel="import" href="../../directory-ls-message/directory-ls-error.html">
 <link rel="import" href="../../user-authentication/forms/user-login-page.html">
 <link rel="import" href="../../rename-input/rename-input.html">
+<script src="../../../../scripts/lazy-loads/move-op-inotify-task-manager.js"></script>
 
 <dom-module id="view-file">
     <template>
@@ -126,6 +127,7 @@
                 this._sendCurrentChildren_ = this._sendCurrentChildren.bind(this);
                 this._eventsChannelStatus_ = this._eventsChannelStatus.bind(this);
                 this._eventsChannelStatus(window.CONFIG["sse"].status); // need to called once for init
+                this._receiveStreams_ = this._receiveInotifyEvents.bind(this);
             }
             ready()
             {
@@ -138,6 +140,7 @@
                                 detail: {authenticationParameters: this.authenticationParameters},
                             bubbles: true, composed: true})
                     );
+                    this._taskManager = new MoveOpInotifyTaskManager();
                 });
             }
             connectedCallback()
@@ -157,6 +160,7 @@
                 window.addEventListener('dv-namespace-open-rename-dialogbox', this._renameInputStart_);
                 window.addEventListener('dv-namespace-request-children', this._sendCurrentChildren_);
                 window.addEventListener('dv-sse-channel-status-change', this._eventsChannelStatus_);
+                window.addEventListener('dv-sse-events-stream', this._receiveStreams_);
             }
             disconnectedCallback()
             {
@@ -175,6 +179,8 @@
                 window.removeEventListener('dv-namespace-open-rename-dialogbox', this._renameInputStart_);
                 window.removeEventListener('dv-namespace-request-children', this._sendCurrentChildren_);
                 window.removeEventListener('dv-sse-channel-status-change', this._eventsChannelStatus_);
+                window.removeEventListener('dv-sse-events-stream', this._receiveStreams_);
+                if (this._taskManager) this._taskManager.cancelAll()
             }
             static get is()
             {
@@ -257,6 +263,14 @@
                     },
                     _namespaceRequestMessage: {
                         type: String
+                    },
+                    _inotifyArray: {
+                        type: Array,
+                        value: ()=>{return [];}
+                    },
+                    _taskIDArray: {
+                        type: Array,
+                        value: ()=>{return [];}
                     }
                 }
             }
@@ -378,17 +392,25 @@
 
             _renameInputEnd(e)
             {
-                const listRow = this.$.feList.querySelector(`._dv${e.detail.pnfsId}`);
+                if (e.detail.isAborted ||
+                    !(window.CONFIG.sse["status"] === "running" || window.CONFIG.sse["status"] === "created")) {
+                    this._renameOperation(e.detail.pnfsId, e.detail.newFileName);
+                }
+            }
+
+            _renameOperation(pnfsId, newFileName)
+            {
+                const listRow = this.$["feList"].querySelector(`._dv${pnfsId}`);
                 const span = document.createElement('span');
                 span.setAttribute("id", "fileName");
-                const t = document.createTextNode(`${e.detail.newFileName}`);
+                const t = document.createTextNode(`${newFileName}`);
                 span.appendChild(t);
-                this.removeAllChildren(listRow.$.nameContainer);
-                listRow.$.nameContainer.appendChild(span);
+                this.removeAllChildren(listRow.$["nameContainer"]);
+                listRow.$["nameContainer"].appendChild(span);
 
-                const index = this.__findItemIndexOnAList(this.$.feList.items, e.detail.pnfsId, "pnfsId");
-                this.$.feList.items[index].fileName = e.detail.newFileName;
-                this.$.feList.notifyPath(`items.${index}.fileName`);
+                const index = this.__findItemIndexOnAList(this.$["feList"].items, pnfsId, "pnfsId");
+                this.$["feList"].items[index].fileName = newFileName;
+                this.$["feList"].notifyPath(`items.${index}.fileName`);
             }
 
             _loadNamespaceData()
@@ -617,36 +639,68 @@
 
             _removeItems(event)
             {
-                const files = event.detail.files;
-                const len = this.$.feList.items.length;
-                files.forEach( (file) => {
-                    for (let i=0; i < len; i++) {
-                        if (this.$.feList.items[i].fileName === file.fileName) {
-                            this.$.feList.splice('items', i, 1);
-                            if (this._xSelectedItems.length > 0) {
-                                const idx = this._xSelectedItems.indexOf(file);
-                                this.splice('_xSelectedItems', idx, 1);
+                if (!(window.CONFIG.sse["status"] === "running" || window.CONFIG.sse["status"] === "created")) {
+                    const files = event.detail.files;
+                    const len = this.$.feList.items.length;
+                    files.forEach((file) => {
+                        for (let i = 0; i < len; i++) {
+                            if (this.$.feList.items[i].fileName === file.fileName) {
+                                this.$.feList.splice('items', i, 1);
+                                if (this._xSelectedItems.length > 0) {
+                                    const idx = this._xSelectedItems.indexOf(file);
+                                    this.splice('_xSelectedItems', idx, 1);
+                                }
+                                break;
                             }
-                            break;
                         }
+                    });
+                    this._updateContentElevationAttribute();
+                }
+            }
+
+            _removeItem(name)
+            {
+                const len = this.$.feList.items.length;
+                for (let i = 0; i < len; i++) {
+                    if (this.$.feList.items[i].fileName === name) {
+                        this.$.feList.splice('items', i, 1);
+                        if (this._xSelectedItems.length > 0) {
+                            const idx = this.__findItemIndexOnAList(this._xSelectedItems, {"fileName": name});
+                            this.splice('_xSelectedItems', idx, 1);
+                        }
+                        break;
                     }
-                });
+                }
                 this._updateContentElevationAttribute();
             }
 
             _addItems(event)
             {
+                if (!(window.CONFIG.sse["status"] === "running" || window.CONFIG.sse["status"] === "created")) {
+                    const ed = this.shadowRoot.querySelector('empty-directory');
+                    if (ed) {
+                        this.$["content"].removeChild(ed);
+                    }
+                    if (this.$["feList"] !== null || true) {
+                        const files = event.detail.files;
+                        files.forEach((file) => {
+                            this.$["feList"].unshift('items', file);
+                        });
+                    }
+                    this.$["feList"].fire('iron-resize');
+                    this._updateContentElevationAttribute();
+                }
+            }
+            _addItem(file)
+            {
                 const ed = this.shadowRoot.querySelector('empty-directory');
                 if (ed) {
-                    this.$.content.removeChild(ed);
+                    this.$["content"].removeChild(ed);
                 }
-                if (this.$.feList !== null || this.$.feList !== undefined) {
-                    const files = event.detail.files;
-                    files.forEach( (file) => {
-                        this.$.feList.unshift('items',file);
-                    });
+                if (this.$["feList"] !== null || true) {
+                    this.$["feList"].unshift('items', file);
                 }
-                this.$.feList.fire('iron-resize');
+                this.$["feList"].fire('iron-resize');
                 this._updateContentElevationAttribute();
             }
 
@@ -786,6 +840,151 @@
                     default:
                         break;
                 }
+            }
+            _receiveInotifyEvents(event)
+            {
+                if (event.detail.type === "inotify") {
+                    //TODO: add self events
+                    const ev = event.detail.data.event;
+                    const mask = ev.mask;
+                    if (mask.indexOf("IN_CREATE") > -1) {
+                        this._inotifyCreate(ev);
+                    } else if (mask.indexOf("IN_ATTRIB") > -1) {
+                        this._inotifyAttrib(ev)
+                    } else if (mask.indexOf("IN_DELETE") > -1) {
+                        this._inotifyDelete(ev);
+                    } else if (mask.indexOf("IN_MOVED_FROM") > -1) {
+                        //NOTE: rename the key `name` to `oldName`
+                        delete Object.assign(ev, {["oldName"]: ev["name"] })["name"];
+                        this._inotifyMovedFrom(ev);
+                    } else if (mask.indexOf("IN_MOVED_TO") > -1) {
+                        //NOTE: rename the key `name` to `newName`
+                        delete Object.assign(ev, {["newName"]: ev["name"] })["name"];
+                        this._inotifyMovedTo(ev);
+                    }
+                }
+            }
+
+            _inotifyCreate(event)
+            {
+                const name = event.name ? event.name : event.newName ? event.newName: event.oldName;
+                if (event.mask.indexOf("IN_ISDIR") > -1) {
+                    this._getFileAttribute(name).then(metadata => {
+                        metadata["fileName"] = name;
+                        this._addItem(metadata);
+                    })
+                } else {
+                    if (this.__getItemCurrentIndex({"fileName": name}) === -1) {
+                        this._addItem({"fileName": name,
+                            "fileType": "REGULAR",
+                            "fileMimeType": "application/octet-stream"
+                        });
+                    }
+                }
+            }
+
+            async _getFileAttribute(name)
+            {
+                /**
+                 * TODO -- use web-worker for this request
+                 */
+                const headers = new Headers({
+                    "Suppress-WWW-Authenticate": "Suppress",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                });
+                if (this.getAuthValue() !== "") {
+                    headers.append("Authorization", `${this.getAuthValue()}`);
+                }
+                const req = new Request(
+                    `${window.CONFIG['dcache-view.endpoints.webapi']}namespace${this.path}/${name}?qos=true`,
+                    {headers: headers}
+                );
+                const response = await fetch(req);
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    throw {"status":response.status, "message": response.statusText};
+                }
+            }
+
+            _inotifyAttrib(event)
+            {
+                this._getFileAttribute(event.name).then(metadata => {
+                    metadata["fileName"] = event.name;
+                    const index = this.__getItemCurrentIndex({"fileName": event.name});
+                    this.$.feList.set(`items.${index}`, metadata);
+                });
+            }
+
+            _inotifyDelete(event)
+            {
+                const name = event.name ? event.name : event.newName ? event.newName: event.oldName;
+                this._getFileAttribute(name).catch(err => {
+                    if (err.status === 404) {
+                        this._removeItem(name);
+                    }
+                })
+            }
+
+            _inotifyMovedFrom(event)
+            {
+                //delete item
+                let cookie = this._taskIDArray.find(item => item === event["cookie"]);
+                if (cookie) {
+                    //task already exist
+                    this._taskManager.cancel(cookie);
+                    //this is a rename op
+                    const ev = this._inotifyArray.find(item => item["cookie"] === cookie);
+                    const file = this.$["feList"].items.find(item => item["fileName"] === event.oldName);
+                    this._renameOperation(file.pnfsId, ev.newName);
+                    this._removeEntryFromInotifyArrays(ev);
+                } else {
+                    this.push('_inotifyArray', event);
+                    this.push('_taskIDArray', event["cookie"]);
+                    this._taskManager.create((x)=>{this._inotifyRemoveEntry(x)}, event)
+                }
+            }
+
+            _inotifyMovedTo(event)
+            {
+                // add item
+                let cookie = this._taskIDArray.find(item => item === event["cookie"]);
+                if (cookie) {
+                    //task already exist
+                    this._taskManager.cancel(cookie);
+                    //this is a rename op
+                    const ev = this._inotifyArray.find(item => item["cookie"] === cookie);
+                    const file = this.$["feList"].items.find(item => item["fileName"] === ev.oldName);
+                    this._renameOperation(file.pnfsId, event.newName);
+                    this._removeEntryFromInotifyArrays(ev);
+                } else {
+                    this.push('_inotifyArray', event);
+                    this.push('_taskIDArray', event["cookie"]);
+                    this._taskManager.create((x)=>{this._inotifyAddEntry(x)}, event)
+                }
+            }
+
+            _removeEntryFromInotifyArrays(event)
+            {
+                // delete record in both Arrays
+                const idx = this._taskIDArray.indexOf(event["cookie"]);
+                if (idx > -1) this.splice('_taskIDArray', idx, 1);
+
+                const index = this._inotifyArray.indexOf(event);
+                if (index > -1) this.splice('_inotifyArray', index, 1);
+            }
+
+            _inotifyRemoveEntry(event)
+            {
+                this._inotifyDelete(event);
+                this._removeEntryFromInotifyArrays(event)
+            }
+
+            _inotifyAddEntry(event)
+            {
+                this._inotifyCreate(event);
+                this._removeEntryFromInotifyArrays(event)
             }
         }
         window.customElements.define(ViewFile.is, ViewFile);
