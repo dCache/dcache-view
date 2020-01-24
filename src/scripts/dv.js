@@ -381,7 +381,7 @@
 
     app.dragNdropMoveFiles = function (destinationPath, dropFlag)
     {
-        const currentViewPath = app.$.homedir.querySelector('view-file').path;
+        const currentViewPath = findViewFile().path;
         const sourcePath = ((app.mvObj.source).length > 1  && (app.mvObj.source).endsWith("/")) ?
             (app.mvObj.source).slice(0, -1) : app.mvObj.source;
 
@@ -485,7 +485,7 @@
                 status.constructor === Array ? `in transition to ${status[0]}` : status ;
         }
         //FIXME: use event
-        const vf = app.$.homedir.querySelector('view-file');
+        const vf = findViewFile();
         vf.shadowRoot.querySelector('#feList')
             .set(`items.${itemIndex}.currentQos`, status);
         vf.shadowRoot.querySelector('#feList').notifyPath(`items.${itemIndex}.currentQos`);
@@ -553,7 +553,7 @@
     });
 
     window.addEventListener('iron-overlay-canceled', ()=> {
-        const vf = app.$.homedir.querySelector('view-file');
+        const vf = findViewFile();
         vf.$.feList.selectionEnabled = false;
         setTimeout(() => {
             vf.$.feList.selectionEnabled = true;
