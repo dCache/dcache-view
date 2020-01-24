@@ -305,7 +305,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             <section data-route="shared-files"
                                                      class="fit" style="background-color:#ececec;">
                                                 <shared-files-page id="shared-with-me" on-click="click"
-                                                                   on-contextmenu="currentDirContext"></shared-files-page>
+                                                                   on-contextmenu="currentDirContext"
+                                                                   on-drop="drop" on-dragenter="dragenter"
+                                                                   on-dragleave="dragleave" on-dragend="dragend"
+                                                                   on-dragexit="dragexit"></shared-files-page>
                                             </section>
 
                                             <section data-route="admin" class="fit"
