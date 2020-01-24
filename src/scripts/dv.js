@@ -381,7 +381,8 @@
 
     app.dragNdropMoveFiles = function (destinationPath, dropFlag)
     {
-        const currentViewPath = findViewFile().path;
+        const vf = findViewFile();
+        const currentViewPath = vf.path;
         const sourcePath = ((app.mvObj.source).length > 1  && (app.mvObj.source).endsWith("/")) ?
             (app.mvObj.source).slice(0, -1) : app.mvObj.source;
 
@@ -389,10 +390,15 @@
         if (sourcePath === destinationPath) {
             return;
         }
+
+        let auth;
+        if (vf.authenticationParameters !== undefined) {
+            auth = vf.authenticationParameters;
+        }
         const len = app.mvObj.files.length;
         app.mvObj.files.forEach((file, i) => {
             let namespace = document.createElement('dcache-namespace');
-            namespace.auth = app.getAuthValue();
+            namespace.auth = app.getAuthValue(auth);
             namespace.promise.then( () => {
                 if (currentViewPath === sourcePath) {
                     window.dispatchEvent(new CustomEvent('dv-namespace-remove-items', {
