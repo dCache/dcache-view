@@ -58,8 +58,19 @@
     app.ls = function(path, auth)
     {
         const currentVF = findViewFile();
-        const parent = currentVF.parentNode;
-        parent.removeChild(currentVF);
+        let parent;
+        if (currentVF) {
+            parent = currentVF.parentNode;
+            parent.removeChild(currentVF);
+        } else {
+            if (app.route === "home") {
+                parent = app.$["homedir"];
+            }
+            if (app.route === "shared-file") {
+                parent = app.$["shared-with-me"].$["shared-directory-view"].$["container"];
+            }
+        }
+
         const newVF = new ViewFile(path);
         if (auth) {
             newVF.authenticationParameters = auth;
