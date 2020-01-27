@@ -348,6 +348,25 @@
 
                 switch (parseInt(code)) {
                     case 401:
+                        if (window.CONFIG.isSomebody || !!sessionStorage.upauth) {
+                            //something is wrong with the credential
+                            const x = page.current;
+                            if (x === "/" || x.startsWith("/?")) {
+                                this._namespaceRequestMessage = "Please login again - your credential is no longer valid.";
+                                window.CONFIG.isSomebody = false;
+                                break;
+                            }
+                            if (x.startsWith("/shared-files")) {
+                                this._namespaceRequestMessage = "Something is wrong with the sharing credential " +
+                                    "you are using to view this file. Most likely this credential has expired. " +
+                                    "Request for a new one.";
+                                const macaroonList = sessionStorage.getItem("macaroonList");
+                                const macaroonArray = macaroonList.split(" ");
+                                macaroonArray.filter(macaroon => macaroon !== this.authenticationParameters.value).join(" ");
+                                this.authenticationParameters = {};
+                                break;
+                            }
+                        }
                         const a = `"page":"home","path":"${this.path}"`;
                         page.redirect(`/user-login?r=${encodeURIComponent(a)}`);
                         break;
@@ -358,7 +377,7 @@
                         this._namespaceRequestMessage = this._namespaceRequestMessage === undefined ?
                             "Something is terribly wrong! Please contact your admin.": msg;
                 }
-                const dle = new DirectoryLsError(this._namespaceRequestMessage, code);
+                const dle = new DirectoryLsError(this._namespaceRequestMessage, code, this.path);
                 this.$.content.appendChild(dle);
                 this.currentDirMetaData = {"fileName": this.currentDirName, "fileType": "DIR", "size" : 512};
                 Polymer.dom.flush();

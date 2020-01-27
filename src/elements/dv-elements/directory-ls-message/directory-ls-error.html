@@ -6,8 +6,8 @@
     <template>
         <style>
             main {
-                height: 200px;
-                width: 70%;
+                height: 300px;
+                width: 75%;
                 margin: 0 auto;
                 padding: 20px;
                 display: flex;
@@ -24,25 +24,44 @@
                 padding: 20px;
                 text-align: center;
             }
+            .warning-icon {
+                color: #f50303;
+                height:4em;
+                width:4em;
+            }
+            h3 {
+                font-size: 1.2em;
+                font-weight: 300;
+                line-height: 24px;
+            }
+            .loginBtn {
+                color: #f50303;
+                border: 1px solid #f50303;
+            }
         </style>
         <main id="main">
             <div>
                 <iron-icon icon="icons:warning"
-                           style="color: #f50303; height:4em; width:4em;">
-                </iron-icon>
-                <p>{{code}}</p>
-                <h3>{{message}}</h3>
+                           class="warning-icon"></iron-icon>
+                <p>[[code]]</p>
+                <h3>[[message]]</h3>
+                <template is="dom-if" if="[[showLoginBtn]]">
+                    <paper-button class="loginBtn"
+                                  on-click="_login">Login</paper-button>
+                </template>
             </div>
         </main>
     </template>
     <script>
         class DirectoryLsError extends Polymer.Element
         {
-            constructor(message, code)
+            constructor(message, code, path)
             {
                 super();
                 this.code = code;
                 this.message = message;
+                if (path) this.path = path;
+                this.showLoginBtn = (page.current === "/" || page.current.startsWith("/?")) && code === 401;
             }
 
             static get is()
@@ -57,12 +76,15 @@
                         type: String,
                         notify:true
                     },
-
+                    path: {
+                        type: String,
+                        notify: true
+                    },
                     code: {
                         type: String,
                         notify:true
                     },
-                    showLoginForm: {
+                    showLoginBtn: {
                         type: Boolean,
                         notify: true
                     }
@@ -72,9 +94,9 @@
             connectedCallback()
             {
                 super.connectedCallback();
-                const content = (app.$.homedir.querySelector('view-file')).$.content;
-                if (this.parentNode === content) {
-                    app.$.listTableHeader.querySelector('list-row-header').classList.add('hidden');
+                if (app.$["listTableHeader"]) {
+                    const lrh = app.$["listTableHeader"].querySelector("list-row-header");
+                    if (lrh) lrh.classList.add('hidden');
                 }
                 this.$.main.addEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
             }
@@ -82,10 +104,20 @@
             disconnectedCallback()
             {
                 super.disconnectedCallback();
-                setTimeout(()=>{
-                    const content = (app.$.homedir.querySelector('view-file')).$.content;
-                    if (this.parentNode.id === content.id) {
-                        app.$.listTableHeader.querySelector('list-row-header').classList.remove('hidden');
+                setTimeout(() => {
+                    /**
+                     * FIXME: Since view-file is used in two different routes -
+                     * a further issue still needs to be addressed which this c
+                     * ode below does not cover
+                     * TODO: the findViewFile function in dv.js should be made available
+                     * for use here.
+                     */
+                    const vf = app.$["homedir"].querySelector('view-file');
+                    if (vf) {
+                        if (this.parentNode.id === vf.$["content"].id && app.$["listTableHeader"]) {
+                            const lrh = app.$["listTableHeader"].querySelector("list-row-header");
+                            if (lrh && lrh.classList.contains("hidden")) lrh.classList.remove('hidden');
+                        }
                     }
                 },10);
                 this.$.main.removeEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
@@ -108,6 +140,11 @@
                     screenX: event.screenX,
                     screenY: event.screenY
                 }));
+            }
+            _login()
+            {
+                const a = `"page":"home","path":"${this.path}"`;
+                page.redirect(`/user-login?r=${encodeURIComponent(a)}`);
             }
         }
         window.customElements.define(DirectoryLsError.is, DirectoryLsError);
