@@ -869,7 +869,7 @@
                     if (mask.indexOf("IN_CREATE") > -1) {
                         this._inotifyCreate(ev);
                     } else if (mask.indexOf("IN_ATTRIB") > -1) {
-                        this._inotifyAttrib(ev)
+                        this._inotifyAttrib(ev.name)
                     } else if (mask.indexOf("IN_DELETE") > -1) {
                         this._inotifyDelete(ev);
                     } else if (mask.indexOf("IN_MOVED_FROM") > -1) {
@@ -927,11 +927,11 @@
                 }
             }
 
-            _inotifyAttrib(event)
+            _inotifyAttrib(name)
             {
-                this._getFileAttribute(event.name).then(metadata => {
-                    metadata["fileName"] = event.name;
-                    const index = this.__getItemCurrentIndex({"fileName": event.name});
+                this._getFileAttribute(name).then(metadata => {
+                    metadata["fileName"] = name;
+                    const index = this.__getItemCurrentIndex({"fileName": name});
                     this.$.feList.set(`items.${index}`, metadata);
                 });
             }
@@ -1003,6 +1003,7 @@
             _inotifyAddEntry(event)
             {
                 this._inotifyCreate(event);
+                this._inotifyAttrib(event.newName);
                 this._removeEntryFromInotifyArrays(event)
             }
         }
