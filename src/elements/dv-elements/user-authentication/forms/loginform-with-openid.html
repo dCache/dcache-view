@@ -235,7 +235,7 @@
                 const len = a.length;
                 let jsonArray = [];
                 for (let i=0; i<len; i++) {
-                    jsonArray.push({"name": `${a[i]}`, "id": `${b[i]}`, "endpoint": `${c[i]}`});
+                    jsonArray.push({"name": `${decodeURIComponent(a[i])}`, "id": `${decodeURIComponent(b[i])}`, "endpoint": `${c[i]}`});
                 }
                 this.openIDProviders = jsonArray;
             }
