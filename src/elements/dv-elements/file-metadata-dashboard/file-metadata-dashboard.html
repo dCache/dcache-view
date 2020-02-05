@@ -428,21 +428,16 @@
             }
             _requestFileMetadataWithPnfsId(pnfsId)
             {
-                if (pnfsId !== "0") {
-                    if (this.knownMetadata.acl) {
-                        this.setProperties({metadata: this._filterMetadata(this.knownMetadata)});
-                        return;
-                    }
-                    this._requestFileMetadata({'scope': 'full'}).then(data => {
-                        this.setProperties({metadata: this._filterMetadata(data)});
-                    }).catch(err => {
-                        //Fail Quietly
-                        this.setProperties({metadata: this._filterMetadata(this.knownMetadata)});
-                    })
-                } else {
-                    // TODO: user should never hit this block but if they do, make a request for the pnfsID
-                    console.info('waiting for pnfsId value');
+                if (pnfsId !== "0" && this.knownMetadata.acl) {
+                    this.setProperties({metadata: this._filterMetadata(this.knownMetadata)});
+                    return;
                 }
+                this._requestFileMetadata({'scope': 'full'}).then(data => {
+                    this.setProperties({metadata: this._filterMetadata(data)});
+                }).catch(err => {
+                    //Fail Quietly
+                    this.setProperties({metadata: this._filterMetadata(this.knownMetadata)});
+                })
             }
             _filterMetadata(metadata)
             {
