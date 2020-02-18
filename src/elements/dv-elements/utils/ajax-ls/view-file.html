@@ -404,11 +404,8 @@
             {
                 const listRow =
                     this.$.feList.querySelector(`._dv${e.detail.file.fileMetaData.pnfsId}`);
-                const input = new RenameInput(e.detail.file, this.getAuthValue());
-                this.removeAllChildren(listRow.$.nameContainer);
-                listRow.$.nameContainer.appendChild(input);
+                listRow.manualRenameStart(e.detail.file, this.getAuthValue());
             }
-
             _renameInputEnd(e)
             {
                 if (e.detail.isAborted ||
@@ -420,16 +417,10 @@
             _renameOperation(pnfsId, newFileName)
             {
                 const listRow = this.$["feList"].querySelector(`._dv${pnfsId}`);
-                const span = document.createElement('span');
-                span.setAttribute("id", "fileName");
-                const t = document.createTextNode(`${newFileName}`);
-                span.appendChild(t);
-                this.removeAllChildren(listRow.$["nameContainer"]);
-                listRow.$["nameContainer"].appendChild(span);
-
                 const index = this.__findItemIndexOnAList(this.$["feList"].items, pnfsId, "pnfsId");
                 this.$["feList"].items[index].fileName = newFileName;
                 this.$["feList"].notifyPath(`items.${index}.fileName`);
+                listRow.manualRenameEnd();
             }
 
             _loadNamespaceData()
