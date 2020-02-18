@@ -55,7 +55,6 @@
                 padding-left:5px;
             }
             #nameContainer {
-                display: flex;
                 align-items: center;
                 padding-right: 24px;
             }
@@ -119,6 +118,7 @@
             <div class="cell name">
                 <div id="nameContainer">
                     <span id="fileName">[[fileMetaData.fileName]]</span>
+                    <div id="rename" class="none"></div>
                 </div>
             </div>
             <div class="cell ctime">[[creationTime]]</div>
@@ -336,6 +336,19 @@
                     clientX: event.clientX,
                     clientY: event.clientY
                 }));
+            }
+            manualRenameStart(file, auth)
+            {
+                const input = new RenameInput(file, auth);
+                this.$["fileName"].classList.add("none");
+                this.$["rename"].classList.remove("none");
+                this.$["rename"].appendChild(input);
+            }
+            manualRenameEnd()
+            {
+                this.$["fileName"].classList.remove("none");
+                this.$["rename"].classList.add("none");
+                this.removeAllChildren(this.$["rename"]);
             }
         }
         window.customElements.define(ListRow.is, ListRow);

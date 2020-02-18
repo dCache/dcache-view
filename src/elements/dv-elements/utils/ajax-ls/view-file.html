@@ -386,24 +386,16 @@
             {
                 const listRow =
                     this.$.feList.querySelector(`._dv${e.detail.file.fileMetaData.pnfsId}`);
-                const input = new RenameInput(e.detail.file, this.getAuthValue());
-                this.removeAllChildren(listRow.$.nameContainer);
-                listRow.$.nameContainer.appendChild(input);
+                listRow.manualRenameStart(e.detail.file, this.getAuthValue());
             }
 
             _renameInputEnd(e)
             {
                 const listRow = this.$.feList.querySelector(`._dv${e.detail.pnfsId}`);
-                const span = document.createElement('span');
-                span.setAttribute("id", "fileName");
-                const t = document.createTextNode(`${e.detail.newFileName}`);
-                span.appendChild(t);
-                this.removeAllChildren(listRow.$.nameContainer);
-                listRow.$.nameContainer.appendChild(span);
-
-                const index = this.__findItemIndexOnAList(this.$.feList.items, e.detail.pnfsId, "pnfsId");
-                this.$.feList.items[index].fileName = e.detail.newFileName;
-                this.$.feList.notifyPath(`items.${index}.fileName`);
+                const index = this.__findItemIndexOnAList(this.$["feList"].items, e.detail.pnfsId, "pnfsId");
+                this.$["feList"].items[index].fileName = e.detail.newFileName;
+                this.$["feList"].notifyPath(`items.${index}.fileName`);
+                listRow.manualRenameEnd();
             }
 
             _loadNamespaceData()
