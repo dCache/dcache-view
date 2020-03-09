@@ -177,8 +177,8 @@
                 } else {
                     throw new TypeError("Invalid path: only absolute path is accepted.");
                 }
-                const arr = window.CONFIG["webdav"] ?
-                    window.CONFIG["webdav"][operationType] : window.CONFIG["dcache-view.endpoints.webdav"] ?
+                const arr = window.CONFIG["webdav"][operationType].length > 0 ?
+                    window.CONFIG["webdav"][operationType] : window.CONFIG["dcache-view.endpoints.webdav"] !== "" ?
                         [window.CONFIG["dcache-view.endpoints.webdav"]] :
                         [`${window.location.protocol}//${window.location.hostname}:2880`];
                 const len = arr.length;
