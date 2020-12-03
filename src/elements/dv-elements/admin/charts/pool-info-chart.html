@@ -219,13 +219,14 @@
                         options.legend = {position: 'none'};
                         break;
                     case 'lifetime':
-                        options.title = `File Lifetime : ${this.title}`;
+                        options.title = `Average File Lifetime : ${this.title}`;
                         options.vAxis.title = 'Lifetime in Days';
                         options.hAxis.title = 'Date/Time';
                         options.hAxis.maxValue = new Date(Date.now());
                         options.hAxis.gridlines = {units: gridLineUnits};
                         options.legend =  { position: 'right',
                             textStyle: {fontSize: params.font3}};
+                        options.colors = ['#006336'];
                         if (params.count) {
                             options.hAxis.gridlines.count = params.count;
                         }
@@ -348,7 +349,11 @@
             }
 
             _createLifetimeDataTable(seriesData) {
-                return this._createTimeseriesDataTable(seriesData, 1, 5, true);
+                /*
+                 *  0 = access, 1= MAX, 2 = AVG, 3 = MIN, 4 = STD DEV.
+                 *  We want only 2.
+                 */
+                return this._createTimeseriesDataTable(seriesData, 2, 3, true);
             }
 
             _createQueuesDataTable(seriesData) {
@@ -372,7 +377,7 @@
             }
 
             // TODO
-            // the use of the callback which sets thi uri property
+            // the use of the callback which sets the uri property
             // on the parent is admittedly not the clearest/best
             // programming pattern; will return to this later
 
@@ -415,7 +420,7 @@
              *
              * so total reduction by 1/8.
              *
-             * So that instead 12 datapoints every hour for 48 hours, we have
+             * So that instead of 12 datapoints every hour for 48 hours, we have
              * 3 datapoints every hour for 24 hours.
              */
             _reduceData(chartData, tuplen, len) {
