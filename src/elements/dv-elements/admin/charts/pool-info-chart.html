@@ -154,10 +154,10 @@
                 switch(inputData.type) {
                     case 'space':
                         return this._chartOptions({type:inputData.type,
-                            font1: 18, font2: 12, is3D: true});
+                            font1: 18, font2: 12}, true);
                     default:
                         return this._chartOptions({type:inputData.type,
-                            font1:18, font2: 14, font3: 12});
+                            font1:18, font2: 14, font3: 12}, true);
                 }
             }
 
@@ -165,22 +165,18 @@
                 switch(inputData.type) {
                     case 'space':
                         return this._chartOptions({type:inputData.type,
-                            font1: 10, font2: 8, is3D: false});
+                            font1: 10, font2: 8}, false);
                     case 'access':
                         return this._chartOptions({type:inputData.type,
-                            font1:8, font2: 8, font3: 6});
+                            font1:8, font2: 8, font3: 6}, false);
                     default:
                         return this._chartOptions({type:inputData.type,
-                            font1:8, font2: 8, font3: 6, count: 5});
+                            font1:8, font2: 8, font3: 6, count: 5}, false);
                 }
             }
 
-            _chartOptions(params) {
+            _chartOptions(params, svg) {
                 const options = {titleTextStyle: {fontSize: params.font1}};;
-                const gridLineUnits = {
-                    days: {format: ['MMM dd']},
-                    hours: {format: ['HH:mm', 'ha']},
-                };
 
                 if (params.type !== 'space') {
                     options.vAxis = {
@@ -198,11 +194,9 @@
                 switch(params.type) {
                     case 'space':
                         options.title = `Disk Space : ${this.title}`;
-                        options.is3D = params.is3D;
-                        options.legend = { position: 'right',
-                            textStyle: {fontSize: params.font2}};
                         options.colors = ['green', 'yellow', 'red', 'magenta'];
-                        if (options.is3D) {
+                        if (svg) {
+                            options.is3D = true;
                             options.chartArea = {left: '25vw'};
                         } else {
                             options.legend = { position: 'right',
@@ -212,24 +206,26 @@
                         break;
                     case 'access':
                         options.title = `Last Accessed : ${this.title}`;
-                        options.vAxis.title = 'Number of Files';
-                        options.hAxis.title = 'Number of Days';
+                        options.vAxis.title = svg ? 'Number of Files' : null;
+                        options.hAxis.title = svg ? 'Number of Days' : null;
                         options.hAxis.minValue = 0;
                         options.hAxis.bar = {groupWidth: '50%'};
                         options.legend = {position: 'none'};
                         break;
                     case 'lifetime':
                         options.title = `Average File Lifetime : ${this.title}`;
-                        options.vAxis.title = 'Lifetime in Days';
-                        options.hAxis.title = 'Date/Time';
+                        options.vAxis.title = svg ? 'Lifetime in Days' : null;
+                        options.hAxis.title = svg ? 'Date/Time' : null;
+                        options.hAxis.slantedText = true;
+                        options.hAxis.slantedTextAngle = 60;
                         options.hAxis.maxValue = new Date(Date.now());
-                        options.hAxis.gridlines = {units: gridLineUnits};
+                        options.hAxis.gridlines =
+                            {units: {
+                                months: {format: ["MMM"]},
+                                days: {format: ["dd"]}}};
                         options.legend =  { position: 'right',
                             textStyle: {fontSize: params.font3}};
                         options.colors = ['#006336'];
-                        if (params.count) {
-                            options.hAxis.gridlines.count = params.count;
-                        }
                         break;
                     case 'queues':
                     default:
@@ -237,11 +233,13 @@
                         options.colors = ['#00effc', '#1002d6',
                             '#efc9aa', '#e07b00', '#eabbe2', '#8c0074', '#30e895',
                             '#006336', '#f94036', '#9b0a03'];
-                        options.vAxis.title = 'Number of Transfers';
+                        options.vAxis.title = svg ? 'Number of Transfers' : null;
                         options.isStacked = true;
                         options.bar = {groupWidth: '100%'};
-                        options.hAxis.title = 'Date/Time';
-                        options.hAxis.gridlines = {units: gridLineUnits};
+                        options.hAxis.title = svg ? 'Date/Time' : null;
+                        options.hAxis.gridlines = {units: {
+                                hours: {format: ['HH:mm', 'ha']},
+                            }};
                         if (params.count) {
                             options.hAxis.gridlines.count = params.count;
                             options.legend = {position: 'none'};

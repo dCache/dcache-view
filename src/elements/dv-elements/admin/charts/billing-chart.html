@@ -187,14 +187,14 @@
             }
 
             _chartSvgOptions(label) {
-                return this._chartOptions(label, 10, 12, 0);
+                return this._chartOptions(label, 10, 12, 0, true);
             }
 
             _chartPngOptions(label) {
-                return this._chartOptions(label, 8, 9, 5);
+                return this._chartOptions(label, 8, 9, 5, false);
             }
 
-            _chartOptions(label, s1, s2, cnt) {
+            _chartOptions(label, s1, s2, cnt, svg) {
                 const options = {
                     title: this.title,
                     interpolateNulls: true,
@@ -207,26 +207,30 @@
                         minValue: 0.1,
                         format: 'scientific',
                         textStyle: {fontSize: s1},
-                        title: label,
+                        title: svg ? label : null,
                         titleTextStyle: {fontSize: s2}
                     },
                     hAxis: {
                         gridlines: {
                             units: {
-                                days: {format: ['MMM dd']},
-                                hours: {format: ['HH:mm', 'ha']},
+                                years: {format: ['YYYY']},
+                                months: {format: ['MMM']},
+                                days: {format: ['MM-dd']},
+                                hours: {format: ['HH:mm']},
                             },
+                            count: svg ? -1 : cnt
                         },
-                        maxValue: new Date(Date.now() + (12 * 60 * 60 * 1000)),
+                        minorGridlines: {
+                            count: 0
+                        },
+                        slantedText: true,
+                        slantedTextAngle:  60,
+                        maxValue: new Date(Date.now() + (1 * 60 * 60 * 1000)),
                         textStyle: {fontSize: s1},
-                        title: "Date/Time",
+                        title: svg? "Date/Time" : null,
                         titleTextStyle: {fontSize: s2}
                     }
                 };
-
-                if (cnt > 0) {
-                    options.hAxis.gridlines.count = cnt;
-                }
 
                 return options;
             }
