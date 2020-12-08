@@ -1,0 +1,426 @@
+<link rel="import"
+      href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import"
+      href="../../../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import"
+      href="../../../../bower_components/iron-selector/iron-selector.html">
+<link rel="import"
+      href="../../../../bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
+<link rel="import"
+      href="../../../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import"
+      href="../../../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import"
+      href="../../../../bower_components/paper-item/paper-item.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/charts/pool-info-chart.html">
+<link rel="import"
+      href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
+
+<dom-module id="pool-group-lifetime-view">
+    <template>
+        <style>
+            :host {
+                display: block;
+                width: 100vw;
+                height: 80vh;
+                -webkit-font-smoothing: antialiased;
+            }
+
+            paper-scroll-header-panel {
+                position: relative;
+                height: 70%;
+            }
+
+            paper-toolbar {
+                color: var(--dv-main-background);
+                background: var(--dv-charcoal-grey);
+            }
+
+            paper-dropdown-menu {
+                padding: 0px 55px;
+            }
+
+            paper-item {
+                background-color: var(--dv-light-grey);
+                color: var(--dv-indigo-900);
+                cursor: pointer;
+            }
+
+            hr {
+                color: var(--dv-main-background);
+                background: var(--dv-main-background);
+            }
+
+            .container {
+                width: 100%;
+                height: 100%;
+                background-color: var(--dv-light-grey);
+                justify-self: center;
+                align-self: center;
+            }
+
+            .caption {
+                position: relative;
+                background-color: var(--dv-light-grey);
+                margin: 5px auto;
+                text-align: center;
+                font-weight: 400;
+                color: var(--dv-teal-900);
+                font-size: 10pt;
+                cursor: default;
+            }
+
+            .renderingIndicator {
+                font-size: 16px;
+                text-align: center;
+                height: 60px;
+                margin-top: 10px;
+            }
+
+            .grid {
+                width: 95%;
+                margin: 10px;
+                display: grid;
+                align-items: center;
+                align-content: center;
+            }
+
+            .pos1 {
+                grid-area: main;
+            }
+
+            .cols1 {
+                grid-template-columns: 25% 1fr 25%;
+                grid-template-areas: ". main .";
+            }
+
+            .cols2 {
+                grid-gap: 60px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cols3 {
+                grid-gap: 40px;
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .cols4 {
+                grid-gap: 20px;
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .cols5 {
+                grid-gap: 10px;
+                grid-template-columns: repeat(5, 1fr);
+            }
+
+            .cols6 {
+                grid-gap: 10px;
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .cols7 {
+                grid-gap: 10px;
+                grid-template-columns: repeat(7, 1fr);
+            }
+
+            .cols8 {
+                grid-gap: 10px;
+                grid-template-columns: repeat(8, 1fr);
+            }
+
+            .chart-image {
+                position: relative;
+                width: 100%;
+                margin-left: auto;
+                margin-right: auto;
+                cursor: pointer;
+            }
+
+            #filterTools {
+                background: var(--dv-main-background);
+            }
+
+            #nameFilter {
+                min-width: 40%;
+                color: var(--dv-charcoal-grey);
+            }
+
+            #clear {
+                max-width: 10%;
+                background: var(--dv-charcoal-grey);
+                color: var(--dv-main-background);
+                margin-left: 50px;
+                margin-right: 20px;
+            }
+        </style>
+
+        <iron-ajax
+                id="AjaxGroups"
+                method="GET"
+                handle-as="json"
+                on-response="_handleGroupsResponse"
+                on-error="_handleGroupsError">
+        </iron-ajax>
+        <iron-ajax
+                id="AjaxHistogram"
+                method="GET"
+                handle-as="json"
+                on-response="_handleHistogramResponse"
+                on-error="_handleHistogramError">
+        </iron-ajax>
+        <paper-toolbar>
+            <div slot="top" class="title"><strong>Pool Group File Lifetime Plots</strong></div>
+        </paper-toolbar>
+        <div class="renderingIndicator" hidden="[[!rendering]]">
+            <paper-spinner class="thick" active="[[rendering]]"></paper-spinner>
+            <br/>
+            <strong>Rendering [[currentChildren.length]] plots ...</strong>
+        </div>
+        <hr/>
+        <paper-toolbar id="filterTools">
+            <paper-input slot="top" id="nameFilter"
+                         label="Filter charts using regex:"
+                         on-keyup="_ifEnterFilterCharts"></paper-input>
+        </paper-toolbar>
+        <hr/>
+        <paper-scroll-header-panel>
+            <div slot="content" class$="grid cols[[cols]]">
+                <template is="dom-repeat" items="[[charts]]">
+                    <div class$="container pos[[cols]]">
+                        <div class="caption">[[item.title]]</div>
+                        <img on-tap="_magnify" id="[[item.title]]"
+                             class="chart-image"
+                             src="[[item.uri]]"/>
+                    </div>
+                </template>
+            </div>
+        </paper-scroll-header-panel>
+        <div hidden="true" id="chart-placeholders"></div>
+    </template>
+
+    <script>
+        class PoolGroupLifetimeView extends Polymer.mixinBehaviors([Polymer.IronResizableBehavior],
+            DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element)))) {
+
+            static get is() {
+                return 'pool-group-lifetime-view';
+            }
+
+            static get properties() {
+                return {
+                    currentChildren: {
+                        type: Array,
+                        notify: true
+                    },
+
+                    charts: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
+
+                    hiddenCharts: {
+                        type: Array,
+                        value: []
+                    },
+
+                    cols: {
+                        type: Number,
+                        notify: true
+                    },
+
+                    plotDataResponses: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    rendering: {
+                        type: Boolean,
+                        notify: true
+                    },
+
+                    errorMessage: {
+                        type: String,
+                        value: ''
+                    }
+                }
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.componentPath = '/admin/pool-group-lifetime';
+                console.log(`Connected callback calling getChildren`);
+                this._getChildren();
+            }
+
+            _fetchPlotData() {
+                const hiddenDiv = this.shadowRoot.querySelector('#chart-placeholders');
+                this.removeAllChildren(hiddenDiv);
+
+                this.currentChildren.forEach((child) => {
+                    this._sendHistogramRequest(child);
+                });
+            }
+
+            _getChildren() {
+                this.stopRefresh();
+                this._sendAllGroupsRequest();
+                this.resetRefresh(this._getChildren.bind(this), 60000);
+            }
+
+            _getSeriesData(data) {
+                return data.groupFileStat;
+            }
+
+            _handleGroupsResponse(event) {
+                const names = [];
+                const groups = event.detail.response;
+
+                groups.forEach((group) => {
+                    names.push(group.name);
+                });
+
+                this.currentChildren = names;
+                if (this.currentChildren && this.currentChildren.length > 0) {
+                    this._rebuild();
+                } else {
+                    this.rendering = false;
+                    this.handleError(`Could not retrieve pool groups from
+                        service; please refresh and try again.`);
+                }
+            }
+
+            _handleGroupsError(event) {
+                this.handleError(`Could not process pool groups
+                    request: ${event.detail.error.message}`);
+            }
+
+            _handleHistogramResponse(event) {
+                const name = this.getSubpathFromUrl(event.detail.url, 4);
+                const histogram = event.detail.response;
+
+                if (Object.keys(histogram).length > 0) {
+                    const seriesData = this._getSeriesData(histogram);
+                    if (seriesData) {
+                        const plot = new PoolInfoChart();
+                        plot.title = name;
+                        plot.inputData = {
+                            'type': 'lifetime',
+                            'seriesData': seriesData
+                        };
+                        this.shadowRoot.querySelector('#chart-placeholders')
+                            .appendChild(plot);
+                        this.push('charts', plot);
+                    }
+                }
+
+                this.plotDataResponses += 1;
+
+                if (this.plotDataResponses === this.currentChildren.length) {
+                    this._setNameFilter(this.$.nameFilter.value);
+                    this.rendering = false;
+                }
+            }
+
+            _handleHistogramError(event) {
+                this.plotDataResponses += 1;
+                this.errorMessage = `${this.errorMessage} ${event.detail.error.message}`;
+
+                if (this.plotDataResponses === this.currentChildren.length) {
+                    this._setNameFilter(this.$.nameFilter.value);
+                    this.rendering = false;
+                }
+            }
+
+            _ifEnterFilterCharts(e) {
+                if (e.keyCode === 13) {
+                    this._setNameFilter(this.$.nameFilter.value);
+                }
+            }
+
+            _magnify (e) {
+                e.model.item._magnify(e);
+            }
+
+            _rebuild() {
+                this.charts = [];
+                this.hiddenCharts = [];
+                this._setCols();
+                this.plotDataResponses = 0;
+                google.charts.load('current', {'packages': ['corechart', 'bar']});
+                google.charts.setOnLoadCallback(this._fetchPlotData.bind(this));
+            }
+
+            _sendAllGroupsRequest() {
+                this.$.AjaxGroups.url = this.getUrl('poolgroups', null);
+                this.$.AjaxGroups.headers = this.getHeaders();
+                this.$.AjaxGroups.generateRequest();
+            }
+
+            _sendHistogramRequest(name) {
+                let path = `${'poolgroups/'}${name}/histograms/files`;
+                this.$.AjaxHistogram.url = this.getUrl(path, null);
+                this.$.AjaxHistogram.headers = this.getHeaders();
+                this.$.AjaxHistogram.generateRequest();
+            }
+
+            _setCols() {
+                this.cols = this.currentChildren === 1 ? 1 :
+                    (Math.max(2, Math.min(8, Math.floor
+                        (Math.sqrt(this.currentChildren.length))))).toFixed(0) / 1;
+            }
+
+            _setNameFilter(expression) {
+                const regex = (expression && expression.length > 0) ?
+                    new RegExp(expression) : null;
+
+                const matching = [];
+                const excluded = [];
+
+                this.charts.forEach((chart) => {
+                    if (!regex || regex.test(chart.title)) {
+                        matching.push(chart);
+                    } else {
+                        excluded.push(chart);
+                    }
+                });
+
+                this.hiddenCharts.forEach((chart) => {
+                    if (!regex || regex.test(chart.title)) {
+                        matching.push(chart);
+                    } else {
+                        excluded.push(chart);
+                    }
+                });
+
+                matching.sort(this._sortByTitle);
+
+                this.charts = [];
+                this.charts = matching;
+                this.hiddenCharts = excluded;
+
+                if (this.errorMessage !== '') {
+                    this.handleError(`Error in retrieving histograms: ${this.errorMessage}`);
+                    this.errorMessage = '';
+                }
+            }
+
+            _sortByTitle(a, b) {
+                if (a.title < b.title) {
+                    return -1;
+                }
+
+                if (a.title > b.title) {
+                    return 1;
+                }
+
+                return 0;
+            }
+        }
+
+        window.customElements.define(PoolGroupLifetimeView.is, PoolGroupLifetimeView);
+    </script>
+
+</dom-module>

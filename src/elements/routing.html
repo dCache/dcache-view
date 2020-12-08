@@ -79,6 +79,12 @@
                 return;
             }
 
+            isAdminView = app.$.poolGroupLifetimeContainer.querySelector('pool-group-lifetime-view') instanceof Polymer.Element;
+            if (app.params.component === "pool-group-lifetime" && !isAdminView) {
+                app.$.poolGroupLifetimeContainer.appendChild(new PoolGroupLifetimeView());
+                return;
+            }
+
             isAdminView = app.$.poolPlotsContainer.querySelector('pool-plots-view') instanceof Polymer.Element;
             if (app.params.component === "pool-plots" && !isAdminView) {
                 app.$.poolPlotsContainer.appendChild(new PoolPlotsView());
