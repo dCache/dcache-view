@@ -9,7 +9,6 @@
   },
   "description": "new end-user web application for dCache",
   "license": "AGPL-3.0",
-  "name": "dcache-view",
   "repository": {
     "type": "git",
     "url": "git@github.com:dCache/dcache-view.git"
@@ -17,6 +16,5 @@
   "scripts": {
     "prebuild": "npm install && bower install",
     "build": "gulp"
-  },
-  "version": "1.5.8"
+  }
 }
