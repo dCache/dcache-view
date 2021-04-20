@@ -232,10 +232,12 @@
                 const a = window.CONFIG["dcache-view.oidc-provider-name-list"].trim().split(" ");
                 const b = window.CONFIG["dcache-view.oidc-client-id-list"].trim().split(" ");
                 const c = window.CONFIG["dcache-view.oidc-authz-endpoint-list"].trim().split(" ");
+                const d = window.CONFIG["dcache-view.oidc-authz-endpoint-extra"].trim().split(" ");
                 const len = a.length;
                 let jsonArray = [];
                 for (let i=0; i<len; i++) {
-                    jsonArray.push({"name": `${decodeURIComponent(a[i])}`, "id": `${decodeURIComponent(b[i])}`, "endpoint": `${c[i]}`});
+                    const extra = i < d.length ? d[i] : '-'
+                    jsonArray.push({"name": `${decodeURIComponent(a[i])}`, "id": `${decodeURIComponent(b[i])}`, "endpoint": `${c[i]}`, "extra": `${extra}`});
                 }
                 this.openIDProviders = jsonArray;
             }
@@ -287,11 +289,13 @@
                 sessionStorage.removeItem('redirect');
                 sessionStorage.setItem('redirect', JSON.stringify(this.redirectTo));
 
+                const extra = openIDprovider.extra === '-' ? '' : `&${openIDprovider.extra}`
+
                 window.location.href = endpoint + 'response_type=id_token%20token' +
                     '&client_id=' + openIDprovider.id +
                     '&redirect_uri=' + encodeURIComponent(window.location.origin) +
                     '&scope=openid%20profile%20email' +
-                    '&nonce=' + nonce;
+                    '&nonce=' + nonce + extra;
             }
 
             /**
