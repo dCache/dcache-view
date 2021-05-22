@@ -18,16 +18,6 @@
     window.addEventListener('WebComponentsReady', function() {
         // imports are loaded and elements have been registered
         app.getQosInformation();
-        if (app.route === "home" || !(app.route)) {
-            const currentVF = app.$["homedir"].querySelector('view-file');
-            if (!!currentVF) {
-                const parent = currentVF.parentNode;
-                parent.removeChild(currentVF);
-            }
-            const newVF = new ViewFile("/");
-            app.$["homedir"].appendChild(newVF);
-            newVF.__listDirectory();
-        }
     });
 
     app.getQosInformation = function()
