@@ -39,11 +39,17 @@
         page('/', function() {
             app.route = 'home';
             app.params = "";
+
+            const currentVF = app.$["homedir"].querySelector('view-file');
+            if (!currentVF) {
+                const newVF = new ViewFile("/");
+                app.$["homedir"].appendChild(newVF);
+                newVF.__listDirectory();
+            }
         });
 
-        page(app.baseUrl, function() {
-            app.route = 'home';
-            app.params = "";
+        page(app.baseUrl, function(e) {
+            page('/');
         });
 
         page('/admin', function() {
