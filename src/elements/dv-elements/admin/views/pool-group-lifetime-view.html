@@ -16,14 +16,14 @@
       href="../../../../elements/dv-elements/admin/charts/pool-info-chart.html">
 <link rel="import"
       href="../../../../elements/dv-elements/admin/dv-admin-mixins.html">
-<link rel="import" href="../dialogs/pool-info-dialog.html"/>
 
-<dom-module id="pool-plots-view">
+<dom-module id="pool-group-lifetime-view">
     <template>
         <style>
             :host {
                 display: block;
-                height: 70vh;
+                width: 100vw;
+                height: 80vh;
                 -webkit-font-smoothing: antialiased;
             }
 
@@ -60,54 +60,15 @@
                 align-self: center;
             }
 
-            .subtitle {
-                color: var(--dv-charcoal-grey);
-                width: 95%;
-                padding-left: 10px;
-                padding-right: 10px;
-                text-align: center;
-                font-weight: bold;
-                font-size: 14pt;
-            }
-
             .caption {
                 position: relative;
                 background-color: var(--dv-light-grey);
                 margin: 5px auto;
                 text-align: center;
-                font-weight: 200;
+                font-weight: 400;
+                color: var(--dv-teal-900);
                 font-size: 10pt;
-            }
-
-            .cur0 {
                 cursor: default;
-            }
-
-            .cur1 {
-                cursor: default;
-            }
-
-            .cur2 {
-                cursor: pointer;
-                -webkit-transition: background 2s; /* Safari */
-                transition: background 2s;
-            }
-
-            .cur2:active {
-                color: var(--dv-main-background);
-                background: var(--dv-indigo-900);
-            }
-
-            .arrow {
-                position: relative;
-                color: var(--dv-main-background);
-                background: var(--dv-charcoal-grey);
-                font-size: 9pt;
-                font-weight: 100;
-                text-align: center;
-                padding: 5px 0px;
-                min-height: 25px;
-                cursor: pointer;
             }
 
             .renderingIndicator {
@@ -203,13 +164,6 @@
                 on-error="_handleGroupsError">
         </iron-ajax>
         <iron-ajax
-                id="AjaxPools"
-                method="GET"
-                handle-as="json"
-                on-response="_handlePoolsResponse"
-                on-error="_handlePoolsError">
-        </iron-ajax>
-        <iron-ajax
                 id="AjaxHistogram"
                 method="GET"
                 handle-as="json"
@@ -217,7 +171,7 @@
                 on-error="_handleHistogramError">
         </iron-ajax>
         <paper-toolbar>
-            <div slot="top" class="title"><strong>Pool Plots</strong></div>
+            <div slot="top" class="title"><strong>Pool Group File Lifetime Plots</strong></div>
         </paper-toolbar>
         <div class="renderingIndicator" hidden="[[!rendering]]">
             <paper-spinner class="thick" active="[[rendering]]"></paper-spinner>
@@ -226,45 +180,19 @@
         </div>
         <hr/>
         <paper-toolbar id="filterTools">
-            <paper-dropdown-menu slot="top"
-                                 label="Select Plot Type" noink no-animations>
-                <iron-selector slot="dropdown-content"
-                               class="dropdown-content"
-                               selected="{{selected}}">
-                    <paper-item>Queue Stats</paper-item>
-                    <paper-item>Disk Space</paper-item>
-                    <paper-item>File Last Access</paper-item>
-                    <paper-item>File Lifetime Stats</paper-item>
-                </iron-selector>
-            </paper-dropdown-menu>
             <paper-input slot="top" id="nameFilter"
                          label="Filter charts using regex:"
                          on-keyup="_ifEnterFilterCharts"></paper-input>
         </paper-toolbar>
         <hr/>
-        <div class="subtitle"><span id="subtitle"></span></div>
-        <hr/>
         <paper-scroll-header-panel>
             <div slot="content" class$="grid cols[[cols]]">
                 <template is="dom-repeat" items="[[charts]]">
                     <div class$="container pos[[cols]]">
-                        <div class="arrow" on-tap="_up">
-                            <iron-icon icon="icons:arrow-upward"
-                                       hidden="[[!upLabel]]">
-                            </iron-icon>
-                            [[upLabel]]
-                            <iron-icon icon="icons:arrow-upward"
-                                       hidden="[[!upLabel]]"></iron-icon></div>
-                        <div class$="caption cur[[gridLevel]]"
-                             on-tap="_openPoolInfoDialog">[[item.title]]</div>
+                        <div class="caption">[[item.title]]</div>
                         <img on-tap="_magnify" id="[[item.title]]"
                              class="chart-image"
                              src="[[item.uri]]"/>
-                        <div class="arrow" on-tap="_down">
-                            <iron-icon icon="icons:arrow-downward"></iron-icon>
-                            [[downLabel]]
-                            <iron-icon icon="icons:arrow-downward"></iron-icon>
-                        </div>
                     </div>
                 </template>
             </div>
@@ -273,11 +201,11 @@
     </template>
 
     <script>
-        class PoolPlotsView extends Polymer.mixinBehaviors([Polymer.IronResizableBehavior],
+        class PoolGroupLifetimeView extends Polymer.mixinBehaviors([Polymer.IronResizableBehavior],
             DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element)))) {
 
             static get is() {
-                return 'pool-plots-view';
+                return 'pool-group-lifetime-view';
             }
 
             static get properties() {
@@ -308,41 +236,6 @@
                         value: 0
                     },
 
-                    gridLevel: {
-                        type: Number,
-                        value: 0
-                    },
-
-                    gridLevels: {
-                        type: Array,
-                        value: ['all-pools', 'groups', 'pools']
-                    },
-
-                    plotType: {
-                        type: String,
-                        value: 'queues',
-                    },
-
-                    selected: {
-                        type: Number,
-                        value: 0,
-                        observer: '_typeChanged'
-                    },
-
-                    selectedGroup: {
-                        type: String
-                    },
-
-                    upLabel: {
-                        type: String,
-                        notify: true
-                    },
-
-                    downLabel: {
-                        type: String,
-                        notify: true
-                    },
-
                     rendering: {
                         type: Boolean,
                         notify: true
@@ -357,16 +250,9 @@
 
             connectedCallback() {
                 super.connectedCallback();
-                this.componentPath = '/admin/pool-plots';
-            }
-
-            _down(e) {
-                e.stopPropagation();
-                this.selectedGroup = e.model.item.title;
-                this.gridLevel = (this.gridLevel + 1) % this.gridLevels.length;
-                this._reset();
+                this.componentPath = '/admin/pool-group-lifetime';
+                console.log(`Connected callback calling getChildren`);
                 this._getChildren();
-                e.stopPropagation();
             }
 
             _fetchPlotData() {
@@ -380,73 +266,12 @@
 
             _getChildren() {
                 this.stopRefresh();
-
-                switch (this.gridLevel) {
-                    case 0:
-                        this.currentChildren = [this.gridLevels[0]];
-                        this._rebuild();
-                        break;
-                    case 1:
-                        this._sendAllGroupsRequest();
-                        break;
-                    case 2:
-                        this._sendPoolsOfGroupRequest();
-                        break;
-                    default:
-                        this.handleError('unknown grid level ' + this.gridLevel
-                            + '. This is a bug; please report it to our ' +
-                            'development team.');
-                }
-
+                this._sendAllGroupsRequest();
                 this.resetRefresh(this._getChildren.bind(this), 60000);
             }
 
             _getSeriesData(data) {
-                switch (this.plotType) {
-                    case 'space':
-                        return this._getSpaceData(data);
-                    case 'access':
-                    case 'lifetime':
-                        return (this.gridLevel === 2) ?
-                            data.fileStat: data.groupFileStat;
-                    case 'queues':
-                    default:
-                        return (this.gridLevel === 2) ?
-                            data.queueStat: data.groupQueueStat;
-                }
-            }
-
-            _getSpaceData(data) {
-                let pinned;
-                let removable;
-                let free;
-                let precious;
-                let total;
-
-                if (this.gridLevel === 2) {
-                    total = data.poolData.detailsData.costData.space.total;
-                    free = data.poolData.detailsData.costData.space.free;
-                    removable = data.poolData.detailsData.costData.space.removable;
-                    precious = data.poolData.detailsData.costData.space.precious;
-                } else {
-                    if (data.groupSpaceData) {
-                        total = data.groupSpaceData.total;
-                        free = data.groupSpaceData.free;
-                        removable = data.groupSpaceData.removable;
-                        precious = data.groupSpaceData.precious;
-                    } else {
-                        return null;
-                    }
-                }
-
-                pinned = total - free - removable - precious;
-
-                return {
-                    'free': free,
-                    'removable': removable,
-                    'precious': precious,
-                    'pinned': pinned
-                };
+                return data.groupFileStat;
             }
 
             _handleGroupsResponse(event) {
@@ -482,7 +307,7 @@
                         const plot = new PoolInfoChart();
                         plot.title = name;
                         plot.inputData = {
-                            'type': this.plotType,
+                            'type': 'lifetime',
                             'seriesData': seriesData
                         };
                         this.shadowRoot.querySelector('#chart-placeholders')
@@ -509,23 +334,6 @@
                 }
             }
 
-            _handlePoolsResponse(event) {
-                this.currentChildren = event.detail.response;
-                if (this.currentChildren && this.currentChildren.length > 0) {
-                    this._rebuild();
-                } else {
-                    this.rendering = false;
-                    this.handleError(`Could not retrieve pools for
-                        ${this.selectedGroup} from service; please refresh
-                        and try again.`);
-                }
-            }
-
-            _handlePoolsError(event) {
-                this.handleError(`Could not process pools request:
-                    ${event.detail.error.message}`);
-            }
-
             _ifEnterFilterCharts(e) {
                 if (e.keyCode === 13) {
                     this._setNameFilter(this.$.nameFilter.value);
@@ -534,12 +342,6 @@
 
             _magnify (e) {
                 e.model.item._magnify(e);
-            }
-
-            _openPoolInfoDialog(e) {
-                if (this.gridLevel === 2) {
-                    this.openPoolInfoDialog(e.target.innerText, null);
-                }
             }
 
             _rebuild() {
@@ -551,85 +353,23 @@
                 google.charts.setOnLoadCallback(this._fetchPlotData.bind(this));
             }
 
-            _reset() {
-                this.rendering = true;
-
-                switch (this.gridLevel) {
-                    case 0:
-                        this.upLabel = "";
-                        this.downLabel = "POOL GROUPS";
-                        this.removeAllChildren(this.$.subtitle);
-                        this.$.subtitle.appendChild(document.createTextNode("ALL POOLS"));
-                        break;
-                    case 1:
-                        this.upLabel = "ALL POOLS";
-                        this.downLabel = "POOLS";
-                        this.removeAllChildren(this.$.subtitle);
-                        this.$.subtitle.appendChild(document.createTextNode("POOL GROUPS"));
-                        break;
-                    case 2:
-                        this.upLabel = "POOL GROUPS";
-                        this.downLabel = "ALL POOLS";
-                        this.removeAllChildren(this.$.subtitle);
-                        this.$.subtitle.appendChild(document.createTextNode(this.selectedGroup));
-                        break;
-                    default:
-                        this.handleError(`unknown grid level ${this.gridLevel}.
-                            This is a bug; please report
-                            it to our development team.`);
-                }
-            }
-
             _sendAllGroupsRequest() {
-                this.$.AjaxGroups.url
-                    = this.getUrl('poolgroups', null);
+                this.$.AjaxGroups.url = this.getUrl('poolgroups', null);
                 this.$.AjaxGroups.headers = this.getHeaders();
                 this.$.AjaxGroups.generateRequest();
             }
 
             _sendHistogramRequest(name) {
-                let path = `${(this.gridLevel === 2) ? 'pools/': 'poolgroups/'}${name}`;
-
-                switch (this.plotType) {
-                    case 'space':
-                        path += (this.gridLevel === 2 ? "/usage" : "/space");
-                        break;
-                    case 'access':
-                    case 'lifetime':
-                        path += "/histograms/files";
-                        break;
-                    default:
-                        path += "/histograms/queues";
-                }
-
+                let path = `${'poolgroups/'}${name}/histograms/files`;
                 this.$.AjaxHistogram.url = this.getUrl(path, null);
                 this.$.AjaxHistogram.headers = this.getHeaders();
                 this.$.AjaxHistogram.generateRequest();
             }
 
-            _sendPoolsOfGroupRequest() {
-                if (!this.selectedGroup) {
-                    this.handleError(`No group was selected. This is a bug;
-                        please it report to our development team.`);
-                }
-
-                const path = `poolgroups/${this.selectedGroup}/pools`;
-                this.$.AjaxPools.url = this.getUrl(path, null);
-                this.$.AjaxPools.headers = this.getHeaders();
-                this.$.AjaxPools.generateRequest();
-            }
-
             _setCols() {
-                if (this.gridLevel === 0) {
-                    this.cols = 1;
-                } else {
-                    this.cols =  this.currentChildren === 1 ? 1 :
-                        (Math.max
-                        (2, Math.min
-                            (8, Math.floor
-                                (Math.sqrt(this.currentChildren.length)))))
-                                        .toFixed(0) / 1;
-                }
+                this.cols = this.currentChildren === 1 ? 1 :
+                    (Math.max(2, Math.min(8, Math.floor
+                        (Math.sqrt(this.currentChildren.length))))).toFixed(0) / 1;
             }
 
             _setNameFilter(expression) {
@@ -678,41 +418,9 @@
 
                 return 0;
             }
-
-            _typeChanged(newValue, oldValue) {
-                switch(this.selected) {
-                    case 1:
-                        this.plotType = 'space';
-                        break;
-                    case 2:
-                        this.plotType = 'access';
-                        break;
-                    case 3:
-                        this.plotType = 'lifetime';
-                        break;
-                    default:
-                        this.plotType = 'queues';
-                        break;
-                }
-
-                this._reset();
-                this._getChildren();
-            }
-
-            _up(e) {
-                if (this.gridLevel === 0) {
-                    return;
-                }
-
-                this.selectedGroup = e.model.item.title;
-                this.gridLevel = (this.gridLevel - 1) % this.gridLevels.length;
-                this._reset();
-                this._getChildren();
-                e.stopPropagation();
-            }
         }
 
-        window.customElements.define(PoolPlotsView.is, PoolPlotsView);
+        window.customElements.define(PoolGroupLifetimeView.is, PoolGroupLifetimeView);
     </script>
 
 </dom-module>
