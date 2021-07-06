@@ -76,14 +76,7 @@
 
         <paper-scroll-header-panel class="flex opaque" fixed>
             <paper-toolbar slot="header">
-                <div slot="top" class="spacer title"><strong>[[chart.title]]</strong>
-                </div>
-                <div slot="top" >
-                    <paper-button on-tap="_openForDownload">Print</paper-button>
-                    <paper-tooltip>Open as .png in a window
-                        <br/>from which to save the image.
-                    </paper-tooltip>
-                </div>
+                <div slot="top" class="spacer title"><strong>[[chart.title]]</strong></div>
                 <paper-button slot="top" dialog-dismiss>Close</paper-button>
             </paper-toolbar>
             <hr/>
@@ -147,33 +140,6 @@
             disconnectedCallback() {
                 super.disconnectedCallback();
                 this.removeEventListener('iron-resize', this._onResize);
-            }
-
-            _openForDownload() {
-                const svn_div = this.shadowRoot.querySelector('#chart_div');
-                let png_chart;
-
-                switch (this.chart.chartStyle) {
-                    case "line":
-                        png_chart = new google.visualization.LineChart(svn_div);
-                        break;
-                    case "pie":
-                        png_chart = new google.visualization.PieChart(svn_div);
-                        break;
-                    case "column":
-                    default:
-                        png_chart = new google.visualization.ColumnChart(svn_div);
-                        break;
-                }
-
-                google.visualization.events.addListener(png_chart, 'ready', () => {
-                    const image_window = window.open(png_chart.getImageURI(), "",
-                        "left=200,top=200,width=1000,height=500");
-                    image_window.focus();
-                });
-
-                // TODO for some reason this fails to render in Chrome
-                png_chart.draw(this.chart.dataTable, this.printOptions);
             }
 
             _onResize() {
