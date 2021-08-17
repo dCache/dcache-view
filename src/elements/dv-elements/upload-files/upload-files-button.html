@@ -129,7 +129,7 @@
                                 progressBar.classList.remove("error", "complete");
                                 progressBar.classList.add("progress");
                                 progressBar.indeterminate = false;
-                                progressBar.value = (evt.load / evt.total) * 100;
+                                progressBar.value = (evt.loaded / evt.total) * 100;
                             }
                             upLs.progressValue = progressBar.value;
                             upLs.inProgress = true;
