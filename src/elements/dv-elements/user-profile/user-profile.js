@@ -1,15 +1,17 @@
-class UserProfile extends Polymer.Element
-{
+class UserProfile extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element))) {
+
     constructor()
     {
         super();
         this.listOfAllRoles = this._getInitialListOfAllRoles();
         this.gravatarSwitch = sessionStorage.useGravatar === "yes";
     }
+
     static get is()
     {
         return 'user-profile';
     }
+
     static get properties()
     {
         return {
@@ -72,9 +74,28 @@ class UserProfile extends Polymer.Element
             gravatarSwitch: {
                 type: Boolean,
                 notify: true
+            },
+            quotas: {
+                type: Array,
+                notify: true,
+                value: []
+            },
+            users: {
+                type: Array,
+                value: []
+            },
+            groups: {
+                type: Array,
+                value: []
             }
         }
     }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.refreshAndReset(this._requestQuotaInfo.bind(this), 60000);
+    }
+
     _view(e)
     {
         page.redirect("/");
@@ -97,6 +118,9 @@ class UserProfile extends Polymer.Element
             classes += ' red';
         }
         return classes;
+    }
+    _computedColumnCss(exceeded) {
+        return exceeded ? 'column-centre red' : 'column-centre';
     }
     _allCurrentStatus()
     {
@@ -230,6 +254,132 @@ class UserProfile extends Polymer.Element
                         "must be associated with this account."}, bubbles: true, composed: true
             }));
         }
+    }
+
+    _convertSizes(quota) {
+        let current = this.isNumber(quota.custodial);
+        let limit = this.isNumber(quota.custodialLimit);
+
+        if (current && limit) {
+            quota.custodialExceeded = quota.custodial >= quota.custodialLimit;
+        } else {
+            quota.custodialExceeded = false;
+        }
+
+        quota.custodial = this._handleConversion(quota.custodial, current, false);
+        quota.custodialLimit = this._handleConversion(quota.custodialLimit, limit, true);
+
+        // REVISIT OUTPUT currently unused, return to this when qos definitions are reviewed
+
+        // current = this.isNumber(quota.output);
+        // limit = this.isNumber(quota.outputLimit);
+        //
+        // if (current && limit) {
+        //     quota.outputExceeded = quota.output >= quota.outputLimit;
+        // } else {
+        //     quota.outputExceeded = false;
+        // }
+        //
+        // quota.output = this._handleConversion(quota.output, current, false);
+        // quota.outputLimit = this._handleConversion(quota.outputLimit, limit, true);
+
+        current = this.isNumber(quota.replica);
+        limit = this.isNumber(quota.replicaLimit);
+
+        if (current && limit) {
+            quota.replicaExceeded = quota.replica >= quota.replicaLimit;
+        } else {
+            quota.replicaExceeded = false;
+        }
+
+        quota.replica = this._handleConversion(quota.replica, current, false);
+        quota.replicaLimit = this._handleConversion(quota.replicaLimit, limit, true);
+    }
+
+    _handleConversion(value, isNumber, isLimit) {
+        if (!isLimit || isNumber) {
+            return this.convertBytesToNearestBinaryPrefix(value);
+        }
+
+        return 'UNDEF';
+    }
+
+    _handleError(event) {
+        this.handleError(event.detail.error.message);
+    }
+
+    _handleUsersResponse(response) {
+        const input = JSON.parse(`${response}`);
+        input.forEach((quota) => {
+            quota.type = {name: "USER", value: 0};
+            this._convertSizes(quota);
+        });
+        this.users = input;
+        this._mergeQuotas();
+    }
+
+    _handleGroupsResponse(response) {
+        const input = JSON.parse(`${response}`);
+        input.forEach((quota) => {
+            quota.type = {name: "GROUP", value: 1};
+            this._convertSizes(quota);
+        });
+        this.groups = input;
+        this._mergeQuotas();
+    }
+
+    _mergeQuotas() {
+        if (this.users !== null && this.groups !== null) {
+            const all = [];
+            this.users.forEach((quota) => {
+                if (this.uid === quota.id.toString()) {
+                    all.push(quota);
+                }
+            });
+            this.groups.forEach((quota) => {
+                if (this.gids.includes(quota.id)) {
+                    all.push(quota);
+                }
+            });
+            this.quotas = all;
+        }
+    }
+
+    _requestQuotaInfo() {
+        this.users = null;
+        this.groups = null;
+        this._requestUserQuotaInfo();
+        this._requestGroupQuotaInfo();
+    }
+
+    _requestUserQuotaInfo() {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", this.getUrl('quota/user', null), true);
+        this.setXHRHeaders(xhr);
+        xhr.onerror = this._handleError.bind(this);
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    this._handleUsersResponse(xhr.response);
+                }
+            }
+        }.bind(this);
+        xhr.send();
+    }
+
+    _requestGroupQuotaInfo() {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", this.getUrl('quota/group', null), true);
+        this.setXHRHeaders(xhr);
+        xhr.onerror = this._handleError.bind(this);
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    this._handleGroupsResponse(xhr.response);
+                }
+            }
+        }.bind(this);
+        xhr.send();
     }
 }
 window.customElements.define(UserProfile.is, UserProfile);

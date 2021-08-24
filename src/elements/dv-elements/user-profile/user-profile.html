@@ -1,5 +1,10 @@
 <link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../../bower_components/paper-styles/element-styles/paper-material-styles.html">
+<link rel="import" href="../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
+<link rel="import" href="../../../elements/dv-elements/admin/dv-vaadin-theme.html">
+<link rel="import" href="../../../elements/dv-elements/admin/dv-admin-mixins.html">
+<link rel="import" href="../../../elements/dv-elements/utils/mixins/commons.html">
 
 <link rel="import" href="./user-image/user-image.html">
 <link rel="import" href="../user-authentication/role-request/role-request.html">
@@ -127,12 +132,26 @@
             .flex-centre {
                 justify-content: center
             }
+            .column-centre {
+                text-align: center
+            }
             .small {
                 color: #1c7cf1;
                 font-size: 0.67em;
             }
             .red {
                 color: rgb(221, 44, 0);
+            }
+            .type0 {
+                background: var(--dv-green-900);
+                color: var(--dv-main-background);
+                width: 100%;
+            }
+
+            .type1 {
+                background: var(--dv-blue-900);
+                color: var(--dv-main-background);
+                width: 100%;
             }
         </style>
         <div class="display-flex column">
@@ -183,6 +202,70 @@
                         <div class="value">[[gids]]</div>
                     </div>
                 </div>
+            </div>
+
+            <div class="paper-material" elevation="1">
+                <div class="header-container">
+                    <div class="header">
+                        Quota Information
+                    </div>
+                    <small class="small">
+                        Disk & Tape Space Allowances (current / limit)
+                    </small>
+                </div>
+                <br/>
+                <vaadin-grid aria-label="Quota Info" id="quotainfo"
+                             items="[[quotas]]" multi-sort="true" size="100">
+                    <vaadin-grid-column-group>
+                        <template class="header">
+                                Id
+                        </template>
+                        <vaadin-grid-column width="15px">
+                            <template>
+                                <span class$="type[[item.type.value]]">
+                                    [[item.id]]
+                                </span>
+                            </template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+                    <vaadin-grid-column-group>
+                        <template class="header">
+                                Custodial
+                        </template>
+                        <vaadin-grid-column width="15px">
+                            <template>
+                                <span class$="[[_computedColumnCss(item.custodialExceeded)]]">
+                                    [[item.custodial]] / [[item.custodialLimit]]
+                                </span>
+                            </template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+<!--    REVISIT THIS when the qos definitions are reviewed; currently, OUTPUT is unused. -->
+<!--                    <vaadin-grid-column-group>-->
+<!--                        <template class="header">-->
+<!--                                Output-->
+<!--                        </template>-->
+<!--                        <vaadin-grid-column width="15px">-->
+<!--                            <template>-->
+<!--                                <span class$="[[_computedColumnCss(item.outputExceeded)]]">-->
+<!--                                    [[item.output]] / [[item.outputLimit]]-->
+<!--                                </span>-->
+<!--                            </template>-->
+<!--                        </vaadin-grid-column>-->
+<!--                    </vaadin-grid-column-group>-->
+                    <vaadin-grid-column-group>
+                        <template class="header">
+                                Replica
+                        </template>
+                        <vaadin-grid-column width="15px">
+                            <template>
+                                <span class$="[[_computedColumnCss(item.replicaExceeded)]]">
+                                    [[item.replica]] / [[item.replicaLimit]]
+                                </span>
+                            </template>
+                        </vaadin-grid-column>
+                    </vaadin-grid-column-group>
+                </vaadin-grid>
             </div>
 
             <div class="paper-material" elevation="1">
