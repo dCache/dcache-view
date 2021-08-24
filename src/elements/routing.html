@@ -91,6 +91,12 @@
                 return;
             }
 
+            isAdminView = app.$.quotaInfoContainer.querySelector('quota-info-view') instanceof Polymer.Element;
+            if (app.params.component === "quota-info" && !isAdminView) {
+                app.$.quotaInfoContainer.appendChild(new QuotaInfoView());
+                return;
+            }
+
             isAdminView = app.$.transfersContainer.querySelector('transfers-view') instanceof Polymer.Element;
             if (app.params.component === "active-transfers" && !isAdminView) {
                 app.$.transfersContainer.appendChild(new TransfersView());
