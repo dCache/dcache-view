@@ -209,6 +209,10 @@
                         name: "Locations", type: "Array",
                         description: ""
                     },
+                    "labels" : {
+                        name: "Label", type: "Array",
+                        description: "The label of a file."
+                    },
                     "fileType" : {
                         name: "Type", type: "String",
                         description: "Type of the file ( e.g. REGULAR, DIR, LINK, SPECIAL )"
@@ -296,6 +300,8 @@
                 const arr2 = [];
                 metadata.size = metadata.fileType === "REGULAR" ?
                     this.convertBytesToNearestBinaryPrefix(metadata.size): "--";
+                metadata.labels = metadata.labels === undefined ?
+                   "--" : metadata.labels;
                 metadata.creationTime = this._formattedDateTime(metadata.creationTime);
                 metadata.mtime = this._formattedDateTime(metadata.mtime);
                 if (metadata.ctime && metadata.atime) {
