@@ -1,4 +1,5 @@
-class UserProfile extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element))) {
+class UserProfile extends
+      DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.AdminBase(DcacheViewMixins.Commons(Polymer.Element))) {
 
     constructor()
     {
@@ -75,20 +76,21 @@ class UserProfile extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.Adm
                 type: Boolean,
                 notify: true
             },
-            quotas: {
+            userQuota: {
+                type: Object,
+                notify: true,
+            },
+            groupQuotas: {
                 type: Array,
                 notify: true,
                 value: []
             },
-            users: {
-                type: Array,
-                value: []
-            },
-            groups: {
-                type: Array,
-                value: []
+            cols: {
+                type: Number,
+                notify: true,
+                value: 2
             }
-        }
+        };
     }
 
     connectedCallback() {
@@ -118,9 +120,6 @@ class UserProfile extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.Adm
             classes += ' red';
         }
         return classes;
-    }
-    _computedColumnCss(exceeded) {
-        return exceeded ? 'column-centre red' : 'column-centre';
     }
     _allCurrentStatus()
     {
@@ -256,44 +255,37 @@ class UserProfile extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.Adm
         }
     }
 
-    _convertSizes(quota) {
-        let current = this.isNumber(quota.custodial);
-        let limit = this.isNumber(quota.custodialLimit);
+    _convert(data) {
+        let quota = {};
+        quota.id = data.id;
+        quota.class = data.class;
+        quota.charts = [];
+        quota.charts.push(this._convertChart(data.id, data.class,
+                    data.custodial, data.custodialLimit, "CUSTODIAL"));
+        quota.charts.push(this._convertChart(data.id, data.class,
+                    data.replica, data.replicaLimit, "REPLICA"));
+        // REVISIT OUTPUT currently unused
+        // REVISIT return to this when qos definitions are reviewed
+        return quota;
+    }
 
-        if (current && limit) {
-            quota.custodialExceeded = quota.custodial >= quota.custodialLimit;
-        } else {
-            quota.custodialExceeded = false;
-        }
-
-        quota.custodial = this._handleConversion(quota.custodial, current, false);
-        quota.custodialLimit = this._handleConversion(quota.custodialLimit, limit, true);
-
-        // REVISIT OUTPUT currently unused, return to this when qos definitions are reviewed
-
-        // current = this.isNumber(quota.output);
-        // limit = this.isNumber(quota.outputLimit);
-        //
-        // if (current && limit) {
-        //     quota.outputExceeded = quota.output >= quota.outputLimit;
-        // } else {
-        //     quota.outputExceeded = false;
-        // }
-        //
-        // quota.output = this._handleConversion(quota.output, current, false);
-        // quota.outputLimit = this._handleConversion(quota.outputLimit, limit, true);
-
-        current = this.isNumber(quota.replica);
-        limit = this.isNumber(quota.replicaLimit);
-
-        if (current && limit) {
-            quota.replicaExceeded = quota.replica >= quota.replicaLimit;
-        } else {
-            quota.replicaExceeded = false;
-        }
-
-        quota.replica = this._handleConversion(quota.replica, current, false);
-        quota.replicaLimit = this._handleConversion(quota.replicaLimit, limit, true);
+    _convertChart(id, clzz, used, quota, type) {
+        let current = this.isNumber(used);
+        let limit = this.isNumber(quota);
+        let chart = {};
+        chart.id = id;
+        chart.class = clzz;
+        chart.type = type;
+        chart.exceeded = current && limit ? used >= quota : false;
+        chart.used = {
+            bytes: current ? used : 0,
+            txt: this._handleConversion(used, current, false)
+        };
+        chart.limit = {
+            bytes: limit ? quota : -1,
+            txt: this._handleConversion(quota, limit, true)
+        };
+        return chart;
     }
 
     _handleConversion(value, isNumber, isLimit) {
@@ -310,39 +302,31 @@ class UserProfile extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.Adm
 
     _handleUsersResponse(response) {
         const input = JSON.parse(`${response}`);
-        input.forEach((quota) => {
-            quota.type = {name: "USER", value: 0};
-            this._convertSizes(quota);
-        });
-        this.users = input;
-        this._mergeQuotas();
+        if (!input.length) {
+            this.userQuota = null;
+            return;
+        }
+        if (input.length > 1) {
+            this.userQuota = null;
+            this.handleError(`More than one quota for user was returned: ${input}`);
+            return;
+        }
+
+        const quota = input[0];
+        quota.class = "USER";
+        this.userQuota = this._convert(quota);
     }
 
     _handleGroupsResponse(response) {
         const input = JSON.parse(`${response}`);
+        const converted = [];
         input.forEach((quota) => {
-            quota.type = {name: "GROUP", value: 1};
-            this._convertSizes(quota);
+            if (this.gids.includes(quota.id)) {
+                quota.class = "GROUP";
+                converted.push(this._convert(quota));
+            }
         });
-        this.groups = input;
-        this._mergeQuotas();
-    }
-
-    _mergeQuotas() {
-        if (this.users !== null && this.groups !== null) {
-            const all = [];
-            this.users.forEach((quota) => {
-                if (this.uid === quota.id.toString()) {
-                    all.push(quota);
-                }
-            });
-            this.groups.forEach((quota) => {
-                if (this.gids.includes(quota.id)) {
-                    all.push(quota);
-                }
-            });
-            this.quotas = all;
-        }
+        this.groupQuotas = converted;
     }
 
     _requestQuotaInfo() {
@@ -354,7 +338,7 @@ class UserProfile extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.Adm
 
     _requestUserQuotaInfo() {
         const xhr = new XMLHttpRequest();
-        xhr.open("GET", this.getUrl('quota/user', null), true);
+        xhr.open("GET", this.getUrl('quota/user', '?user=true'), true);
         this.setXHRHeaders(xhr);
         xhr.onerror = this._handleError.bind(this);
         xhr.onreadystatechange = function() {
@@ -368,6 +352,10 @@ class UserProfile extends DcacheViewMixins.AdminAutoRefresh(DcacheViewMixins.Adm
     }
 
     _requestGroupQuotaInfo() {
+        /*
+         *  NOTE: since ?user=true returns only the principal gid quota, and
+         *  we want info for all gids, we do not append the query.
+         */
         const xhr = new XMLHttpRequest();
         xhr.open("GET", this.getUrl('quota/group', null), true);
         this.setXHRHeaders(xhr);

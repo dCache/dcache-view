@@ -1,11 +1,9 @@
 <link rel="import" href="../../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../../bower_components/paper-styles/element-styles/paper-material-styles.html">
-<link rel="import" href="../../../bower_components/vaadin-grid/vaadin-grid.html">
-<link rel="import" href="../../../bower_components/vaadin-grid/vaadin-grid-column-group.html">
-<link rel="import" href="../../../elements/dv-elements/admin/dv-vaadin-theme.html">
+<link rel="import" href="../../../elements/dv-elements/admin/charts/quota-info-chart.html">
 <link rel="import" href="../../../elements/dv-elements/admin/dv-admin-mixins.html">
+<link rel="import" href="../../../elements/dv-elements/admin/dialogs/chart-dialog.html">
 <link rel="import" href="../../../elements/dv-elements/utils/mixins/commons.html">
-
 <link rel="import" href="./user-image/user-image.html">
 <link rel="import" href="../user-authentication/role-request/role-request.html">
 <dom-module id="user-profile">
@@ -24,16 +22,13 @@
             .paper-material + .paper-material {
                 margin-top: 5px;
             }
-
             .paper-material .paper-material-inner {
                 width: 100%;
                 box-sizing: border-box;
             }
-
             .border-top {
                 border-top: 5px solid #333;
             }
-
             .display-flex {
                 display: flex;
             }
@@ -132,9 +127,6 @@
             .flex-centre {
                 justify-content: center
             }
-            .column-centre {
-                text-align: center
-            }
             .small {
                 color: #1c7cf1;
                 font-size: 0.67em;
@@ -142,16 +134,39 @@
             .red {
                 color: rgb(221, 44, 0);
             }
-            .type0 {
-                background: var(--dv-green-900);
+            .grid {
+                width: 90%;
+                margin: 10px;
+                display: grid;
+                align-items: center;
+                align-content: center;
+            }
+            .grid-item {
+                justify-self: stretch;
+                align-self: stretch;
+            }
+            .cols2 {
+                grid-gap: 60px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .label-user {
+                font-weight: 200;
+                font-size: 8pt;
+                text-align: center;
+                background: darkgreen;
                 color: var(--dv-main-background);
-                width: 100%;
+                margin-left: 5%;
+                margin-right: 5%;
             }
 
-            .type1 {
-                background: var(--dv-blue-900);
+            .label-group {
+                font-weight: 200;
+                font-size: 8pt;
+                text-align: center;
+                background: darkblue;
                 color: var(--dv-main-background);
-                width: 100%;
+                margin-left: 5%;
+                margin-right: 5%;
             }
         </style>
         <div class="display-flex column">
@@ -214,60 +229,35 @@
                     </small>
                 </div>
                 <br/>
-                <vaadin-grid aria-label="Quota Info" id="quotainfo"
-                             items="[[quotas]]" multi-sort="true" size="100">
-                    <vaadin-grid-column-group>
-                        <template class="header">
-                                Id
+                <template is="dom-if" if="[[userQuota]]">
+                    <div class="label-user">
+                        Personal usage and quotas
+                    </div>
+                    <div class$="grid cols[[cols]]">
+                        <template is="dom-repeat" items="[[userQuota.charts]]"
+                                  as="chart">
+                            <div class="grid-item">
+                                <quota-info-chart
+                                        title="[[chart.id]]: [[chart.type]]"
+                                        input-data="[[chart]]"/>
+                            </div>
                         </template>
-                        <vaadin-grid-column width="15px">
-                            <template>
-                                <span class$="type[[item.type.value]]">
-                                    [[item.id]]
-                                </span>
-                            </template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
-                    <vaadin-grid-column-group>
-                        <template class="header">
-                                Custodial
+                    </div>
+                </template>
+                <template is="dom-repeat" items="[[groupQuotas]]" as="quota">
+                    <div class="label-group">Usage and quotas for group gid [[quota.id]]</div>
+                    <div class$="grid cols[[cols]]">
+                        <template is="dom-repeat" items="[[quota.charts]]"
+                                  as="chart">
+                            <div class="grid-item">
+                                <quota-info-chart
+                                        title="[[chart.id]]: [[chart.type]]"
+                                        input-data="[[chart]]"/>
+                            </div>
                         </template>
-                        <vaadin-grid-column width="15px">
-                            <template>
-                                <span class$="[[_computedColumnCss(item.custodialExceeded)]]">
-                                    [[item.custodial]] / [[item.custodialLimit]]
-                                </span>
-                            </template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
-<!--    REVISIT THIS when the qos definitions are reviewed; currently, OUTPUT is unused. -->
-<!--                    <vaadin-grid-column-group>-->
-<!--                        <template class="header">-->
-<!--                                Output-->
-<!--                        </template>-->
-<!--                        <vaadin-grid-column width="15px">-->
-<!--                            <template>-->
-<!--                                <span class$="[[_computedColumnCss(item.outputExceeded)]]">-->
-<!--                                    [[item.output]] / [[item.outputLimit]]-->
-<!--                                </span>-->
-<!--                            </template>-->
-<!--                        </vaadin-grid-column>-->
-<!--                    </vaadin-grid-column-group>-->
-                    <vaadin-grid-column-group>
-                        <template class="header">
-                                Replica
-                        </template>
-                        <vaadin-grid-column width="15px">
-                            <template>
-                                <span class$="[[_computedColumnCss(item.replicaExceeded)]]">
-                                    [[item.replica]] / [[item.replicaLimit]]
-                                </span>
-                            </template>
-                        </vaadin-grid-column>
-                    </vaadin-grid-column-group>
-                </vaadin-grid>
+                    </div>
+                </template>
             </div>
-
             <div class="paper-material" elevation="1">
                 <div class="header-container">
                     <div class="header">
