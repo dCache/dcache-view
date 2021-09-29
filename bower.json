@@ -24,7 +24,7 @@
     "identicon.js": "stewartlord/identicon.js#2.3.1",
     "JavaScript-MD5": "blueimp/JavaScript-MD5#2.10.0",
     "page": "visionmedia/page.js#1.6.4",
-    "admin-page": "dCacheElements/admin-page#0.0.7",
+    "admin-page": "dCache/admin-page#1.0.0",
     "create-directory": "dCacheElements/create-directory#0.0.4",
     "dcache-namespace": "dCacheElements/dcache-namespace#0.0.9",
     "file-icon": "dCacheElements/file-icon#0.0.5",
