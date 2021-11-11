@@ -18,18 +18,18 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
-    "polymer-iron-elements": "dCacheElements/polymer-iron-elements#0.0.5",
-    "polymer-paper-elements": "dCacheElements/polymer-paper-elements#0.0.6",
+    "polymer-iron-elements": "dCache/polymer-iron-elements#0.0.7",
+    "polymer-paper-elements": "dCache/polymer-paper-elements#0.0.8",
     "neon-animation": "PolymerElements/neon-animation#^2.0.0",
     "identicon.js": "stewartlord/identicon.js#2.3.1",
     "JavaScript-MD5": "blueimp/JavaScript-MD5#2.10.0",
     "page": "visionmedia/page.js#1.6.4",
     "admin-page": "dCache/admin-page#1.0.0",
-    "create-directory": "dCacheElements/create-directory#0.0.4",
-    "dcache-namespace": "dCacheElements/dcache-namespace#0.0.9",
-    "file-icon": "dCacheElements/file-icon#0.0.5",
-    "move-file": "dCacheElements/move-file#0.0.10",
-    "qos-backend-information": "dCacheElements/qos-backend-information#0.0.7",
+    "create-directory": "dCache/create-directory#0.0.4",
+    "dcache-namespace": "dCache/dcache-namespace#^0.1.3",
+    "file-icon": "dCache/file-icon#0.0.5",
+    "move-file": "dCache/move-file#0.0.12",
+    "qos-backend-information": "dCache/qos-backend-information#0.0.9",
     "google-apis": "#2.0.0",
     "google-chart": "#2.0.0",
     "vaadin-grid": "#4.1.7",
@@ -38,6 +38,6 @@
     "qr.js": "lifthrasiir/qr.js#4234f130e5137626f8193aba2132575ae1602f39"
   },
   "resolutions": {
-    "dcache-namespace": "0.0.8"
+    "dcache-namespace": "0.1.2"
   }
 }
