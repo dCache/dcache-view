@@ -29,7 +29,7 @@
     "dcache-namespace": "dCache/dcache-namespace#^0.1.3",
     "file-icon": "dCache/file-icon#0.0.6",
     "move-file": "dCache/move-file#0.0.15",
-    "qos-backend-information": "dCache/qos-backend-information#0.0.9",
+    "qos-backend-information": "dCache/qos-backend-information#0.0.10",
     "google-apis": "#2.0.0",
     "google-chart": "#2.0.0",
     "vaadin-grid": "#4.1.7",
