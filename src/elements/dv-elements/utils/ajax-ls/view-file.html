@@ -99,6 +99,11 @@
                                lower-threshold="500"
                                on-lower-threshold="_loadNamespaceData">
         </iron-scroll-threshold>
+
+       <!-- <iron-scroll-threshold id=""
+                               lower-threshold="500"
+                               on-lower-threshold="_loadNamespaceDataLabel">
+        </iron-scroll-threshold>-->
     </template>
 
     <script>
@@ -106,6 +111,8 @@
         {
             constructor(path)
             {
+
+                console.log("ViewFile");
                 super();
                 this.path = path === undefined ? "/" : path;
 
@@ -134,6 +141,8 @@
                 super.ready();
                 this.$.feList.scrollTarget = this.$.content;
                 this.$.threshold.scrollTarget = this.$.content;
+               // this.$.thresholdLabel.scrollTarget = this.$.content;
+
                 Polymer.RenderStatus.afterNextRender(this, () => {
                     this.dispatchEvent(
                         new CustomEvent('dv-namespace-current-authenticationParameters', {
@@ -189,6 +198,8 @@
 
             static get properties()
             {
+
+                console.log("propeties viewFile");
                 return {
                     path: {
                         type: String,
@@ -210,6 +221,13 @@
                         notify: true,
                         computed: '_url(path)'
                     },
+
+
+                   /* urllables: {
+                        type: String,
+                        notify: true,
+                        computed: '_urlLabels(path)'
+                    },*/
 
                     currentDirName: {
                         type: String,
@@ -304,12 +322,24 @@
 
             _url(path)
             {
+                console.log("urls")
                 const isHome = path===null || path === "" || path === "/";
                 const filePath = this.getAuthValue() !== "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ=" ? isHome === true ?
                     "/?children=true&qos=true" : `${path}/?children=true&qos=true` : isHome === true ?
                     "/?children=true" : `${path}/?children=true`;
                 return `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace${this.encodePath(filePath)}`;
             }
+
+
+            /*urlLables(path)
+            {
+                console.log("urls lables" )
+                /!*const isHome = path===null || path === "" || path === "/";
+                const filePath = this.getAuthValue() !== "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ=" ? isHome === true ?
+                    "/?labels=true" : `${path}/?labels=true` : isHome === true ?
+                    "/?labels=true" : `${path}/?labels=true`;*!/
+                return `labels/cagghht`;
+            }*/
 
             _computeParentPath(path)
             {
@@ -318,8 +348,14 @@
 
             handleResponse(response)
             {
+
+                console.log(" DIR 2 " + response.endpoint);
+
                 const children = response.children;
                 this._namespaceRequestMessage = "successful";
+
+                console.log(" DIR 2 " + response.endpoint);
+
                 if (!(children.length === 0 && this.__counter__ === 0)) {
                     children.forEach((child) => {
                         this.$.feList.push('items', child)
@@ -331,11 +367,18 @@
                     }
                 }
                 if (Object.keys(this.currentDirMetaData).length === 0) {
+
+                    console.log(" DIR 2 " + response.endpoint);
+
                     const a = JSON.parse(JSON.stringify(response));
+
+                    console.log(" JSON.parse(JSON.stringify(response)) 2 " + response.endpoint);
+
                     delete a['children'];
                     this.currentDirMetaData = a;
                     this.currentDirMetaData.fileName = this.currentDirName;
                 }
+
                 this._updateContentElevationAttribute();
             }
 
@@ -425,16 +468,43 @@
 
             _loadNamespaceData()
             {
+
+                console.log("_loadNamespaceData");
                 //FIXME: race condition problem
                 if (this._isSubsequentRequest) {
+
+                    console.log("_loadNamespaceData call ls");
+
                     this.__listDirectory();
                 } else {
+
+                    console.log("_loadNamespaceData WebComponentsReady ls");
+
                     window.addEventListener('WebComponentsReady', () => this.__listDirectory());
                 }
             }
+
+           /* _loadNamespaceDataLabel()
+            {
+
+                console.log("_loadNamespaceDataLabel");
+                //FIXME: race condition problem
+                if (this._isSubsequentRequest) {
+
+                    console.log("_ call ls");
+
+                    this.__listDirectoryLabel();
+                } else {
+
+                    console.log(" WebComponentsReady ls");
+
+                    window.addEventListener('WebComponentsReady', () => this.__listDirectoryLabel());
+                }
+            }*/
             __listDirectory()
             {
                 this.loading = true;
+                console.log("this path " + this.path);
                 const message = {
                     'endpoint' : `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
                     'file' : this.currentDirMetaData,
@@ -444,6 +514,10 @@
                     'offset' : this.__counter__ * 100,
                     'upauth' : this.getAuthValue()
                 };
+
+                console.log(" DIR 99999 " + this.encodePath(this.path));
+
+                console.log("NORMAL DIR " + message.endpoint);
                 this.fileMetadataPromise(message).then(metadata => {
                     this.handleResponse(metadata);
                     this.loading = false;
@@ -453,6 +527,45 @@
                 })
             }
 
+
+           /* __listDirectoryLabel()
+            {
+                console.log("__listDirectoryLabel Inside");
+
+                this.loading = true;
+                console.log("__listDirectoryLabel Inside labels view file" +
+                    "");
+                const message = {
+                    'endpoint' : `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
+                    'file' : this.currentDirMetaData,
+                    //'url' : this.urlLables("cat"),
+                    'filePath' : "cat",
+                    'scope' : 'partial',
+                    'limit' : 100,
+                    'offset' : this.__counter__ * 100,
+                    'upauth' : this.getAuthValue()
+                };
+
+                console.log("LAbel DIR " + message.endpoint);
+
+                console.log("LAbel DIR " + message.url);
+
+
+                console.log("LAbel DIR " + message.filePath);
+
+                console.log("LAbel DIR 4444 " + Object.keys(this.currentDirMetaData).length);
+
+
+
+                this.fileMetadataPromise(message).then(metadata => {
+                    this.handleResponse(metadata);
+                    this.loading = false;
+                }).catch(error => {
+                    this.handleError(error.message);
+                    this.loading = false;
+                })
+            }
+*/
             _multipleSelectionShortcuts(event)
             {
                 if ((window.navigator.platform.match("Mac")
@@ -804,18 +917,33 @@
 
             _updateContentElevationAttribute()
             {
+                console.log("blabla");
                 if (this.$.feList.items.length > 0) {
+                    console.log("blabla1" );
+
                     if (this.$.content.getAttribute("elevation") === "0") {
+                        console.log("blabla 3" );
+
                         this.$.content.setAttribute("elevation", 1);
                     }
                 } else {
+                    console.log("blabla2" );
+
                     if (this.$.content.getAttribute("elevation") === "1") {
+                        console.log("blabla2" );
+
                         this.$.content.setAttribute("elevation", 0);
                     }
                     if (this.$.feList.items.length === 0) {
+                        console.log("blabla empty" );
+
+
                         const el1 = new EmptyDirectory();
                         this.$.content.appendChild(el1);
                     }
+
+                    console.log("blabla 5" );
+
                 }
             }
 
@@ -834,19 +962,33 @@
 
             _eventsChannelStatus(event)
             {
+
+                console.log("event channel  ");
+
                 const status = event ? event.detail ? event.detail.current : event : '';
                 switch (status) {
                     case 'created':
+
+                        console.log("event channel  " + status);
+
                     case 'running':
+
+                        console.log("event channel  " + status);
+
                         const inotifyInfo = sessionStorage.getItem("newlyInotify");
                         if (!!inotifyInfo && this.path !== decodeURI(inotifyInfo.split(" ")[0]))
                             cancelSubscription(inotifyInfo.split(" ")[1], "inotify");
                         inotifySubscription(this.path);
                         break;
                     case 'disconnected':
+
+                        console.log("event channel  " + status);
+
                         watchChannel(window.CONFIG.sse.channel, "inotify");
                         break;
                     case 'pending':
+                        console.log("event channel  " + status);
+
                     default:
                         break;
                 }
@@ -895,6 +1037,7 @@
 
             async _getFileAttribute(name)
             {
+                console.log("aaatttrrrrr");
                 /**
                  * TODO -- use web-worker for this request
                  */

@@ -73,6 +73,7 @@ class UserProfileDropdown extends Polymer.Element
     }
     _lsHome()
     {
+        console.log("_lsHome")
         this.dispatchEvent(
             new CustomEvent('dv-namespace-ls-path', {
                 detail: {path: sessionStorage.getItem('homeDirectory')}, bubbles: true, composed: true}));

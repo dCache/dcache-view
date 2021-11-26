@@ -65,6 +65,14 @@ class UserProfile extends
                     return sessionStorage.getItem("homeDirectory");
                 }
             },
+
+            homeDirLabel: {
+                type: String,
+                notify: true,
+                value: function () {
+                    return sessionStorage.getItem("homeDirectoryLabel");
+                }
+            },
             listOfAllRoles: {
                 type: Array,
                 notify: true,

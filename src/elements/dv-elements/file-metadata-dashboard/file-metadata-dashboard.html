@@ -183,6 +183,7 @@
         {
             constructor(file, path, idx, auth)
             {
+                console.log("FileMetadataDashboard");
                 super();
                 this._setIndexListener_ = this._setIndexListener.bind(this);
                 this._setChildren_ = this._setChildren.bind(this);
@@ -217,6 +218,8 @@
             }
             static get properties()
             {
+                console.log("properties in file-mata-dashboard");
+
                 return {
                     knownMetadata: {
                         type: Object,
@@ -309,6 +312,8 @@
             }
             ready()
             {
+                console.log("ready dashboard");
+
                 super.ready();
                 Polymer.RenderStatus.afterNextRender(this, () => this.__formatStyleSwitch(this.formatStatus));
             }
@@ -441,6 +446,7 @@
             }
             _filterMetadata(metadata)
             {
+
                 delete metadata["locations"];
                 delete metadata["pnfsId"];
                 delete metadata["storageInfo"];
@@ -454,6 +460,7 @@
             }
             _requestFileMetadata(additionalMessage)
             {
+                console.log("2");
                 const message = {
                     'endpoint' : `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
                     'file' : this.knownMetadata,

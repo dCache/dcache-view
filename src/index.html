@@ -236,12 +236,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                               selected="[[route]]">
                                     <template is="dom-if" if="[[config.isSomebody]]">
                                         <paper-item>
+
                                             <a data-route="home" on-tap="lsHomeDir">
                                                 <paper-fab icon="home"
                                                            title="Your home directory" class="red" mini></paper-fab>
                                             </a>
                                         </paper-item>
+
+
+                                       <!-- <paper-item>
+                                            <a data-route="home" href$="{{baseUrl}}virtual">
+                                                <paper-fab icon="home" title="Virtual directories" class="green" mini></paper-fab>
+                                            </a>
+                                        </paper-item>-->
                                     </template>
+
+
+                                    <!--<paper-item>
+                                        <a data-route="home" on-tap="lsHomeDirLabel">
+                                            <paper-fab icon="home"
+                                                       title="Your virtual dir" class="green" mini></paper-fab>
+                                        </a>
+                                    </paper-item>-->
+
                                     <paper-item>
                                         <a data-route="home" on-tap="namespaceView">
                                             <paper-fab icon="device:storage"
@@ -261,6 +278,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             <paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
                                         </a>
                                     </paper-item>
+
+                                   <!-- <template is="dom-if" if="[[config.isSomebody]]">
+                                        <paper-item>
+                                            <a data-route="user-profile" href$="{{baseUrl}}user-profile">
+                                                <paper-fab icon="account-circle" title="Your profile"
+                                                           class="teal" mini></paper-fab>
+                                            </a>
+                                        </paper-item>
+                                    </template>-->
+
+                                    <template is="dom-if" if="[[config.isSomebody]]">
+
+                                    <paper-item>
+                                        <a data-route="virtual" href$="{{baseUrl}}virtual">
+                                            <paper-fab icon="home" title="Virtual directories" class="green" mini></paper-fab>
+                                        </a>
+                                    </paper-item>
+
+                                    </template>
 
                                     <template is="dom-if" if="[[config.isSomebody]]">
                                         <paper-item>
@@ -383,6 +419,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                             <section data-route="user-profile" class="fit"
                                                      style="background-color:#ECECEC; overflow-y: auto !important;">
                                                 <div main id="userProfileContainer" style="padding-bottom: 10px;"></div>
+                                            </section>
+
+
+                                            <section data-route="virtual" class="fit"
+                                                     style="background-color:#ECECEC; overflow-y: auto !important;">
+                                                <div main id="virtualDirectoriesContainer" style="padding-bottom: 10px;"></div>
                                             </section>
                                         </iron-pages>
                                     </div>

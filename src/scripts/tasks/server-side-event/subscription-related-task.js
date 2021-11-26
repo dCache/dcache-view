@@ -32,6 +32,7 @@ self.addEventListener('message', function(e) {
 
     fetch(e.data.url, init).then(response => {
         if (!response.ok) {
+            console.log("something went wrong");
             throw JSON.stringify({status: response.status, message: response.statusText})
         }
         self.postMessage(e.data.method === 'POST' ? response.headers.get('location') : "done");

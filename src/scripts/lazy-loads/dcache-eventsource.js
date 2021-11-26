@@ -5,6 +5,7 @@ let dCacheEventSource = (function () {
     {
         constructor(url, init)
         {
+            console.log("eventssss")
             super();
             this._chunk = '';
             this._data = '';

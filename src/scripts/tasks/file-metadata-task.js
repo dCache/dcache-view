@@ -50,6 +50,9 @@ self.addEventListener('message', function(e) {
     }
 
     if (!pnfsID && e.data.filePath) {
+
+
+        console.log("KKKKKKKK " + e.data.filePath);
         //no pnfsID
         partial(e.data.filePath).then((response) => {
             partialFileMetadata = response;
@@ -96,13 +99,19 @@ self.addEventListener('message', function(e) {
         });
     }
     function partial(path) {
+
+        console.log("partial PPPPPPPP task " + {path});
         return fetchRequest(new Request(
             `${endpoint}namespace${path}?children=true&offset=${offset}&limit=${limit}&qos=${qos}`, {
                 headers: headers}));
     }
     function fetchRequest(req) {
+        console.log("fetchRequest  req  inside");
+
         return fetch(req).then((response) => {
             if (!response.ok) {
+                console.log("fetchRequest  req  not ok");
+
                 throw JSON.stringify({status: response.status, message: response.statusText})
             }
             return response.json();

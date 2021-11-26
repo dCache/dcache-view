@@ -51,6 +51,9 @@
             app.params = "";
         });
 
+
+
+
         page('/admin/:component', function(data) {
             app.route = 'admin-component-page';
             app.params = data.params;
@@ -139,12 +142,72 @@
                 return;
             }
 
+
             let up = new UserProfile();
             app.removeAllChildren(app.$.userProfileContainer);
             app.$.userProfileContainer.appendChild(up);
             app.route = 'user-profile';
             app.params = "";
         });
+
+
+
+      page('/virtual', function() {
+        if (!window.CONFIG.isSomebody) {
+          const a = '"page":"virtual","path":""';
+          let pathName = '/user-login?r=' + encodeURIComponent(a);
+          page.redirect(pathName);
+          return;
+        }
+
+       /* const currentVF = app.$.virtualDirectoriesContainer.querySelector('view-file-labels');;
+        let parent;
+        if (currentVF) {
+          parent = currentVF.parentNode;
+          parent.removeChild(currentVF);
+        }
+*/
+       /* const currentVF = app.$.virtualDirectoriesContainer.querySelector('view-file-labels');;
+        let parent;
+        if (currentVF) {
+          parent = currentVF.parentNode;
+          parent.removeChild(currentVF);
+        }*/
+        /*} else {
+          console.log("homedir");
+          if (app.route === "home") {
+            parent = app.$["homedir"];
+          }
+          if (app.route === "shared-file") {
+            parent = app.$["shared-with-me"].$["shared-directory-view"].$["container"];
+          }
+        }*/
+      /*  const newVF1 = new ViewFileLabels(path);
+        if (auth) {
+          newVF1.authenticationParameters = auth;
+        }
+        parent.appendChild(newVF1);
+        newVF1.__listDirectoryLabel();*/
+
+        let vd = new ViewFileLabels();
+        app.removeAllChildren(app.$.virtualDirectoriesContainer);
+        app.$.virtualDirectoriesContainer.appendChild(vd);
+        app.route = 'virtual';
+        app.params = "";
+        vd.__listDirectoryLabel();
+
+        /*let up = new ViewFileLabels()wFil();
+        app.removeAllChildren(app.$.userProfileContainer);
+        app.$.userProfileContainer.appendChild(up);
+        app.route = 'user-profile';
+        app.params = "";*/
+      });
+
+      /*  page('/virtual', function() {
+          app.route = 'home';
+          app.params = "";
+
+        });*/
 
         page('/shared-link', function (dt) {
             app.route = 'shared-link';

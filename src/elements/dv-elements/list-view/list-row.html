@@ -202,6 +202,8 @@
 
             connectedCallback()
             {
+                console.log("gggg 1");
+
                 super.connectedCallback();
                 this.$.row.addEventListener('dblclick', ()=>{this._openFileLoc()});
                 this.$.row.addEventListener('contextmenu', (e)=>{this._openContextMenu(e)});
@@ -226,6 +228,8 @@
 
             _drop(event)
             {
+                console.log("gggg DIR");
+
                 event.stopPropagation();
                 event.preventDefault();
                 if (this.fileMetaData.fileType === 'DIR'
@@ -269,14 +273,19 @@
 
             _dragstart(event)
             {
+                console.log("gggg 3");
+
                 this.dispatchEvent(new CustomEvent('dv-namespace-dragstart', {
                     detail: {file: this, evt: event}, bubbles: true, composed: true}));
             }
 
             _computeFilePath(parentPath, fileName)
             {
+                console.log("gggg 4" + this.fileMetaData.fileName + " " + parentPath);
                 return parentPath.endsWith("/") ?
                     `${parentPath}${fileName}`: `${parentPath}/${fileName}`;
+
+               // return "name";
             }
 
             _fileCurrentQOSValue(qos)
@@ -314,6 +323,8 @@
 
             _computeSize(file)
             {
+                console.log("gggg 6");
+
                 if (file.fileType === "DIR") return "--";
                 return this.convertBytesToNearestBinaryPrefix(file.size)
             }
@@ -327,6 +338,8 @@
 
             _openContextMenu(event)
             {
+                console.log("gggg 9");
+
                 event.preventDefault();
                 event.stopPropagation();
                 /**
@@ -344,6 +357,8 @@
             }
             manualRenameStart(file, auth)
             {
+                console.log("gggg");
+
                 const input = new RenameInput(file, auth);
                 this.$["fileName"].classList.add("none");
                 this.$["rename"].classList.remove("none");

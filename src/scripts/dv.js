@@ -17,13 +17,23 @@
     // See https://github.com/Polymer/polymer/issues/1381
     window.addEventListener('WebComponentsReady', function() {
         // imports are loaded and elements have been registered
+
+        console.log("dv,js" + "WebComponentsReady");
         app.getQosInformation();
         if (app.route === "home" || !(app.route)) {
+
+            console.log("dv,js" + "WebComponentsReady 0");
+
             const currentVF = app.$["homedir"].querySelector('view-file');
             if (!!currentVF) {
+                console.log("dv,js" + "WebComponentsReady 1");
+
                 const parent = currentVF.parentNode;
                 parent.removeChild(currentVF);
             }
+
+            console.log("dv,js" + "WebComponentsReady 2");
+
             const newVF = new ViewFile("/");
             app.$["homedir"].appendChild(newVF);
             newVF.__listDirectory();
@@ -57,6 +67,7 @@
      */
     app.ls = function(path, auth)
     {
+        console.log("app.ls" + app.route );
         const currentVF = findViewFile();
         let parent;
         if (currentVF) {
@@ -83,6 +94,76 @@
         newVF.__listDirectory();
     };
 
+
+    /**
+     * List directory -> use by other elements like:
+     * list-row, pagination-button, hover-contextual
+     * @deprecated
+     * TODO: move this to the listener
+     */
+    /*app.lsVir = function(path, auth)
+    {
+        console.log("app.ls label");
+        const currentVF = findViewFileLabels();
+        let parent;
+        if (currentVF) {
+            parent = currentVF.parentNode;
+            parent.removeChild(currentVF);
+        } else {
+            console.log("homedir");
+            if (app.route === "home") {
+                parent = app.$["homedir"];
+            }
+            if (app.route === "shared-file") {
+                parent = app.$["shared-with-me"].$["shared-directory-view"].$["container"];
+            }
+        }
+
+        console.log("app.ls label 2 999999");
+
+        const newVF1 = new ViewFileLabels(path);
+        if (auth) {
+            newVF1.authenticationParameters = auth;
+        }
+        parent.appendChild(newVF1);
+        newVF1.__listDirectoryLabel();
+    };
+
+*/
+  /*  /!**
+     * List directory -> use by other elements like:
+     * list-row, pagination-button, hover-contextual
+     * @deprecated
+     * TODO: move this to the listener
+     *!/
+    app.lsLabel = function(path, auth)
+    {
+        const currentVF = finda();
+        let parent;
+        if (currentVF) {
+            parent = currentVF.parentNode;
+            parent.removeChild(currentVF);
+        } else {
+            if (app.route === "home") {
+                parent = app.$["homedir"];
+            }
+            if (app.route === "shared-file") {
+                parent = app.$["shared-with-me"].$["shared-directory-view"].$["container"];
+            }
+        }
+
+        const newVF = new ViewFile(path);
+        if (auth) {
+            newVF.authenticationParameters = auth;
+        } else {
+            if (app.route === "shared-file") {
+                newVF.authenticationParameters = parent.__dataHost.authenticationParameters;
+            }
+        }
+        parent.appendChild(newVF);
+        newVF.__listDirectoryLabel();
+    };
+*/
     app.namespaceView = function () {
         page("/");
         const currentVF = app.$["homedir"].querySelector('view-file');
@@ -95,10 +176,21 @@
 
     app.lsHomeDir = function()
     {
+        console.log("app.lsHomeDir");
         app.route = "home";
         page("/");
         app.ls(sessionStorage.homeDirectory);
     };
+
+
+   /* app.lsHomeDirLabel = function()
+    {
+        console.log("app.lsHomeDirLabel");
+
+       // app.route = "homeVir";
+        page("/");
+        app.lsVir(sessionStorage.homeDirectoryLabel);
+    };*/
 
     /**
      *
@@ -202,6 +294,8 @@
     };
 
     app.click = function (e) {
+
+        console.log("on click TTTTTTTTTTTTTT");
         this.dispatchEvent(
             new CustomEvent('dv-namespace-reset-element-internal-parameters', {
                 detail: {element: 'view-file'}, bubbles: true, composed: true}));
@@ -212,6 +306,7 @@
      */
     app.getfileName = function (path)
     {
+        console.log("getfileName");
         if (path === null || path === "" || path === "/") {
             return 'Root';
         } else {
@@ -223,6 +318,7 @@
     // Listing directory with time delay of @timeDelay
     app.delayedLs = function (path, timeDelay)
     {
+        console.log("list delay");
         timeoutID = window.setTimeout(()=>{
             app.ls(path);
             dndArr = [];
@@ -313,6 +409,8 @@
 
         //Remove all the in-drop-zone and is-dragging attributes of list-row(s)
         const vf = findViewFile(e);
+        console.log("list row");
+
         const allListRows = [...vf.$.feList.querySelectorAll('list-row')];
         const len = allListRows.length;
         for (let i=0; i<len; i++) {
@@ -471,6 +569,13 @@
             }
         }
     }
+
+    function findViewFileLabels(e)
+    {
+        console.log("bbbb");
+            return app.$["homedir"].querySelector('view-file-labels');
+
+    }
     function getFileWebDavUrl(path, operationType)
     {
         if (path.startsWith("/")) {
@@ -497,6 +602,8 @@
     }
     function updateFeListAndMetaDataDrawer(status, itemIndex)
     {
+
+        console.log("updateFeListAndMetaDataDrawer");
         if (app.$.metadata.selected === 'drawer') {
             //FIXME: use event
             app.$.metadata.querySelector('file-metadata').currentQos =
@@ -605,6 +712,7 @@
         const vf = findViewFile(e);
         app.mvObj.files= vf._xSelectedItems;
         app.mvObj.source = vf.path;
+        console.log("list-row");
 
         const allListRows = [...vf.$.feList.querySelectorAll('list-row')];
         const len = vf._xSelectedItems.length;
@@ -677,6 +785,8 @@
         app.$.centralContextMenu.close();
     });
     window.addEventListener('dv-namespace-open-filemetadata-panel', e => {
+
+        console.log("FileMetadataDashboard");
         if (app.$.metadata.selected === "main") {
             let auth;
             if (e.detail.file.authenticationParameters) {
@@ -718,6 +828,7 @@
         app.notifyPath('config.isAdmin');
         app.getQosInformation();
         if (window.CONFIG['webdav'] === undefined) {
+            console.log("webdavWorker");
             const webdavWorker = new Worker('scripts/tasks/request-webdav-endpoints.js');
 
             webdavWorker.addEventListener('message', function(e) {
@@ -760,6 +871,7 @@
         openToast(`${e.detail.message}`);
     });
     window.addEventListener('dv-namespace-ls-path', (e) => {
+        console.log("dv-namespace-ls-path");
         if (app.route !== "home") page("/");
         app.ls(e.detail.path);
     });
