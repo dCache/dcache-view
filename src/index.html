@@ -264,6 +264,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                                     <template is="dom-if" if="[[config.isSomebody]]">
                                         <paper-item>
+                                            <a data-route="virtual" href$="{{baseUrl}}virtual">
+                                                <paper-fab icon="loyalty" title="Virtual directories" class="brown" mini></paper-fab>
+                                            </a>
+                                        </paper-item>
+
+                                    </template>
+
+                                    <template is="dom-if" if="[[config.isSomebody]]">
+                                        <paper-item>
                                             <a data-route="user-profile" href$="{{baseUrl}}user-profile">
                                                 <paper-fab icon="account-circle" title="Your profile"
                                                            class="teal" mini></paper-fab>
@@ -380,6 +389,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 </div>
                                             </section>
 
+                                            <section data-route="virtual" class="fit"
+                                                     style="background-color:#ECECEC; overflow-y: auto !important;">
+                                                <div main id="virtualDirectoriesContainer" style="padding-bottom: 10px;"
+                                                    on-contextmenu="currentDirContext"
+                                                    on-drop="drop" on-dragenter="dragenter"
+                                                    on-dragleave="dragleave" on-dragend="dragend"
+                                                    on-dragexit="dragexit" on-click="click">
+                                                </div>
+                                            </section>
                                             <section data-route="user-profile" class="fit"
                                                      style="background-color:#ECECEC; overflow-y: auto !important;">
                                                 <div main id="userProfileContainer" style="padding-bottom: 10px;"></div>

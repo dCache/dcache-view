@@ -1,4 +1,7 @@
+
+
 <script src="../bower_components/page/page.js"></script>
+
 <script>
     window.addEventListener('WebComponentsReady', function() {
 
@@ -145,12 +148,36 @@
                 return;
             }
 
+
+
+
             let up = new UserProfile();
             app.removeAllChildren(app.$.userProfileContainer);
             app.$.userProfileContainer.appendChild(up);
             app.route = 'user-profile';
             app.params = "";
         });
+
+      page('/virtual', function() {
+
+        if (!window.CONFIG.isSomebody) {
+
+          const a = '"page":"virtual","path":""';
+
+          let pathName = '/user-login?r=' + encodeURIComponent(a);
+
+          page.redirect(pathName);
+
+          return;
+
+        }
+        let vd = new ViewFileLabels();
+        app.removeAllChildren(app.$.virtualDirectoriesContainer);
+        app.$.virtualDirectoriesContainer.appendChild(vd);
+        app.route = 'virtual';
+        app.params = "";
+        vd.__listDirectoryLabel();
+      });
 
         page('/shared-link', function (dt) {
             app.route = 'shared-link';

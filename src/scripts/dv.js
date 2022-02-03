@@ -441,7 +441,10 @@
 
     function findViewFile(e)
     {
-        if (app.route === "home") {
+        if (app.route === "virtual") {
+            return app.$["virtualDirectoriesContainer"].querySelector('view-file-labels');
+        }
+        else if (app.route === "home") {
             return app.$["homedir"].querySelector('view-file');
         } else if (app.route === "shared-files") {
             const fileSharingPage = app.$["shared-with-me"];

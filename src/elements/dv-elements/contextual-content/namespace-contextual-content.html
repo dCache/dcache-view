@@ -273,6 +273,7 @@
                     this.$.move.removeEventListener('tap', this._move.bind(this));
                     this.$.qosInfo.removeEventListener('tap', this._qosInfo.bind(this));
                     this.$.rename.removeEventListener('tap', this._rename.bind(this));
+                    this.$.setLabel.addEventListener('tap', this._setLabel.bind(this));
                     this.$.share.removeEventListener('tap', this._share.bind(this));
 
                     switch (this.targetNode.fileMetaData.fileType) {
@@ -446,8 +447,8 @@
 
             _deleteSingleEntry(file)
             {
-                const fullPath = this.currentPath.endsWith('/') ?
-                    `${this.currentPath}${file.fileName}`: `${this.currentPath}/${file.fileName}`;
+                //TODO do in smarter way
+                const fullPath = this.setFullPath(`${file.fileName}`);
                 const namespace = document.createElement('dcache-namespace');
                 namespace.auth = this.getAuthValue();
                 namespace.promise.then(()=>{
@@ -522,6 +523,17 @@
                         detail: {node: mkdir}, bubbles: true, composed: true}));
             }
 
+            //TODO should be changed to marter solution
+            setFullPath(fileName)
+            {
+                if(fileName.startsWith("/")){
+                    return `${this.targetNode.fileMetaData.fileName}`;
+                }else{
+                    return  this.currentPath.endsWith('/') ?
+                        this.currentPath+`${this.targetNode.fileMetaData.fileName}
+                       `: this.currentPath+`/${this.targetNode.fileMetaData.fileName}`;
+                }
+            }
 
             _setLabel()
             {
@@ -551,9 +563,7 @@
                             {detail: {message: err.message}, bubbles: true, composed: true}));
                     });
 
-                   const fullPath = this.currentPath.endsWith('/') ?
-                       `${this.currentPath}${this.targetNode.fileMetaData.fileName}
-                       `: `${this.currentPath}/${this.targetNode.fileMetaData.fileName}`;
+                    let fullPath =  this.setFullPath(this.targetNode.fileMetaData.fileName);
                     namespace.setlabel({
                         url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
                         path: this.encodePath(fullPath),
