@@ -430,12 +430,12 @@
 
                 for (let t = (len/2).toFixed(0); t < len + 1; t++) {
                     tuple[0] = chartData[t][0];
-                    for (let j = 1; j < tuplen-1; j++) {
+                    for (let j = 1; j < tuplen; j++) {
                         tuple[j] += chartData[t][j];
                     }
 
                     if (t % 4 === 0) {
-                        for (let j = 1; j < tuplen-1; j++) {
+                        for (let j = 1; j < tuplen; j++) {
                             tuple[j] = (tuple[j]/4).toFixed(0)/1;
                         }
 
