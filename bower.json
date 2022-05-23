@@ -26,7 +26,7 @@
     "page": "visionmedia/page.js#1.6.4",
     "admin-page": "dCache/admin-page#1.0.0",
     "create-directory": "dCache/create-directory#0.0.5",
-    "dcache-namespace": "dCache/dcache-namespace#^0.1.3",
+    "dcache-namespace": "dCache/dcache-namespace#^0.1.6",
     "file-icon": "dCache/file-icon#0.0.6",
     "move-file": "dCache/move-file#0.0.15",
     "qos-backend-information": "dCache/qos-backend-information#0.0.10",

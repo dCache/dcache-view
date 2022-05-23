@@ -149,6 +149,13 @@
                 View details
             </paper-icon-item>
 
+            <paper-icon-item id="removeLabel"
+                             class$="[[_computedClass('removeLabel', singleSelection,
+                             multipleSelection, currentDir, targetNode)]]">
+                <iron-icon icon="info" slot="item-icon"></iron-icon>
+                Remove label
+            </paper-icon-item>
+
             <paper-icon-item id="delete"
                              class$="[[_computedClass('delete', singleSelection,
                              multipleSelection, currentDir, targetNode)]]">
@@ -224,6 +231,8 @@
                     this.$.qosInfo.addEventListener('tap', this._qosInfo.bind(this));
                     this.$.rename.addEventListener('tap', this._rename.bind(this));
                     this.$.setLabel.addEventListener('tap', this._setLabel.bind(this));
+                    this.$.removeLabel.addEventListener('tap', this._removeLabel.bind(this));
+
                     this.$.share.addEventListener('tap', this._share.bind(this));
 
                     switch (this.targetNode.fileMetaData.fileType) {
@@ -274,6 +283,8 @@
                     this.$.qosInfo.removeEventListener('tap', this._qosInfo.bind(this));
                     this.$.rename.removeEventListener('tap', this._rename.bind(this));
                     this.$.setLabel.addEventListener('tap', this._setLabel.bind(this));
+                    this.$.removeLabel.addEventListener('tap', this._removeLabel.bind(this));
+
                     this.$.share.removeEventListener('tap', this._share.bind(this));
 
                     switch (this.targetNode.fileMetaData.fileType) {
@@ -583,6 +594,56 @@
             }
 
 
+
+            _removeLabel()
+            {
+                this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+                    bubbles: true, composed: true
+                }));
+
+                const removelabel = document.createElement('remove-label');
+                removelabel.dirFullPath = this.currentPath;
+                removelabel.header = false;
+                removelabel.currentFileName = this.targetNode.fileMetaData.fileName
+
+
+                removelabel.addEventListener('removelabel',(e) => {
+                    const namespace = document.createElement('dcache-namespace');
+                    namespace.auth = this.getAuthValue();
+
+                    namespace.promise.then(() => {
+                        this.dispatchEvent(
+                            new CustomEvent('dv-namespace-close-central-dialogbox', {
+                                bubbles: true, composed: true}));
+
+                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                            {detail: {message: "Done!  label removed. " + e.detail.labelValue }, bubbles: true, composed: true}));
+                    }).catch((err) => {
+                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast',
+                            {detail: {message: err.message}, bubbles: true, composed: true}));
+                    });
+
+                    let fullPath =  this.setFullPath(this.targetNode.fileMetaData.fileName);
+                    namespace.removelabel({
+                        url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
+                        path: this.encodePath(fullPath),
+                        label: e.detail.labelValue,
+                        method: 'POST'
+                    });
+                });
+                removelabel.addEventListener('close',() => {
+                    this.dispatchEvent(
+                        new CustomEvent('dv-namespace-close-central-dialogbox', {
+                            bubbles: true, composed: true}));
+                });
+                //TODO
+                this.dispatchEvent(
+                    new CustomEvent('dv-namespace-open-central-dialogbox', {
+                        detail: {node: removelabel}, bubbles: true, composed: true}));
+            }
+
+
+
             _upload()
             {
                 //FIXME: context menu stay opened even long after the file picker appears.
@@ -626,7 +687,7 @@
             _computedClass(id, singleSelection, multipleSelection, currentDir, t)
             {
                 if (currentDir && (id === 'open' || id === 'move' || id === 'rename' || id === 'download'
-                    || id === 'delete' || id === 'changeQos' || id === 'qosInfo' ||  id === 'setLabel')) {
+                    || id === 'delete' || id === 'changeQos' || id === 'qosInfo' || id === 'removeLabel' || id === 'setLabel')) {
                     return ' none';
                 } else {
                     if (!currentDir && (id === 'upload' || id === 'create')) {
@@ -643,12 +704,12 @@
             {
                 if (multipleSelection && (id === 'open' || id === 'share' ||
                     id === 'metadata' || id === 'webdavUrl' || id === 'rename' ||  id === 'setLabel' ||
-                    id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
+                    id === 'removeLabel' || id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
                     this.$[id].setAttribute('disabled', "");
                 }
 
                 if (singleSelection && t.fileMetaData.fileType === 'DIR' && (id === 'download' || id === 'changeQos'
-                ||  id === 'setLabel')) {
+                || id === 'removeLabel' || id === 'setLabel')) {
                     this.$[id].setAttribute('disabled', "");
                 }
                 if (!window.CONFIG.isSomebody && id === 'changeQos') {
