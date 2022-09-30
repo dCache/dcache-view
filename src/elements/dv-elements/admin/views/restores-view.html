@@ -88,16 +88,12 @@
                     <div class="details">
                         <table>
                             <tr>
-                                <td>Path:</td>
-                                <td>[[item.path]]</td>
+                                <td>(Clients [[item.clients]]) (Retries [[item.retries]])</td>
+                                <td></td>
                             </tr>
                             <tr>
-                                <td>Error:</td>
-                                <td>[[item.error]]</td>
-                            </tr>
-                            <tr>
-                                <td>Error Message:</td>
-                                <td>[[item.errorMessage]]</td>
+                                <td>(Error [[item.error]]: [[item.errorMessage]]) </td>
+                                <td></td>
                             </tr>
                         </table>
                     </div>
@@ -105,23 +101,23 @@
 
                 <vaadin-grid-column-group>
                     <template class="header">#</template>
-                    <vaadin-grid-column width="75px">
+                    <vaadin-grid-column width="30px">
                         <template class="header">Filter on:</template>
                         <template>[[index]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
-                    <template class="header">Path</template>
-                    <vaadin-grid-column width="50px">
+                    <template class="header">Info</template>
+                    <vaadin-grid-column width="30px">
                         <template class="header"></template>
                         <template>
-                            <paper-checkbox aria-label="Path"
+                            <paper-checkbox aria-label="Info"
                                             checked="{{detailsOpened}}">
                             </paper-checkbox>
                         </template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
-                <vaadin-grid-column-group resizable>
+                <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="pnfsid">Pnfsid
                         </vaadin-grid-sorter>
@@ -143,6 +139,46 @@
                             <span on-tap="_openFileInfo"
                                     class="actionable">[[item.pnfsId]]</span>
                         </template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group resizable>
+                    <template class="header">
+                        <vaadin-grid-sorter path="path">Path
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="400px">
+                        <template class="header">
+                            <vaadin-grid-filter id="pathFilter"
+                                                aria-label="Path"
+                                                path="path"
+                                                value="[[_filterPath]]">
+                                <input slot="filter"
+                                       id="pathFilterInput"
+                                       placeholder="Path"
+                                       value="{{_filterPath::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template><div style="overflow-x:auto">[[item.path]]</div></template>
+                    </vaadin-grid-column>
+                </vaadin-grid-column-group>
+                <vaadin-grid-column-group>
+                    <template class="header">
+                        <vaadin-grid-sorter path="owner">Owner
+                        </vaadin-grid-sorter>
+                    </template>
+                    <vaadin-grid-column width="80px">
+                        <template class="header">
+                            <vaadin-grid-filter aria-label="Owner"
+                                                path="owner"
+                                                value="[[_filterOwner]]">
+                                <input slot="filter"
+                                       placeholder="owner"
+                                       value="{{_filterOwner::input}}"
+                                       focus-target/>
+                            </vaadin-grid-filter>
+                        </template>
+                        <template>[[item.owner]]:[[item.ownerGroup]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group>
@@ -169,7 +205,7 @@
                         <vaadin-grid-sorter path="pool">Pool
                         </vaadin-grid-sorter>
                     </template>
-                    <vaadin-grid-column width="300px">
+                    <vaadin-grid-column width="100px">
                         <template class="header">
                             <vaadin-grid-filter aria-label="Pool Candidate"
                                                 path="pool"
@@ -180,40 +216,20 @@
                                        focus-target/>
                             </vaadin-grid-filter>
                         </template>
-                        <template>
-                            <span on-tap="_openPoolInfo"
-                                class="actionable">[[item.poolCandidate]]</span>
+                        <template><div style="overflow-x:auto">
+                            <span on-tap="_openPoolInfo" class="actionable">[[item.poolCandidate]]</span>
+                        </div>
                         </template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
-                <vaadin-grid-column-group resizable>
+                <vaadin-grid-column-group>
                     <template class="header">
                         <vaadin-grid-sorter path="started">Started
                         </vaadin-grid-sorter>
                     </template>
-                    <vaadin-grid-column width="150px">
+                    <vaadin-grid-column width="140px">
                         <template class="header"></template>
                         <template>[[item.started.formatted]]</template>
-                    </vaadin-grid-column>
-                </vaadin-grid-column-group>
-                <vaadin-grid-column-group>
-                    <template class="header">
-                        <vaadin-grid-sorter path="clients">Clients
-                        </vaadin-grid-sorter>
-                    </template>
-                    <vaadin-grid-column width="75px">
-                        <template class="header"></template>
-                        <template>[[item.clients]]</template>
-                    </vaadin-grid-column>
-                </vaadin-grid-column-group>
-                <vaadin-grid-column-group>
-                    <template class="header">
-                        <vaadin-grid-sorter path="retries">Retries
-                        </vaadin-grid-sorter>
-                    </template>
-                    <vaadin-grid-column width="75px">
-                        <template class="header"></template>
-                        <template>[[item.retries]]</template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
                 <vaadin-grid-column-group resizable>
@@ -221,7 +237,7 @@
                         <vaadin-grid-sorter path="status">Status
                         </vaadin-grid-sorter>
                     </template>
-                    <vaadin-grid-column width="200px">
+                    <vaadin-grid-column width="225px">
                         <template class="header">
                             <vaadin-grid-filter aria-label="Status"
                                                 path="status"
@@ -232,7 +248,7 @@
                                        focus-target/>
                             </vaadin-grid-filter>
                         </template>
-                        <template>[[item.status]]</template>
+                        <template><div style="overflow-x:auto">[[item.status]]</div></template>
                     </vaadin-grid-column>
                 </vaadin-grid-column-group>
             </vaadin-grid>
@@ -283,7 +299,7 @@
                     (index) => 'restores',
                     (index) => '',
                     'restores',
-                    4);
+                    6);
 
                 /*
                  * This must be assigned only after the decorator has been
