@@ -141,9 +141,15 @@
                 grid-template-columns: 1fr 2fr 25%;
             }
 
-            #selection-panel {
+            #selection-panel-1 {
                 display: grid;
-                grid-template-columns: repeat(6, 1fr);
+                grid-template-columns: repeat(2, 1fr);
+                grid-column-gap: 5px;
+            }
+
+            #selection-panel-2 {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
                 grid-column-gap: 5px;
             }
 
@@ -320,9 +326,13 @@
                     <iron-label slot="top" id="subtitle"><strong>Simulated I/O
                         Selection</strong></iron-label>
                 </paper-toolbar>
-                <div id="selection-panel">
-                    <paper-input class="item" label="Link Group"
-                                 value="{{linkgroup}}"></paper-input>
+                <div id="selection-panel-1">
+                    <paper-input class="item" label="PnfsId"
+                                 value="{{pnfsId}}"></paper-input>
+                    <paper-input class="item" label="Path"
+                                 value="{{path}}"></paper-input>
+                </div>
+                <div id="selection-panel-2">
                     <paper-dropdown-menu class="item" label="IO Direction" noink
                                          no-animations>
                         <iron-selector slot="dropdown-content"
@@ -332,17 +342,20 @@
                             <paper-item>WRITE</paper-item>
                             <paper-item>CACHE</paper-item>
                             <paper-item>P2P</paper-item>
-                            <paper-item>ANY</paper-item>
                         </iron-selector>
                     </paper-dropdown-menu>
-                    <paper-input class="item" label="Storage Unit"
-                                 value="{{store}}"></paper-input>
+                    <paper-input class="item" label="Storage Class"
+                                 value="{{storageClass}}"></paper-input>
+                    <paper-input class="item" label="Hsm"
+                                 value="{{hsm}}"></paper-input>
                     <paper-input class="item" label="Cache Class"
-                                 value="{{dcache}}"></paper-input>
-                    <paper-input class="item" label="Net Unit"
+                                 value="{{cacheClass}}"></paper-input>
+                    <paper-input class="item" label="Client Host/IP"
                                  value="{{net}}"></paper-input>
                     <paper-input class="item" label="Protocol"
                                  value="{{protocol}}"></paper-input>
+                    <paper-input class="item" label="Link Group"
+                                 value="{{linkgroup}}"></paper-input>
                 </div>
                 <br/>
                 <div id="bottom-panel">
@@ -385,38 +398,51 @@
 
             static get properties() {
                 return {
-                    linkgroup: {
-                        type: String,
-                        notify: true
-                    },
-
                     iomode: {
                         type: Number,
                         value: 0,
                         notify: true
                     },
 
-                    store: {
+                    pnfsId: {
                         type: String,
-                        value: '*',
                         notify: true
                     },
 
-                    dcache: {
+                    path: {
                         type: String,
-                        value: '*',
+                        notify: true
+                    },
+
+                    storageClass: {
+                        type: String,
+                        notify: true
+                    },
+
+                    hsm: {
+                        type: String,
+                        notify: true
+                    },
+
+                    cacheClass: {
+                        type: String,
+                        notify: true
+                    },
+
+                    linkgroup: {
+                        type: String,
                         notify: true
                     },
 
                     net: {
                         type: String,
-                        value: '::0',
+                        value: '*',
                         notify: true
                     },
 
                     protocol: {
                         type: String,
-                        value: '*/*',
+                        value: '*',
                         notify: true
                     },
 
@@ -624,11 +650,9 @@
                     case 1:
                         return "WRITE";
                     case 2:
-                        return "P2P";
-                    case 3:
                         return "CACHE";
-                    case 4:
-                        return "ANY";
+                    case 3:
+                        return "P2P";
                     default:
                         return "READ";
                 }
@@ -647,21 +671,34 @@
             _handleMatchQuery() {
                 const params = [];
 
+                const ioDirection = this._getIOMode();
+
+                if (ioDirection) {
+                    params.push(`ioDirection=${ioDirection}`);
+                }
+
+                if (this.pnfsId) {
+                    params.push(`pnfsId=${this.pnfsId}`);
+                }
+
+                if (this.path) {
+                    params.push(`path=${this.path}`);
+                }
+
+                if (this.storageClass) {
+                    params.push(`storageClass=${this.storageClass}`);
+                }
+
+                if (this.hsm) {
+                    params.push(`hsm=${this.hsm}`);
+                }
+
+                if (this.cacheClass) {
+                    params.push(`cacheClass=${this.dcache}`);
+                }
+
                 if (this.linkgroup) {
                     params.push(`linkGroup=${this.linkgroup}`);
-                }
-
-                const type = this._getIOMode();
-                if (type) {
-                    params.push(`type=${type}`);
-                }
-
-                if (this.store) {
-                    params.push(`store=${this.store}`);
-                }
-
-                if (this.dcache) {
-                    params.push(`dcache=${this.dcache}`);
                 }
 
                 if (this.net) {
