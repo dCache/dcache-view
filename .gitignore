@@ -23,3 +23,6 @@ etc
 
 ## Ignore
 #/src/scripts/config.js
+
+## Ignore RB
+.reviewboardrc
