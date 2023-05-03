@@ -27,13 +27,14 @@ self.addEventListener('message', function(e) {
     fetch(e.data.url, {
         method: 'POST',
         mode: "cors",
+        credentials: "include",
         body: body,
         headers: headers
     }).then((response) => {
         if(response.ok) {
             return response.json();
         }
-        throw new Error('Network response was not ok.');
+        throw new Error('Network response was not ok: ' + response.statusText);
     }).then((rep) => {
         self.postMessage(rep);
     }).catch(function(err) {
