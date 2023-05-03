@@ -53,11 +53,10 @@ class ShareableFileGeneration extends DcacheViewMixins.Commons(Polymer.Element)
             this._handleResponse(e)
         }, false);
         shareableLinkWorker.postMessage({
-            "url": this.getFileWebDavUrl("/", "read")[0],
+            "url": this.getFileWebDavUrl(this.fullPath, "read")[0],
             "body": {
                 "caveats": event.detail.activitiesList.length > 0 ?
-                    [`path:${this.fullPath}`, `activity: ${event.detail.activitiesList.join()}`] :
-                    [`path:${this.fullPath}`],
+                    [`activity: ${event.detail.activitiesList.join()}`] : [],
                 "validity":`${event.detail.validity}`
             },
             'upauth' : this.getAuthValue(),
