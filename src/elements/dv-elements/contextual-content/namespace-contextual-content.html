@@ -340,7 +340,8 @@
                     this.currentPath.endsWith('/') ?
                     `${this.currentPath}${this.targetNode.fileMetaData.fileName}`:
                     `${this.currentPath}/${this.targetNode.fileMetaData.fileName}`,
-                    this.authenticationParameters);
+                    this.authenticationParameters,
+                    this.targetNode.fileMetaData.fileType);
                 this.dispatchEvent(
                     new CustomEvent('dv-namespace-open-central-dialogbox', {
                         detail: {node: fileSharingForm}, bubbles: true, composed: true})

@@ -1,6 +1,6 @@
 class ShareableFileGeneration extends DcacheViewMixins.Commons(Polymer.Element)
 {
-    constructor(fn,fp,auth)
+    constructor(fn,fp,auth,ft)
     {
         super();
         this.fileName = fn;
@@ -8,6 +8,7 @@ class ShareableFileGeneration extends DcacheViewMixins.Commons(Polymer.Element)
         if (auth) {
             this.authenticationParameters = auth;
         }
+        this.fileType = ft;
 
         this._generateListener = this._generateResponseListener.bind(this)
     }
@@ -67,7 +68,7 @@ class ShareableFileGeneration extends DcacheViewMixins.Commons(Polymer.Element)
     {
         let contentChild;
         if (type === "successful") {
-            contentChild = new ShareableSuccessfulPage(this.fileName, this.fullPath, payload.macaroon);
+            contentChild = new ShareableSuccessfulPage(this.fileName, this.fullPath, this.fileType, payload);
         } else {
             console.error(payload);
             contentChild = new ShareableErrorPage(payload);

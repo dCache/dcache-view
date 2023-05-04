@@ -127,7 +127,7 @@ class SharedFileListContextualContent extends Polymer.Element
             bubbles: true, composed: true
         }));
         const fileSharingForm =
-            new ShareableRequestForm(this.targetNode.fileMetaData.fileName, this.targetNode.filePath);
+            new ShareableRequestForm(this.targetNode.fileMetaData.fileName, this.targetNode.filePath, this.targetNode.fileMetaData.fileType);
         this.dispatchEvent(
             new CustomEvent('dv-namespace-open-central-dialogbox', {
                 detail: {node: fileSharingForm}, bubbles: true, composed: true})
