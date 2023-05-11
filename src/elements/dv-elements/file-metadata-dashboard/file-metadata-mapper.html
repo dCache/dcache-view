@@ -310,7 +310,7 @@
                 }
 
                 if (metadata.mode) {
-                    metadata.mode = this.convertToUnixPermissions(metadata.mode);
+                    metadata.mode = this.convertToUnixPermissions(metadata.mode, metadata.fileType);
                 }
 
                 for (const objectKey in metadata) {

@@ -33,6 +33,11 @@
                     flex: 1 1 auto;
                     max-width: calc(100% - 418px); /*This is weird, I don't know where the 8px is coming from*/
                 }
+                .mode {
+                    width: 12ex;
+                    max-width: 12ex;
+                    min-width: 12ex;
+                }
                 .ctime, .qos {
                     width: 150px;
                     max-width: 150px;
@@ -51,7 +56,7 @@
                     flex: 1 1 auto;
                     max-width: calc(100% - 50px);
                 }
-                .ctime, .qos, .size {
+                .mode, .ctime, .qos, .size {
                     display: none;
                 }
             }
@@ -63,6 +68,7 @@
         <div class="row cell">
             <div class="cell file-icon">Type</div>
             <div class="cell name">Name</div>
+            <div class="cell mode">Mode</div>
             <div class="cell ctime">Creation time</div>
             <div class="cell qos">File location</div>
             <div class="cell size">Size</div>
