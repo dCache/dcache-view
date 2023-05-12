@@ -501,6 +501,14 @@
             .set(`items.${itemIndex}.currentQos`, status);
         vf.shadowRoot.querySelector('#feList').notifyPath(`items.${itemIndex}.currentQos`);
     }
+    /* Initiate browser file download */
+    function _downloadFile(url)
+    {
+        var dl = document.createElement("a");
+        dl.setAttribute('href', url);
+        dl.setAttribute('download', '');
+        dl.click();
+    }
 
     window.addEventListener('qos-in-transition', function(event) {
         updateFeListAndMetaDataDrawer([`${event.detail.options.targetQos}`], event.detail.options.itemIndex);
@@ -632,32 +640,52 @@
             app.ls(e.detail.file.filePath, auth);
             Polymer.dom.flush();
         } else {
-            //Download the file
-            const worker = new Worker('./scripts/tasks/download-task.js');
+            // Download the file
             const fileURL = getFileWebDavUrl(e.detail.file.filePath, "read")[0];
-            worker.addEventListener('message', (response) => {
-                worker.terminate();
-                const windowUrl = window.URL || window.webkitURL;
-                const url = windowUrl.createObjectURL(response.data);
-                const link = app.$.download;
-                link.href = url;
-                link.download = e.detail.file.fileMetaData.fileName;
-                link.click();
-                windowUrl.revokeObjectURL(url);
-
-            }, false);
-            worker.addEventListener('error', (err)=> {
-                worker.terminate();
-                openToast(`${err.message}`);
-            }, false);
-            worker.postMessage({
-                'url' : fileURL,
-                'mime' : e.detail.file.fileMetaData.fileMimeType,
-                'upauth' : app.getAuthValue(auth),
-                'return': 'blob'
-            });
+            let authval = app.getAuthValue();
+            if (e.detail.file.macaroon) {
+                // Unconditionally use existing macaroon if available
+                let u = new URL(fileURL);
+                u.searchParams.append('authz', e.detail.file.macaroon);
+                _downloadFile(u);
+            }
+            else if(!authval) {
+                /*
+                 * No explicit auth, so using cert auth, which means we can
+                 * just access the file directly without having the user
+                 * re-login.
+                 */
+                 _downloadFile(fileURL);
+            }
+            else {
+                /*
+                 * We don't seem to be able to pass our current auth
+                 * via a standard method that triggers the browser standard
+                 * file-download handling, so need to create a short-lived
+                 * Macaroon for it.
+                 */
+                const macaroonWorker = new Worker('./scripts/tasks/macaroon-request-task.js');
+                macaroonWorker.addEventListener('message', (e) => {
+                    macaroonWorker.terminate();
+                    _downloadFile(e.data.uri.targetWithMacaroon);
+                }, false);
+                macaroonWorker.addEventListener('error', (e) => {
+                    macaroonWorker.terminate();
+                    // FIXME: Display an error dialog somehow
+                    console.error(e);
+                }, false);
+                macaroonWorker.postMessage({
+                    "url": fileURL,
+                    "body": {
+                        "caveats": ["activity:DOWNLOAD"],
+                        "validity": "PT1M"
+                    },
+                    'upauth' : authval,
+                });
+            }
         }
     });
+
     window.addEventListener('dv-namespace-open-subcontextmenu', e => app.subContextMenu(e));
     window.addEventListener('dv-namespace-close-subcontextmenu', () => {
         app.$.centralSubContextMenu.close();
