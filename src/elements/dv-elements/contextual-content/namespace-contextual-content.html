@@ -246,6 +246,10 @@
                 } else if (this.multipleSelection) {
                     this.$.delete.addEventListener('tap', this._delete.bind(this));
                     this.$.move.addEventListener('tap', this._move.bind(this));
+                    // FIXME: Is this the place to figure out if any
+                    // directories are selected and disable download if
+                    // that's the case?
+                    this.$.download.addEventListener('tap', this._openOrDownload.bind(this));
                 } else if (this.currentDir) {
                     this.$.create.addEventListener('tap', this._create.bind(this));
                     this.$.metadata.addEventListener('tap', this._metadata.bind(this));
@@ -289,6 +293,7 @@
                 } else if (this.multipleSelection) {
                     this.$.delete.removeEventListener('tap', this._delete.bind(this));
                     this.$.move.removeEventListener('tap', this._move.bind(this));
+                    this.$.download.removeEventListener('tap', this._openOrDownload.bind(this));
                 } else if (this.currentDir) {
                     this.$.create.removeEventListener('tap', this._create.bind(this));
                     this.$.metadata.removeEventListener('tap', this._metadata.bind(this));
@@ -642,9 +647,11 @@
 
             _setDisabledAttribute(id, singleSelection, multipleSelection, t)
             {
+                // FIXME: Is this the place to figure out if any directories
+                // are selected and disable download if that's the case?
                 if (multipleSelection && (id === 'open' || id === 'share' ||
                     id === 'metadata' || id === 'webdavUrl' || id === 'rename' ||  id === 'setLabel' ||
-                    id === 'download' || id === 'changeQos' || id === 'qosInfo')) {
+                    id === 'changeQos' || id === 'qosInfo')) {
                     this.$[id].setAttribute('disabled', "");
                 }
 

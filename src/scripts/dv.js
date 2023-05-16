@@ -501,13 +501,99 @@
             .set(`items.${itemIndex}.currentQos`, status);
         vf.shadowRoot.querySelector('#feList').notifyPath(`items.${itemIndex}.currentQos`);
     }
-    /* Initiate browser file download */
+    /* Start browser file download of a URL */
     function _downloadFile(url)
     {
         var dl = document.createElement("a");
         dl.setAttribute('href', url);
         dl.setAttribute('download', '');
         dl.click();
+    }
+    /* Initiate download of a single file object */
+    app._initiateDownload = function(file)
+    {
+            const fileURL = getFileWebDavUrl(file.filePath, "read")[0];
+            let authval = app.getAuthValue();
+
+            // Unconditionally use existing macaroon if available
+            let macaroon = undefined;
+            if (file.macaroon) {
+                macaroon = file.macaroon;
+            }
+            else if(file.authenticationParameters !== undefined && file.authenticationParameters.scheme === "Bearer") {
+                macaroon = file.authenticationParameters.value;
+            }
+
+            if(macaroon !== undefined) {
+                let u = new URL(fileURL);
+                u.searchParams.append('authz', macaroon);
+                _downloadFile(u);
+            }
+            else if(!authval) {
+                /*
+                 * No explicit auth, so using cert auth, which means we can
+                 * just access the file directly without having the user
+                 * re-login.
+                 */
+                 _downloadFile(fileURL);
+            }
+            else {
+                /*
+                 * We don't seem to be able to pass our current auth
+                 * via a standard method that triggers the browser standard
+                 * file-download handling, so need to create a short-lived
+                 * Macaroon for it.
+                 */
+                const macaroonWorker = new Worker('./scripts/tasks/macaroon-request-task.js');
+                macaroonWorker.addEventListener('message', (e) => {
+                    macaroonWorker.terminate();
+                    _downloadFile(e.data.uri.targetWithMacaroon);
+                }, false);
+                macaroonWorker.addEventListener('error', (e) => {
+                    macaroonWorker.terminate();
+                    // FIXME: Display an error dialog somehow
+                    console.error(e);
+                }, false);
+                macaroonWorker.postMessage({
+                    "url": fileURL,
+                    "body": {
+                        "caveats": ["activity:DOWNLOAD"],
+                        "validity": "PT10M"
+                    },
+                    'upauth' : authval,
+                });
+            }
+    }
+    /* Initiate downloads of a multi-file selection */
+    function _initiateMultiDownload(e)
+    {
+        /* For some reason we only have the fileMetaData, so need to
+         * fabricate the expected structure...
+         */
+        const toDL = [];
+        for(const f of e.detail.file.files) {
+            if(f.fileType === "REGULAR") {
+                let n = {};
+                n.fileMetaData = f;
+                n.filePath = e.target.currentPath.endsWith('/') ? `${e.target.currentPath}${f.fileName}`: `${e.target.currentPath}/${f.fileName}`;
+                if(e.detail.file.authenticationParameters !== undefined) {
+                    n.authenticationParameters = e.detail.file.authenticationParameters;
+                }
+                toDL.push(n);
+            }
+            else {
+                /* FIXME: Either disable download choice if non-file
+                 * selected, or abort and display an error to the user.
+                 */
+                console.error(`Skipping ${f.fileType} ${f.fileName}`);
+            }
+        }
+        for (let i = 0; i < toDL.length; i++) {
+            /* Need to stagger starts to allow browser to start
+             * this download before initiating the next one.
+             */
+            setTimeout(app._initiateDownload, i*1000, toDL[i]);
+        }
     }
 
     window.addEventListener('qos-in-transition', function(event) {
@@ -632,57 +718,20 @@
         app.drop(e);
     });
     window.addEventListener('dv-namespace-open-file', function (e) {
-        let auth;
-        if (e.detail.file.authenticationParameters !== undefined) {
-            auth = e.detail.file.authenticationParameters;
-        }
-        if (e.detail.file.fileMetaData.fileType === "DIR") {
+        if (e.detail.file.fileMetaData !== undefined && e.detail.file.fileMetaData.fileType === "DIR") {
+            let auth;
+            if (e.detail.file.authenticationParameters !== undefined) {
+                auth = e.detail.file.authenticationParameters;
+            }
             app.ls(e.detail.file.filePath, auth);
             Polymer.dom.flush();
-        } else {
-            // Download the file
-            const fileURL = getFileWebDavUrl(e.detail.file.filePath, "read")[0];
-            let authval = app.getAuthValue();
-            if (e.detail.file.macaroon) {
-                // Unconditionally use existing macaroon if available
-                let u = new URL(fileURL);
-                u.searchParams.append('authz', e.detail.file.macaroon);
-                _downloadFile(u);
-            }
-            else if(!authval) {
-                /*
-                 * No explicit auth, so using cert auth, which means we can
-                 * just access the file directly without having the user
-                 * re-login.
-                 */
-                 _downloadFile(fileURL);
-            }
-            else {
-                /*
-                 * We don't seem to be able to pass our current auth
-                 * via a standard method that triggers the browser standard
-                 * file-download handling, so need to create a short-lived
-                 * Macaroon for it.
-                 */
-                const macaroonWorker = new Worker('./scripts/tasks/macaroon-request-task.js');
-                macaroonWorker.addEventListener('message', (e) => {
-                    macaroonWorker.terminate();
-                    _downloadFile(e.data.uri.targetWithMacaroon);
-                }, false);
-                macaroonWorker.addEventListener('error', (e) => {
-                    macaroonWorker.terminate();
-                    // FIXME: Display an error dialog somehow
-                    console.error(e);
-                }, false);
-                macaroonWorker.postMessage({
-                    "url": fileURL,
-                    "body": {
-                        "caveats": ["activity:DOWNLOAD"],
-                        "validity": "PT1M"
-                    },
-                    'upauth' : authval,
-                });
-            }
+        } else if (e.target.__data.singleSelection === true) {
+            app._initiateDownload(e.detail.file);
+        } else if (e.target.__data.multipleSelection === true) {
+            _initiateMultiDownload(e);
+        }
+        else {
+            console.error("Internal error, no matching state");
         }
     });
 

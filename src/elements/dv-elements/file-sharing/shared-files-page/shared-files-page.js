@@ -45,33 +45,7 @@ class SharedFilesPage extends DcacheViewMixins.Commons(Polymer.Element)
             };
             this.$['shared-directory-view'].path = e.detail.file.filePath;
         } else if (e.detail.file.fileMetaData.fileType === "REGULAR") {
-            //download
-            const worker = new Worker('./scripts/tasks/download-task.js');
-            const fileURL = this.getFileWebDavUrl(e.detail.file.filePath, "read")[0];
-            worker.addEventListener('message', (file) => {
-                worker.terminate();
-                const windowUrl = window.URL || window.webkitURL;
-                const url = windowUrl.createObjectURL(file.data);
-                const link = app.$.download;
-                link.href = url;
-                link.download = e.detail.file.fileMetaData.fileName;
-                link.click();
-                windowUrl.revokeObjectURL(url);
-            }, false);
-            worker.addEventListener('error', (e)=> {
-                console.info(e);
-                worker.terminate();
-                this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                    detail: {message: e.message}, bubbles: true, composed: true
-                }));
-            }, false);
-            this.authenticationParameters = {"scheme": "Bearer", "value": e.detail.file.macaroon};
-            worker.postMessage({
-                'url' : fileURL,
-                'mime' : e.detail.file.fileMetaData.fileMimeType,
-                'upauth' : this.getAuthValue(),
-                'return': 'blob'
-            });
+	    app._initiateDownload(e.detail.file);
         }
     }
     _showSharedFileList()
