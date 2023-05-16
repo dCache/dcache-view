@@ -321,10 +321,15 @@
                 const children = response.children;
                 this._namespaceRequestMessage = "successful";
                 if (!(children.length === 0 && this.__counter__ === 0)) {
+                    /* Kludge, iron-list relies on the input array to be
+                     * sorted it seems...
+                     */
+                    children.sort(this._fileNameCompare);
                     children.forEach((child) => {
                         this.$.feList.push('items', child)
                     });
                     this.$.threshold.clearTriggers();
+
                     if (children.length > 0) {
                         this.__counter__++;
                         this.$.feList.fire('iron-resize');
@@ -337,6 +342,13 @@
                     this.currentDirMetaData.fileName = this.currentDirName;
                 }
                 this._updateContentElevationAttribute();
+            }
+            _fileNameCompare(a, b) {
+                if (a.fileName < b.fileName)
+                    return -1;
+                if (a.fileName > b.fileName)
+                    return 1;
+                return 0;
             }
 
             handleError(error)
@@ -440,8 +452,8 @@
                     'file' : this.currentDirMetaData,
                     'filePath' : this.encodePath(this.path),
                     'scope' : 'partial',
-                    'limit' : 100,
-                    'offset' : this.__counter__ * 100,
+                    'limit' : 10000, // Each chunk is sorted in handleResponse()
+                    'offset' : this.__counter__ * 10000,
                     'upauth' : this.getAuthValue()
                 };
                 this.fileMetadataPromise(message).then(metadata => {
