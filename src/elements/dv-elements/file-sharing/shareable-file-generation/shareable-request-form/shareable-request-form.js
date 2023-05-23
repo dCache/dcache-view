@@ -16,8 +16,8 @@ class ShareableRequestForm extends Polymer.Element
                 value: function () {
                     return [
                         {name: 'Download', description: '', checked: true},
-                        {name: 'Upload', description: '', checked: true},
-                        {name: 'Delete', description: '', checked: true},
+                        {name: 'Upload', description: '', checked: false},
+                        {name: 'Delete', description: '', checked: false},
                         {name: 'List', description: '', checked: true},
                     ];
                 },
