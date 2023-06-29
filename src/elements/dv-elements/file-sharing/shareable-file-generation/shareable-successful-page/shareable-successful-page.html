@@ -32,7 +32,6 @@
                 padding-right: 10px;
             }
             .qr-container {
-                width: 190px;
                 margin-left: 10px;
                 box-sizing: border-box;
                 display: flex;
@@ -41,16 +40,13 @@
             .image-container {
                 flex: 1 1 auto;
                 box-sizing: border-box;
-                padding: 5%;
-            }
-            .image-container > img {
-                width: 100%;
+                text-align: center;
             }
 
             .link, .macaroon {
                 display: flex;
                 flex-direction: column;
-                height: 48%;
+                height: 20%;
                 box-sizing: border-box;
             }
             .link {
@@ -75,6 +71,7 @@
             .txt {
                 flex: 1 1 auto;
                 word-wrap: break-word;
+                word-break: break-all;
                 text-align: justify;
                 text-justify: inter-word;
                 text-indent: 0;
@@ -86,6 +83,16 @@
                 width: 100%;
                 margin: 0;
             }
+            .help-icon {
+                width:15px;
+                height:15px;
+                fill: #828282
+            }
+            .help-icon-container {
+                display:inline-block;
+                padding-left: 5px;
+            }
+
             .blue {
                 background: #03a9f4;
                 color: white;
@@ -102,29 +109,79 @@
         </style>
         <div class="description">
             <p>
-                File name: <b>[[fileName]]</b>. Copy the generated shareable link or download the QR code.
+                [[dirOrFile]] name: <b>[[fullPath]]</b>
             </p>
         </div>
         <div class="result">
             <div class="text-container">
                 <div class="link">
                     <div class="top">
-                        <span><b>Shareable Link:</b></span>
+                        <span>
+                            <b>Shareable Link:</b>
+                            <div class="help-icon-container">
+                                <iron-icon icon="help" class="help-icon"></iron-icon>
+                                <paper-tooltip>Shareable link with the [[dirOrFile]] shown on a landing page. Requires a web browser for access.</paper-tooltip>
+                            </div>
+                        </span>
                     </div>
                     <div class="body">
-                        <textarea id="linkText" class="txt" readonly title="">[[generatedLink]]</textarea>
+                        <textarea id="linkText" class="txt" rows="1" readonly title="">[[generatedLink]]</textarea>
                     </div>
                     <div class="button">
                         <paper-button class="blue" on-tap="_copyLink" raised>
                             <iron-icon icon="link"> </iron-icon>&nbsp;Copy link</paper-button>
                     </div>
                 </div>
-                <div class="macaroon">
+                <div class="link">
                     <div class="top">
-                        <span><b>Macaroon:</b></span>
+                        <span>
+                            <b>Direct Link:</b>
+                            <div class="help-icon-container">
+                                <iron-icon icon="help" class="help-icon"></iron-icon>
+                                <paper-tooltip>Direct link to the [[dirOrFile]] for access. Suitable for use with non-browser tools like curl, wget, rclone, download managers, etc.</paper-tooltip>
+                            </div>
+                        </span>
                     </div>
                     <div class="body">
-                        <textarea id="macaroonText" class="txt" readonly title="">[[macaroon]]</textarea>
+                        <textarea id="linkDirect" class="txt" rows="1" readonly title="">[[directLink]]</textarea>
+                    </div>
+                    <div class="button">
+                        <paper-button class="blue" on-tap="_copyDirect" raised>
+                            <iron-icon icon="link"> </iron-icon>&nbsp;Copy link</paper-button>
+                    </div>
+                </div>
+                    <div class="link">
+                        <div class="top">
+                            <span>
+                                <b><a href="https://rclone.org/webdav/#dcache">Rclone</a> config:</b>
+                                <template is="dom-if" if="[[_equal(fileType, 'DIR')]]">
+                                    <div class="help-icon-container">
+                                        <iron-icon icon="help" class="help-icon"></iron-icon>
+                                        <paper-tooltip>Configuration snippet for the rclone utility to add a remote named <b>[[fileName]]</b> with access using the generated token. Typically added to your <tt>.config/rclone/rclone.conf</tt> file.</paper-tooltip>
+                                    </div>
+                                </template>
+                            </span>
+                        </div>
+                        <div class="body">
+                            <textarea id="rcloneConf" class="txt" readonly title="">[[rcloneRC]]</textarea>
+                        </div>
+                        <div class="button">
+                            <paper-button class="green" on-tap="_copyRclone" raised>
+                                <iron-icon icon="content-copy"> </iron-icon>&nbsp;Copy Rclone config</paper-button>
+                        </div>
+                    </div>
+                <div class="macaroon">
+                    <div class="top">
+                        <span>
+                            <b>Macaroon:</b>
+                            <div class="help-icon-container">
+                                <iron-icon icon="help" class="help-icon"></iron-icon>
+                                <paper-tooltip>The actual access token (only).</paper-tooltip>
+                            </div>
+                        </span>
+                    </div>
+                    <div class="body">
+                        <textarea id="macaroonText" class="txt" rows="1" readonly title="">[[macaroon]]</textarea>
                     </div>
                     <div class="button">
                         <paper-button class="green" on-tap="_copyMacaroon" raised>
@@ -133,14 +190,28 @@
                 </div>
             </div>
             <div class="qr-container">
-                <div class="top">
-                    <span><b>QR Code for the shareable link:</b></span>
+                <div class="qr">
+                    <div class="top">
+                        <span><b>QR Code for the shareable link:</b></span>
+                    </div>
+                    <div class="image-container paper-material" elevation="1">
+                        <img src$="[[generatedQR]]">
+                        <div class="button">
+                            <paper-button on-tap="_downloadGenQR">
+                                <iron-icon icon="file-download"></iron-icon>Download QR code</paper-button>
+                        </div>
+                    </div>
                 </div>
-                <div class="image-container paper-material" elevation="1">
-                    <img src$="[[src]]">
-                    <div class="button">
-                        <paper-button on-tap="_downloadQR">
-                            <iron-icon icon="file-download"></iron-icon>Download the QR code</paper-button>
+                <div class="qr">
+                    <div class="top">
+                        <span><b>QR Code for the direct link:</b></span>
+                    </div>
+                    <div class="image-container paper-material" elevation="1">
+                        <img src$="[[directQR]]">
+                        <div class="button">
+                            <paper-button on-tap="_downloadDirectQR">
+                                <iron-icon icon="file-download"></iron-icon>Download QR code</paper-button>
+                        </div>
                     </div>
                 </div>
             </div>

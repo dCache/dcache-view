@@ -1,5 +1,13 @@
 class ShareableRequestForm extends Polymer.Element
 {
+    constructor(fn,fp,ft)
+    {
+        super();
+        this.fileName = fn;
+        this.filePath = fp;
+        this.fileType = ft;
+        this.dirOrFile = this.typeChanged(this.fileType);
+    }
     static get is()
     {
         return "shareable-request-form";
@@ -8,6 +16,19 @@ class ShareableRequestForm extends Polymer.Element
     {
         return {
             fileName: {
+                type: String,
+                notify: true
+            },
+            filePath: {
+                type: String,
+                notify: true
+            },
+            fileType: {
+                type: String,
+                observer: 'typeChanged',
+                notify: true
+            },
+            dirOrFile: {
                 type: String,
                 notify: true
             },
@@ -28,6 +49,9 @@ class ShareableRequestForm extends Polymer.Element
                 notify: true
             },
         }
+    }
+    typeChanged(fileType) {
+        this.dirOrFile = fileType === 'DIR' ? 'directory' : 'file';
     }
     _getLink()
     {
