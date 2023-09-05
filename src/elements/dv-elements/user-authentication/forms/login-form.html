@@ -9,7 +9,6 @@
 <link rel="import" href="../../../../bower_components/paper-input/paper-input-container.html">
 
 <link rel="import" href="../user-authentication.html">
-<link rel="import" href="../role-request/role-request.html">
 
 <dom-module id="login-form">
     <template>
@@ -105,7 +104,6 @@
                        value="{{password::input}}" placeholder="password" type="password">
             </paper-input-container>
             <div class="checkbox-container">
-                <paper-checkbox checked="{{assertionStatus}}">Assert all roles</paper-checkbox>
                 <span class="flex"></span>
                 <paper-checkbox checked="{{useGravatar}}">Use Gravatar </paper-checkbox>
                 <div class="info-class">
@@ -162,11 +160,6 @@
                         type: Object,
                         notify: true
                     },
-                    assertionStatus: {
-                        type: Boolean,
-                        value: false,
-                        notify: true
-                    },
                     useGravatar: {
                         type: Boolean,
                         value: function () {
@@ -204,45 +197,9 @@
                 userAuth.addEventListener('dv-user-authentication-successful', e => {
                     e.detail.credential["password"] = `:${this.password}`;
                     store(normaliseCredentialFormat(e.detail.credential));
-
-                    if (this.assertionStatus) {
-                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                            detail: {message: `${e.detail.message} Requesting for role(s) assertion`},
-                            bubbles: true, composed: true
-                        }));
-
-                        const unassertedRoles = e.detail.credential.listOfPossibleRoles === undefined ? "" :
-                            `${e.detail.credential.listOfPossibleRoles}`;
-                        if (unassertedRoles === "") {
-                            this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                                detail: {message: `${e.detail.message} But no roles to assert.`},
-                                bubbles: true, composed: true
-                            }));
-                        } else {
-                            const list = e.detail.credential.roles === undefined || e.detail.credential.roles === "" ?
-                                unassertedRoles : `${unassertedRoles}, ${e.detail.credential.roles}`;
-                            const rolesAssertion = new RoleRequest();
-                            rolesAssertion.promise.then((e) => {
-                                e.detail.credential["password"] = `:${this.password}`;
-                                store(normaliseCredentialFormat(e.detail.credential));
-                                this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                                    detail: {message: e.detail.message}, bubbles: true, composed: true
-                                }));
-                                window.dispatchEvent(new CustomEvent('dv-role-validation',
-                                    { bubbles: true, composed: true }));
-                            }).catch((err) => {
-                                this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                                    detail: {message: err}, bubbles: true, composed: true
-                                }));
-                            });
-                            rolesAssertion.assert(list);
-                        }
-                    } else {
-                        this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                            detail: {message: e.detail.message}, bubbles: true, composed: true
-                        }));
-                    }
-
+                    this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                        detail: {message: e.detail.message}, bubbles: true, composed: true
+                    }));
                     switch (this.redirectTo.page) {
                         case "home":
                             page("/");

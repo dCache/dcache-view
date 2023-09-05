@@ -66,10 +66,10 @@ class UserProfile extends
                 }
             },
             listOfAllRoles: {
-                type: Array,
+                type: String,
                 notify: true,
                 value: function () {
-                    return [];
+                    return "none";
                 }
             },
             gravatarSwitch: {
@@ -121,87 +121,23 @@ class UserProfile extends
         }
         return classes;
     }
-    _allCurrentStatus()
-    {
-        const len = this.listOfAllRoles.length;
-        let allRolesAsserted = true;
-        for (let i = 0; i < len; i++) {
-            if (this.listOfAllRoles[i].assert === false) {
-                allRolesAsserted = false;
-                break;
-            }
-        }
-        return allRolesAsserted;
-    }
-    _roleAssertion(e)
-    {
-        const role = e.target.dataRoles === undefined ?
-            e.target.getAttribute('data-roles'): e.target.dataRoles;
-        const toggle = e.target;
 
-        const rolesAssertion = new RoleRequest();
-        rolesAssertion.promise.then(response => {
-            const len = this.listOfAllRoles.length;
-            if (role === "*") {
-                for (let i = 0; i < len; i++) {
-                    if (this.listOfAllRoles[i].assert === !toggle.active) {
-                        this.set(`listOfAllRoles.${i}`, {assert: toggle.active});
-                    }
-                }
-                this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                    detail: {message: response.detail.message}, bubbles: true, composed: true
-                }));
-            } else {
-                if (len > 1) {
-                    let assert = 0, leave = 0;
-                    for (let i = 0; i < len; i++) {
-                        if (this.listOfAllRoles[i].assert === true) {
-                            assert += 1;
-                        }
-                        if (this.listOfAllRoles[i].assert === false) {
-                            leave += 1;
-                        }
-                    }
-                    if (assert === len) {
-                        this.$.allRolesAssertionToggle.checked = true;
-                    }
-                    if (leave === len) {
-                        this.$.allRolesAssertionToggle.checked = false;
-                    }
-                }
-            }
-            store(normaliseCredentialFormat(response.detail.credential));
-            this.dispatchEvent(new CustomEvent('dv-authentication-successful', {
-                detail: {
-                    message: response.detail.message,
-                    roles: response.detail.credential.roles === undefined ?
-                        "": `${response.detail.credential.roles}`
-                }, bubbles: true, composed: true
-            }));
-            window.dispatchEvent(new CustomEvent('dv-role-validation',
-                { bubbles: true, composed: true }));
-        }).catch(err => {
-            toggle.checked = !toggle.checked;
-            this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
-                detail: {message: `${err}`}, bubbles: true, composed: true
-            }));
-        });
-        if (toggle.active) {
-            rolesAssertion.assert(role === "*"?`${sessionStorage.listOfPossibleRoles}`:role);
-        } else {
-            rolesAssertion.leave(role);
-        }
-    }
     _getInitialListOfAllRoles()
     {
         const roles = sessionStorage.roles === "" ? [] : (sessionStorage.roles).split(",");
         const unAsserted = sessionStorage.listOfPossibleRoles === "" ?
             [] : (sessionStorage.listOfPossibleRoles).split(",");
-        return [...roles.map(str => {
-            if (str !== undefined || str !== "") return {"role": str, "assert": true};}),
+        let list = [...roles.map(str => {
+            if (str !== undefined && str !== "") return str;}),
             ...unAsserted.map(str => {
-                if (str !== undefined || str !== "") return {"role": str, "assert": false};})
+                if (str !== undefined && str !== "") return str;})
         ];
+
+        if (list.length == 0) {
+            return "none";
+        }
+
+        return list.toString().trim();
     }
     _requestIdenticonImage(e)
     {

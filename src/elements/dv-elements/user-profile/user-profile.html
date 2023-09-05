@@ -5,7 +5,6 @@
 <link rel="import" href="../../../elements/dv-elements/admin/dialogs/chart-dialog.html">
 <link rel="import" href="../../../elements/dv-elements/utils/mixins/commons.html">
 <link rel="import" href="./user-image/user-image.html">
-<link rel="import" href="../user-authentication/role-request/role-request.html">
 <dom-module id="user-profile">
     <template>
         <style include="paper-material-styles">
@@ -216,6 +215,10 @@
                         <div class="label bold">Group identifier (GID)</div>
                         <div class="value">[[gids]]</div>
                     </div>
+                    <div class="display-flex row vertically-align">
+                        <div class="label bold">User roles</div>
+                        <div class="value">[[listOfAllRoles]]</div>
+                    </div>
                 </div>
             </div>
 
@@ -295,47 +298,6 @@
                                              data-id="gravatar"
                                              class="toggleBtn"></paper-toggle-button>
                     </div>
-                </div>
-            </div>
-
-            <div class="paper-material" elevation="1">
-                <div class="header-container">
-                    <div class="header">
-                        Roles
-                    </div>
-                    <small class="small">
-                        These are optional switch that affect how dCache behaves
-                    </small>
-                </div>
-                <div class="paper-material-inner display-flex column">
-                    <div class="display-flex row vertically-align">
-                        <div class="value flex">
-                            Available role(s):
-                        </div>
-                        <paper-toggle-button id="allRolesAssertionToggle"
-                                             on-change="_roleAssertion"
-                                             data-roles="*"
-                                             checked="[[_allCurrentStatus()]]"
-                                             class$="[[_computedClass('all-roles')]]">Assert all roles
-                        </paper-toggle-button>
-                    </div>
-
-                    <div class$="[[_computedClass('no-roles')]]" class="flex-centre">
-                        <div class="red">
-                            <iron-icon icon="visibility-off"></iron-icon>
-                            <span> No roles to assert</span>
-                        </div>
-                    </div>
-                    <template is="dom-repeat" items="[[listOfAllRoles]]">
-                        <div class="display-flex row vertically-align">
-                            <div class="label bold label-addPadding">[[item.role]]</div>
-                            <div class="value flex"></div>
-                            <paper-toggle-button on-change="_roleAssertion"
-                                                 data-roles="[[item.role]]"
-                                                 checked="[[item.assert]]"
-                                                 class="toggleBtn"></paper-toggle-button>
-                        </div>
-                    </template>
                 </div>
             </div>
         </div>
