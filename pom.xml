@@ -109,8 +109,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
+		    <descriptors>
                     <descriptor>src/main/assembly/dcacheview-jar.xml</descriptor>
-                    <finalName>${project.artifactId}-${project.version}</finalName>
+                    </descriptors>
+		    <finalName>${project.artifactId}-${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <executions>
