@@ -256,12 +256,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         </a>
                                     </paper-item>
 
-                                    <paper-item>
-                                        <a data-route="admin" href$="{{baseUrl}}admin"><!--dashboard-->
-                                            <paper-fab icon="supervisor-account" title="admin" class="green" mini></paper-fab>
-                                        </a>
-                                    </paper-item>
-
                                     <template is="dom-if" if="[[config.isSomebody]]">
                                         <paper-item>
                                             <a data-route="virtual" href$="{{baseUrl}}virtual">
@@ -320,73 +314,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                    on-dragexit="dragexit"></shared-files-page>
                                             </section>
 
-                                            <section data-route="admin" class="fit"
-                                                     style="background-color:#ECECEC;">
-                                                <div class="shadow-2dp" main
-                                                        style="margin:40px; padding:15px; background:#fdfdfd;">
-                                                    <paper-toolbar>
-                                                        <div slot="top" class="title"
-                                                             style="text-align: center">admin toolbox</div>
-                                                    </paper-toolbar>
-                                                    <admin-page></admin-page>
-                                                </div>
-                                            </section>
-
                                             <section data-route="user-login" class="fit" style="background-color:#686868;">
                                                 <div main id="loginSection"></div>
-                                            </section>
-
-                                            <section data-route="admin-component-page" class="fit"
-                                                     style="background-color:#ECECEC;">
-                                                <div main>
-                                                    <iron-pages attr-for-selected="admin-component"
-                                                                selected="{{params.component}}">
-                                                        <section admin-component="alarms" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="alarmsContainer"/>
-                                                        </section>
-                                                        <section admin-component="cell-services" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="cellInfoContainer"/>
-                                                        </section>
-                                                        <section admin-component="pool-info" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="poolInfoContainer"/>
-                                                        </section>
-                                                        <section admin-component="active-transfers" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="transfersContainer"/>
-                                                        </section>
-                                                        <section admin-component="tape-transfer-queue" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="restoresContainer"/>
-                                                        </section>
-                                                        <section admin-component="billing-plots" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="billingPlotsContainer"/>
-                                                        </section>
-                                                        <section admin-component="pool-group-lifetime" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="poolGroupLifetimeContainer"/>
-                                                        </section>
-                                                        <section admin-component="pool-plots" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="poolPlotsContainer"/>
-                                                        </section>
-                                                        <section admin-component="pool-selection" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="selectionUnitContainer"/>
-                                                        </section>
-                                                        <section admin-component="quota-info" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="quotaInfoContainer"/>
-                                                        </section>
-                                                        <section admin-component="space-tokens" class="fit"
-                                                                 style="background-color:#ECECEC;">
-                                                            <div id="spaceManagementContainer"/>
-                                                        </section>
-                                                    </iron-pages>
-                                                </div>
                                             </section>
 
                                             <section data-route="virtual" class="fit"
@@ -448,9 +377,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <drag-enter-toast></drag-enter-toast>
                     </div>
                 </paper-toast>
-
-                <!-- PLACEHOLDER FOR STACKING INFO DIALOGS (ADMIN) -->
-                <div id="adminDialogs"></div>
 
                 <a id="download" class="none">fm</a>
                 <files-viewer-overlay id="filesViewerOverlay"
