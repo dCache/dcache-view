@@ -82,6 +82,11 @@
                     flex: 1 1 auto;
                     max-width: calc(100% - 410px);
                 }
+                .mode {
+                    width: 12ex;
+                    max-width: 12ex;
+                    min-width: 12ex;
+                }
                 .ctime, .qos {
                     width: 150px;
                     max-width: 150px;
@@ -103,7 +108,7 @@
                     flex: 1 1 auto;
                     max-width: calc(100% - 50px);
                 }
-                .ctime, .qos, .size {
+                .mode, .ctime, .qos, .size {
                     display: none;
                 }
             }
@@ -121,6 +126,7 @@
                     <div id="rename" class="none"></div>
                 </div>
             </div>
+            <div class="cell mode">[[fileMode]]</div>
             <div class="cell ctime">[[creationTime]]</div>
             <div class="cell qos">
                 <iron-icon id="qos-transition-icon" class="none" icon="arrow-forward"></iron-icon>
@@ -160,6 +166,10 @@
                     filePath: {
                         type: String,
                         computed:'_computeFilePath(parentPath, fileMetaData.fileName)'
+                    },
+                    fileMode: {
+                        type: String,
+                        computed:'_computeFileMode(fileMetaData.mode, fileMetaData.fileType)'
                     },
                     qosValue: {
                         type: String,
@@ -277,6 +287,11 @@
             {
                 return parentPath.endsWith("/") ?
                     `${parentPath}${fileName}`: `${parentPath}/${fileName}`;
+            }
+
+            _computeFileMode(mode, type)
+            {
+                return this.convertToUnixPermissions(mode, type);
             }
 
             _fileCurrentQOSValue(qos)
