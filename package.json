@@ -1,6 +1,12 @@
 {
   "author": "dCache Team <support@dcache.org>",
   "dependencies": {
+    "@polymer/app-layout": "^3.1.0",
+    "@polymer/iron-a11y-keys": "^3.0.1",
+    "@polymer/iron-icon": "^3.0.1",
+    "@polymer/paper-button": "^3.0.1",
+    "@polymer/paper-input": "^3.2.1",
+    "@polymer/polymer": "^3.5.2",
     "bower": "1.8.8",
     "del": "3.0.0",
     "gulp": "4.0.2",
@@ -14,7 +20,7 @@
     "url": "git@github.com:dCache/dcache-view.git"
   },
   "scripts": {
-    "prebuild": "npm install && bower install",
+    "prebuild": "npm install && npm install @polymer/polymer",
     "build": "gulp"
   }
 }
