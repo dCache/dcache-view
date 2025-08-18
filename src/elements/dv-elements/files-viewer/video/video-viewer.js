@@ -1,40 +1,35 @@
-class VideoViewer extends DcacheViewMixins.FilesViewerMixin(Polymer.Element)
-{
-    constructor(src)
-    {
-        super();
-        if (src) this.src = src;
-        this._stopListener = this._stop.bind(this);
-    }
-    static get is()
-    {
-        return 'video-viewer';
-    }
-    connectedCallback()
-    {
-        super.connectedCallback();
-        window.addEventListener('dv-namespace-close-files-viewer-appliance', this._stopListener);
-    }
-    disconnectedCallback()
-    {
-        super.disconnectedCallback();
-        window.removeEventListener('dv-namespace-close-files-viewer-appliance', this._stopListener);
-    }
-    _load(src)
-    {
-        this.$.video.src = src;
-        this._done();
-        this.$.video.play();
-    }
-    _stop()
-    {
-        this.$.video.pause();
-    }
-    /*_error(err) {
-        throw new Error ("Sorry, your browser doesn't support embedded videos, " +
-            "but don't worry, you can download it and watch it with your favorite " +
-            "video player!")
-    }*/
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/paper-button/paper-button.js';  // npm or node_modules import
+import { FilesViewerMixin } from '../mixin/files-viewer-mixin.js';
 
+class VideoViewer extends FilesViewerMixin(PolymerElement) {
+    static get template() {
+        return html`
+      <style>
+        :host {
+          display: flex;
+          width: 100%;
+          height: 100%;
+        }
+        paper-button {
+          text-transform: lowercase;
+        }
+        video {
+          width: 100%;
+          height: auto;
+        }
+        .video-container {
+          padding: 0 5%;
+          box-sizing: border-box;
+          flex: 1 1 auto;
+          margin: auto;
+        }
+      </style>
+      <div class="video-container">
+        <video id="video" on-error="_error" controls></video>
+      </div>
+    `;
+    }
 }
-window.customElements.define(VideoViewer.is, VideoViewer);
+
+customElements.define('video-viewer', VideoViewer);

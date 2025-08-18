@@ -1,122 +1,157 @@
-class RoleRequest extends DcacheViewMixins.Commons(Polymer.Element)
-{
-    constructor()
-    {
-        super();
-        this._ensureAttribute('hidden', '');
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-item/paper-item.js';
+
+// Assuming DcacheViewMixins.Commons is an importable mixin,
+// otherwise you need to import it or rewrite accordingly
+import { Commons } from './dcache-view-mixins.js'; // adjust path
+
+class ChangeQosContextualMenu extends Commons(PolymerElement) {
+    static get template() {
+        return html`
+      <style>
+        :host {
+          display: block;
+          box-sizing: border-box;
+          max-width: 100%;
+        }
+        :host paper-listbox {
+          margin: -20px;
+          padding: 0;
+          background: transparent;
+        }
+        .menuItem:hover {
+          background: #1565C0;
+          border-radius: 4px;
+          color: #fff;
+        }
+        .menuItem {
+          font-size: 0.7em;
+          min-height: 30px;
+          font-weight: normal;
+          padding-right: 0;
+          padding-left: 5px;
+        }
+      </style>
+      <paper-listbox class="menu-content">
+        <template is="dom-repeat" items="[[possibleTransition]]" as="item">
+          <paper-item class="menuItem"
+                      on-click="_changeQos"
+                      disabled$="[[_computedDisabled(item.backendCapability.name, currentQos)]]">
+            [[item.backendCapability.name]]
+          </paper-item>
+        </template>
+      </paper-listbox>
+    `;
     }
-    static get is()
-    {
-        return 'role-request';
-    }
-    static get properties()
-    {
+
+    static get is() { return 'change-qos-contextual-menu'; }
+
+    static get properties() {
         return {
-            promise: {
-                type: Object,
-                readOnly: true,
-                notify: true,
-                value: function() {
-                    return new Promise(function (resolve, reject) {
-                        this.resolveAssertion = resolve;
-                        this.rejectAssertion = reject;
-                    }.bind(this));
-                },
-            }
+            path: {
+                type: String,
+                notify: true
+            },
+            index: {
+                type: Number,
+                notify: true
+            },
+            currentQos: {
+                type: String,
+                notify: true
+            },
+            possibleTransition: {
+                type: Array,
+                value: () => window.CONFIG.qos,
+                notify: true
+            },
+            targetNode: Object,
+            authenticationParameters: Object
         };
     }
-    _getB64EncodedCredential(list = "")
-    {
-        if (this.getAuthValue() === "Basic YW5vbnltb3VzOm5vcGFzc3dvcmQ=") {
-            this.rejectAssertion("You need to authenticate to assert or un-assert roles.");
-            return;
-        }
 
-        if (sessionStorage.authType !== "Basic") {
-            this.rejectAssertion("Login with username and password. You cannot assert" +
-                " role(s) with" +  sessionStorage.authType + "authentication scheme.");
-            return;
-        }
-
-        const oldAuth = window.atob(sessionStorage.upauth);
-        const newUnencodedAuth = !oldAuth.startsWith(sessionStorage.name + "#") ?
-            `${oldAuth.replace(sessionStorage.name, sessionStorage.name + `#${list}`)}` :
-            list === "" ? `${sessionStorage.name}${sessionStorage.password}` :
-                `${sessionStorage.name}#${list}${sessionStorage.password}`;
-        return window.btoa(newUnencodedAuth);
+    constructor() {
+        super();
+        this.index = -1; // default value
     }
 
-    assert(listOfRolesToAssert)
-    {
-        try {
-            if (listOfRolesToAssert === "") {
-                this.rejectAssertion("You need to specify the role(s) to assert.");
-                return;
-            }
-            const userAuth = new UserAuthentication(this._getB64EncodedCredential(listOfRolesToAssert));
-            userAuth.addEventListener('dv-user-authentication-error', (e) => {
-                this.rejectAssertion(e.detail.message);
-            });
-            userAuth.addEventListener('dv-user-authentication-successful', (e) => {
-                const msg = listOfRolesToAssert.includes(',') ?
-                    listOfRolesToAssert.replace(/\,(?=[^,]*$)/, "and"): listOfRolesToAssert;
-                e.detail.message = `Role(s) ${msg} asserted.`;
-                this.resolveAssertion(e);
-            });
-            userAuth.send("Basic");
-        } catch(err) {
-            this.rejectAssertion(err.message);
-        }
+    connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('dv-namespace-receive-item-index', this._updateIndex);
+        this.dispatchEvent(new CustomEvent('dv-namespace-request-item-index', {
+            detail: { item: this.targetNode.fileMetaData },
+            bubbles: true,
+            composed: true
+        }));
     }
 
-    /**
-     *
-     * @param roleToUnAssert a single a role
-     */
-    leave(roleToUnAssert = "*")
-    {
-        let auth;
-        if (roleToUnAssert === "*") {
-            auth = this._getB64EncodedCredential()
-        } else {
-            if (sessionStorage.roles && sessionStorage.roles !== "") {
-                if (roleToUnAssert.includes(",")) {
-                    this.rejectAssertion('Invalid role removal request! Is either you un-assert all ' +
-                        'roles or a single role at a time.');
-                    return;
-                }
-                const rolesToAssert = ((sessionStorage.roles).split(",")).map(role => {
-                    if (role.trim() !== roleToUnAssert.trim()) {
-                        return role.trim()
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        window.removeEventListener('dv-namespace-receive-item-index', this._updateIndex);
+    }
+
+    _updateIndex = (e) => {
+        this.index = e.detail.index;
+    };
+
+    _changeQos(e) {
+        this.dispatchEvent(new CustomEvent('dv-namespace-close-subcontextmenu', {
+            bubbles: true,
+            composed: true
+        }));
+        this.dispatchEvent(new CustomEvent('dv-namespace-close-centralcontextmenu', {
+            bubbles: true,
+            composed: true
+        }));
+
+        const namespace = document.createElement('dcache-namespace');
+        namespace.auth = this.getAuthValue();
+
+        namespace.promise.then(() => {
+            this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                detail: { message: `Request successful! File in transition.` },
+                bubbles: true,
+                composed: true
+            }));
+            this.dispatchEvent(new CustomEvent('qos-in-transition', {
+                detail: {
+                    options: {
+                        currentQos: this.currentQos,
+                        targetQos: e.model.item.backendCapability.name,
+                        itemIndex: this.index,
+                        path: this.path
                     }
-                });
-                if (rolesToAssert.length > 0
-                    && rolesToAssert.length <= ((sessionStorage.roles).split(",")).length) {
-                    auth = this._getB64EncodedCredential(`${rolesToAssert}`);
-                } else {
-                    const message = `${sessionStorage.listOfPossibleRoles}`.includes(roleToUnAssert.trim()) ?
-                        `asserted.`: `assigned.`;
-                    this.rejectAssertion(
-                        `Invalid role removal request! Role '${roleToUnAssert.trim()}' is never ${message}`
-                    );
-                    return;
-                }
-            } else {
-                this.rejectAssertion('Invalid role removal request! You have not asserted any role.');
-                return;
+                },
+                bubbles: true,
+                composed: true
+            }));
+        }).catch((err) => {
+            this.dispatchEvent(new CustomEvent('dv-namespace-show-message-toast', {
+                detail: { message: `${err.message}` },
+                bubbles: true,
+                composed: true
+            }));
+        });
+
+        namespace.qos({
+            url: `${window.CONFIG["dcache-view.endpoints.webapi"]}namespace`,
+            path: this.path,
+            target: e.model.item.backendCapability.name
+        });
+    }
+
+    _computedDisabled(buttonName, currentQos) {
+        if (buttonName === currentQos) {
+            return true;
+        }
+        for (let i = 0; i < window.CONFIG.qos.length; i++) {
+            if (window.CONFIG.qos[i].backendCapability.name === currentQos) {
+                return !window.CONFIG.qos[i].backendCapability.transition.includes(buttonName);
             }
         }
-
-        const userAuth = new UserAuthentication(auth);
-        userAuth.addEventListener('dv-user-authentication-error', (e) => {
-            this.rejectAssertion(`Unsuccessful role removal request. ${e.detail.message}`);
-        });
-        userAuth.addEventListener('dv-user-authentication-successful', (e) => {
-            e.detail.message = roleToUnAssert === "*" ? `All asserted roles, have been removed.`:
-                `The ${roleToUnAssert.trim()} role is successfully removed.`;
-            this.resolveAssertion(e);
-        });
-        userAuth.send("Basic");
+        return true;
     }
 }
-window.customElements.define(RoleRequest.is, RoleRequest);
+
+customElements.define(ChangeQosContextualMenu.is, ChangeQosContextualMenu);

@@ -1,12 +1,18 @@
-Polymer({
-  _template: Polymer.html`
-        <style include="paper-dialog-shared-styles"></style>
-        <slot></slot>
-`,
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import { PaperDialogBehavior } from '@polymer/paper-dialog-behavior/paper-dialog-behavior.js';
+import '@polymer/paper-dialog-behavior/paper-dialog-shared-styles.js';
 
-  is: 'central-dialog-box',
+class CentralDialogBox extends PaperDialogBehavior(PolymerElement) {
+    static get template() {
+        return html`
+      <style include="paper-dialog-shared-styles"></style>
+      <slot></slot>
+    `;
+    }
 
-  behaviors: [
-      Polymer.PaperDialogBehavior
-  ]
-});
+    static get is() {
+        return 'central-dialog-box';
+    }
+}
+
+customElements.define(CentralDialogBox.is, CentralDialogBox);

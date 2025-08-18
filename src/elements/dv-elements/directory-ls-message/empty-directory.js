@@ -1,5 +1,7 @@
 import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
+/*
 import '@polymer/iron-icon/iron-icon.js';
+*/
 
 class EmptyDirectory extends PolymerElement {
     static get is() {

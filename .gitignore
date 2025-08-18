@@ -2,7 +2,7 @@
 target
 node
 node_modules
-bower_components
+node_modules
 etc
 
 ## Ignore IntelliJ-generated files and directories

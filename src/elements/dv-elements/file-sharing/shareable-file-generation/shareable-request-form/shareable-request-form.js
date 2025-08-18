@@ -1,71 +1,182 @@
-class ShareableRequestForm extends Polymer.Element
-{
-    constructor(fn,fp,ft)
-    {
-        super();
-        this.fileName = fn;
-        this.filePath = fp;
-        this.fileType = ft;
-        this.dirOrFile = this.typeChanged(this.fileType);
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/paper-tooltip/paper-tooltip.js';
+import '@polymer/paper-checkbox/paper-checkbox.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-button/paper-button.js';
+
+class ShareableRequestForm extends PolymerElement {
+    static get template() {
+        return html`
+      <style>
+        :host {
+          display: flex;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 0 10px;
+        }
+        .container {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+        }
+        .description {
+          display: flex;
+          align-items: center;
+          height: 40px;
+          width: 100%;
+          overflow-x: auto;
+        }
+        .form {
+          flex: 1 1 auto;
+          padding-left: 10px;
+        }
+        .title {
+          height: 30px;
+          font-size: 1.25em;
+          display: flex;
+          align-items: center;
+        }
+        .activities, .time {
+          display: flex;
+          flex-direction: column;
+        }
+        .help-icon {
+          width: 15px;
+          height: 15px;
+          fill: #828282;
+        }
+        .help-icon-container {
+          display: inline-block;
+          padding-left: 5px;
+        }
+        .in-visible {
+          visibility: hidden;
+        }
+        .body {
+          display: flex;
+          padding-left: 40px;
+        }
+        .checkboxes-container {
+          flex-wrap: wrap;
+        }
+        .checkbox-wrapper {
+          min-width: 170px;
+          margin: 13px 10px;
+        }
+        paper-checkbox {
+          --paper-checkbox-checked-color: #03a9f4;
+          --paper-checkbox-checked-ink-color: #03a9f4;
+          --paper-checkbox-unchecked-color: #0384ba;
+          --paper-checkbox-unchecked-ink-color: #0384ba;
+        }
+        paper-dropdown-menu {
+          margin-left: 10px;
+          width: 250px;
+        }
+        .buttons {
+          height: 50px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .btn {
+          background: #03a9f4;
+          color: white;
+          height: 40px;
+          width: 100%;
+        }
+      </style>
+
+      <div class="container">
+        <div class="description">
+          <span>
+            Generate a shareable link for the [[dirOrFile]]: <b>[[filePath]]</b>
+          </span>
+        </div>
+        <div class="form">
+          <div class="activities">
+            <div class="title">
+              <span>Allowed activities</span>
+              <div class="help-icon-container">
+                <iron-icon icon="help" class="help-icon"></iron-icon>
+                <paper-tooltip>
+                  Select allowed operations. No selection means all available permissions are granted.
+                </paper-tooltip>
+              </div>
+            </div>
+            <div class="body checkboxes-container">
+              <template is="dom-repeat" items="[[activities]]">
+                <div class="checkbox-wrapper">
+                  <paper-checkbox name="activities"
+                    checked="{{item.checked::change}}">[[item.name]]</paper-checkbox>
+                  <div class="help-icon-container in-visible">
+                    <iron-icon icon="help" class="help-icon"></iron-icon>
+                    <paper-tooltip>[[item.description]]</paper-tooltip>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div class="time">
+            <div class="title">
+              <span>Expiration time</span>
+              <div class="help-icon-container">
+                <iron-icon icon="help" class="help-icon"></iron-icon>
+                <paper-tooltip>For how long do you want to share this file?</paper-tooltip>
+              </div>
+            </div>
+            <div class="body">
+              <paper-dropdown-menu label="Expiration time"
+                name="validity" id="validity"
+                vertical-align="bottom"
+                horizontal-align="left" required no-label-float>
+                <paper-listbox slot="dropdown-content"
+                  class="dropdown-content" selected="1">
+                  <paper-item value="PT1H">1 Hour</paper-item>
+                  <paper-item value="PT3H">3 Hours</paper-item>
+                  <paper-item value="PT6H">6 Hours</paper-item>
+                  <paper-item value="PT12H">12 Hours</paper-item>
+                  <paper-item value="P1D">1 Day</paper-item>
+                  <paper-item value="P2D">2 Days</paper-item>
+                  <paper-item value="P5D">5 Days</paper-item>
+                  <paper-item value="P7D">1 Week</paper-item>
+                </paper-listbox>
+              </paper-dropdown-menu>
+            </div>
+          </div>
+        </div>
+        <div class="buttons">
+          <paper-button id="linkBtn" class="btn" @click="_getLink">Generate</paper-button>
+        </div>
+      </div>
+    `;
     }
-    static get is()
-    {
-        return "shareable-request-form";
-    }
-    static get properties()
-    {
+
+    static get properties() {
         return {
-            fileName: {
+            dirOrFile: {
                 type: String,
-                notify: true
+                value: ''
             },
             filePath: {
                 type: String,
-                notify: true
-            },
-            fileType: {
-                type: String,
-                observer: 'typeChanged',
-                notify: true
-            },
-            dirOrFile: {
-                type: String,
-                notify: true
+                value: ''
             },
             activities: {
                 type: Array,
-                value: function () {
-                    return [
-                        {name: 'Download', description: '', checked: true},
-                        {name: 'Upload', description: '', checked: false},
-                        {name: 'Delete', description: '', checked: false},
-                        {name: 'List', description: '', checked: true},
-                    ];
-                },
-                notify: true
-            },
-            loading: {
-                type: Boolean,
-                notify: true
-            },
-        }
+                value: () => []
+            }
+        };
     }
-    typeChanged(fileType) {
-        this.dirOrFile = fileType === 'DIR' ? 'directory' : 'file';
-    }
-    _getLink()
-    {
-        this.loading = true;
-        this.classList.add('none');
-        const activitiesList = [];
-        for (let i=0; i<4; i++) {
-            if (this.activities[i].checked) activitiesList.push(this.activities[i].name.toUpperCase());
-        }
-        this.dispatchEvent(new CustomEvent('dv-file-sharing-generate-response', {
-            detail: {
-                activitiesList: activitiesList,
-                validity: this.$.validity.selectedItem.getAttribute("value")
-            }, bubbles: true, composed: true}));
+
+    _getLink() {
+        // Your logic to generate the shareable link here
+        console.log('Generate link clicked');
     }
 }
-window.customElements.define(ShareableRequestForm.is, ShareableRequestForm);
+
+customElements.define('shareable-request-form', ShareableRequestForm);

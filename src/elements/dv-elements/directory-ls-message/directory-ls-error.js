@@ -1,6 +1,6 @@
 import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
-import '@polymer/iron-icon/iron-icon.js';
-import '@polymer/paper-button/paper-button.js';
+/*import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/paper-button/paper-button.js';*/
 
 class DirectoryLsError extends PolymerElement {
     static get is() {

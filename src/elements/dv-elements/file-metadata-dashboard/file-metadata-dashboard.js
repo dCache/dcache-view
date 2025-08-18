@@ -1,342 +1,110 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import '@polymer/app-layout/app-header-layout/app-header-layout.js';
-import '@polymer/app-layout/app-header/app-header.js';
-import '@polymer/app-layout/app-toolbar/app-toolbar.js';
-import '@polymer/app-layout/app-scroll-effects/app-scroll-effects.js';
-import '@google-web-components/google-chart/google-chart.js';
-import '@polymer/paper-styles/element-styles/paper-material-styles.js';
-import '@polymer/paper-icon-button/paper-icon-button.js';
-import '@polymer/paper-toggle-button/paper-toggle-button.js';
-import '@polymer/iron-icon/iron-icon.js';
+/*import "@polymer/polymer/app-header-layout.js";
+import "@polymer/polymer/app-header.js";
+import "@polymer/polymer/app-toolbar.js";
+import "@polymer/polymer/app-scroll-effects.js";
+import "@polymer/polymer/google-chart.js";
+import "@polymer/polymer//paper-material-styles.js";*/
+import "./file-metadata-mapper.js";
+import "./raw-file-metadata.js";
 
-import './file-metadata-mapper.js';
-import './raw-file-metadata.js';
-
-class FileMetadataDashboard extends PolymerElement {
-    static get template() {
-        return html`
-      <style include="paper-material-styles">
-        app-header-layout {
-          width: 100%;
-          height: 100%;
-          background: #f1f1f1;
-        }
-        app-header {
-          background-color: white;
-          color: #333;
-        }
-        .title-bar {
-          background: white;
-          color: #333;
-          border-bottom: 1px solid #ccc;
-          z-index: 10;
-        }
-        .body {
-          border-top: 1px solid #ccc;
-        }
-        .file-name-container {
-          box-sizing: border-box;
-          flex: 1 1 auto;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .file-icon {
-          margin-right: 18px;
-        }
-        .close {
-          width: 40px;
-          margin-left: 20px;
-        }
-        .preview-container {
-          display: flex;
-          padding: 5px;
-          height: 170px;
-          box-sizing: border-box;
-        }
-        .children-count {
-          flex: 1 1 auto;
-        }
-        .show {
-          display: block;
-          box-sizing: border-box;
-          padding: 5px;
-          height: 200px;
-          background: #f3f3f3;
-          overflow: auto;
-        }
-        .none {
-          display: none;
-        }
-        .preview-title {
-          display: flex;
-          width: 100%;
-          justify-content: center;
-          align-items: center;
-          font-size: 0.8em;
-          font-variant-ligatures: no-contextual;
-          font-weight: 400;
-          color: #202124;
-        }
-        .preview-title p {
-          margin: 0;
-          padding: 0;
-        }
-        p i {
-          color: cornflowerblue;
-        }
-        google-chart {
-          height: 100%;
-          width: 100%;
-        }
-        .empty {
-          display: flex;
-          height: 170px;
-          box-sizing: border-box;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          color: #555;
-          font-size: 0.74em;
-        }
-        .empty > iron-icon {
-          height: 50px;
-          width: 50px;
-        }
-        .empty-icon {
-          color: #57bb8a;
-        }
-        .warning-icon {
-          color: #f50303;
-        }
-        .paper-material {
-          background: #fff;
-          padding: 5px;
-          border: 1px solid #bbb;
-        }
-        paper-toggle-button {
-          --paper-toggle-button-checked-bar-color: #4caf50;
-          --paper-toggle-button-checked-button-color: #4caf50;
-          --paper-toggle-button-unchecked-bar-color: #009688;
-          --paper-toggle-button-unchecked-button-color: #009688;
-        }
-        .visible {
-          display: block;
-        }
-        .toggle-container {
-          display: flex;
-          font-size: 0.75em;
-          align-items: center;
-        }
-      </style>
-
-      <app-header-layout has-scrolling-region>
-        <app-header slot="header" fixed condenses effects="waterfall">
-          <app-toolbar class="title-bar" sticky>
-            <div class="file-icon">
-              <file-icon mime-type="[[knownMetadata.fileMimeType]]"></file-icon>
-            </div>
-            <div class="file-name-container">[[knownMetadata.fileName]]</div>
-            <div class="close">
-              <paper-icon-button icon="close" id="close"></paper-icon-button>
-            </div>
-          </app-toolbar>
-
-          <div id="preview" class$="[[_computePreviewClass(knownMetadata.fileType)]]">
-            <div class="preview-title">
-              <p>
-                Directory Content Analysis of
-                <i class="file-name-in-preview-title">&nbsp;[[knownMetadata.fileName]]&nbsp;</i> -
-                <small>&nbsp;based on MIME Type</small>
-              </p>
-            </div>
-
-            <div id="preview-container" class="preview-container">
-              <google-chart
-                type="pie"
-                data="[[_data]]"
-                class="children-count"
-                options="[[_options]]"
-              ></google-chart>
-            </div>
-
-            <div id="message-container" class="none">
-              <iron-icon class$="[[messageIconClass]]" icon="[[messageIcon]]"></iron-icon>
-              <small>No data to analyse</small>
-              <b>[[message]]</b>
-            </div>
-          </div>
-        </app-header>
-
-        <div class="body">
-          <div class="toggle-container paper-material">
-            Raw &nbsp;
-            <paper-toggle-button
-              id="toggle"
-              checked="{{formatStatus}}"
-              noink
-            ></paper-toggle-button
-            >&nbsp;Formatted
-          </div>
-
-          <div id="pretty" class="visible">
-            <file-metadata-mapper
-              is-loading="[[isLoading]]"
-              metadata="[[metadata]]"
-            ></file-metadata-mapper>
-          </div>
-
-          <div id="raw" class="none">
-            <raw-file-metadata
-              is-loading="[[isLoading]]"
-              metadata="[[metadata]]"
-            ></raw-file-metadata>
-          </div>
-        </div>
-      </app-header-layout>
-    `;
-    }
-
+class FileMetadataDashboard extends DcacheViewMixins.Namespace(DcacheViewMixins.Commons(PolymerElement)) {
     static get is() {
         return 'file-metadata-dashboard';
     }
 
     static get properties() {
         return {
-            knownMetadata: {
-                type: Object,
-                notify: true,
-            },
-            metadata: {
-                type: Object,
-                value: () => ({}),
-                notify: true,
-            },
+            knownMetadata: { type: Object, notify: true },
+            metadata: { type: Object, value: () => ({}), notify: true },
             pnfsId: {
                 type: String,
-                value: '0',
+                value: "0",
                 notify: true,
-                observer: '_requestFileMetadataWithPnfsId',
+                observer: '_requestFileMetadataWithPnfsId'
             },
             index: {
                 type: Number,
                 notify: true,
-                observer: '_indexChanged',
+                observer: '_indexChanged'
             },
-            path: {
-                type: String,
-                notify: true,
-            },
-            children: {
-                type: Array,
-                value: () => [],
-                notify: true,
-                observer: '_childrenChanged',
-            },
-            _data: {
-                type: Array,
-                value: () => [['File Type', 'Value']],
-                notify: true,
-            },
+            path: { type: String, notify: true },
+            children: { type: Array, value: () => [], notify: true, observer: '_childrenChanged' },
+            _data: { type: Array, value: () => [["File Type", "Value"]], notify: true },
             _options: {
                 type: Object,
                 value: () => ({
-                    backgroundColor: 'transparent',
-                    'backgroundColor.fill': 'transparent',
-                    chartArea: { width: '60%', height: '90%' },
-                    is3D: true,
-                    legend: { alignment: 'center' },
-                    tooltip: { trigger: 'selection' },
-                }),
+                    "backgroundColor": "transparent",
+                    "backgroundColor.fill": "transparent",
+                    "chartArea": {"width": "60%", "height":"90%"},
+                    "is3D": true,
+                    "legend": {"alignment": "center"},
+                    "tooltip": {"trigger": "selection"}
+                })
             },
-            refreshRequire: {
-                type: Boolean,
-                value: true,
-                notify: true,
-            },
+            refreshRequire: { type: Boolean, value: true, notify: true },
             formatStatus: {
                 type: Boolean,
-                value: () =>
-                    window.CONFIG?.['file-metadata-viewer-formatted-mode'] === undefined
-                        ? true
-                        : window.CONFIG['file-metadata-viewer-formatted-mode'],
-                notify: true,
-                reflectToAttribute: true,
+                value: () => window.CONFIG["file-metadata-viewer-formatted-mode"] === undefined ?
+                    true : window.CONFIG["file-metadata-viewer-formatted-mode"],
+                notify: true
             },
-            messageIcon: {
-                type: String,
-                value: 'icons:announcement',
-                notify: true,
-            },
-            message: {
-                type: String,
-                value: 'Empty Directory',
-                notify: true,
-            },
-            isLoading: {
-                type: Boolean,
-                value: true,
-                notify: true,
-            },
-            messageIconClass: {
-                type: String,
-                value: 'empty-icon',
-                notify: true,
-            },
-        };
+            messageIcon: { type: String, value: 'icons:announcement', notify: true },
+            message: { type: String, value: 'Empty Directory', notify: true },
+            isLoading: { type: Boolean, value: true, notify: true },
+            messageIconClass: { type: String, value: "empty-icon", notify: true }
+        }
     }
 
-    constructor() {
+    constructor(file, path, idx, auth) {
         super();
-
         this._setIndexListener_ = this._setIndexListener.bind(this);
         this._setChildren_ = this._setChildren.bind(this);
         this._close_ = this._close.bind(this);
         this._rawOrFormatted_ = this._rawOrFormatted.bind(this);
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-
-        if (!this.knownMetadata.fileMimeType && this.knownMetadata.fileType === 'DIR') {
-            this.knownMetadata.fileMimeType = 'application/vnd.dcache.folder';
+        if (!file.fileMimeType && file.fileType === "DIR") {
+            file.fileMimeType = "application/vnd.dcache.folder";
         }
-
-        this.path = this.path === '' ? '/' : this.encodePath(this.path);
-        this.pnfsId = this.knownMetadata.pnfsId || '0';
-
-        if (this.index === 1) {
+        this.knownMetadata = file;
+        this.path = path === "" ? "/": this.encodePath(path);
+        this.pnfsId = file.pnfsId ? file.pnfsId : "0";
+        if (auth) {
+            this.authenticationParameters = auth;
+        }
+        if (idx === 1) {
             this.index = -10;
             window.addEventListener('dv-namespace-receive-children', this._setChildren_);
-            window.dispatchEvent(new CustomEvent('dv-namespace-request-children', { bubbles: true, composed: true }));
+            window.dispatchEvent(
+                new CustomEvent('dv-namespace-request-children', {bubbles: true, composed: true}));
         } else {
             window.addEventListener('dv-namespace-receive-item-index', this._setIndexListener_);
             window.dispatchEvent(
                 new CustomEvent('dv-namespace-request-item-index', {
-                    detail: { item: this.knownMetadata },
-                    bubbles: true,
-                    composed: true,
-                })
-            );
+                    detail: {item: file}, bubbles: true, composed: true}));
         }
+    }
 
-        this.$.close.addEventListener('click', this._close_);
+    ready() {
+        super.ready();
+        Polymer.RenderStatus.afterNextRender(this, () => this.__formatStyleSwitch(this.formatStatus));
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        this.$.close.addEventListener('tap', this._close_);
         this.$.toggle.addEventListener('checked-changed', this._rawOrFormatted_);
-
-        // Wait for render to switch initial format style
-        window.requestAnimationFrame(() => this.__formatStyleSwitch(this.formatStatus));
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         window.removeEventListener('dv-namespace-receive-item-index', this._setIndexListener_);
         window.removeEventListener('dv-namespace-receive-children', this._setChildren_);
-        this.$.close.removeEventListener('click', this._close_);
+        this.$.close.removeEventListener('tap', this._close_);
         this.$.toggle.removeEventListener('checked-changed', this._rawOrFormatted_);
     }
 
     _indexChanged(idx) {
-        if (idx > -1 && this.knownMetadata.fileType === 'DIR') {
+        if (idx > -1 && this.knownMetadata.fileType === "DIR") {
             this._requestAllChildren();
         }
     }
@@ -346,7 +114,6 @@ class FileMetadataDashboard extends PolymerElement {
         if (len > 0) {
             this.$['message-container'].classList.replace('empty', 'none');
             this.$['preview-container'].classList.replace('none', 'preview-container');
-
             if (len >= 100) {
                 if (this.refreshRequire) {
                     this._requestAllChildren();
@@ -354,7 +121,6 @@ class FileMetadataDashboard extends PolymerElement {
             } else {
                 this.refreshRequire = false;
             }
-
             this._setPieChartData(children, len);
         } else {
             this.$['message-container'].classList.replace('none', 'empty');
@@ -363,39 +129,35 @@ class FileMetadataDashboard extends PolymerElement {
     }
 
     _requestAllChildren() {
-        this._requestFileMetadata({ scope: 'partial', limit: 'max' })
-            .then((data) => {
-                this.refreshRequire = false;
-                this.children = data.children;
-            })
-            .catch((err) => {
-                this.message = err.message;
-                this.messageIcon = 'icons:warning';
-                this.messageIconClass = 'warning-icon';
-            });
+        this._requestFileMetadata({"scope": "partial", "limit": "max"}).then(data => {
+            this.refreshRequire = false;
+            this.setProperties({children: data.children});
+        }).catch(err => {
+            this.message = err.message;
+            this.messageIcon = 'icons:warning';
+            this.messageIconClass = 'warning-icon';
+        })
     }
 
     _setPieChartData(children, len) {
-        const arr = [['File Type', 'Value']];
-
-        for (let i = 0; i < len; i++) {
-            const name = children[i].fileType === 'DIR' ? 'folder' : children[i].fileMimeType.split('/')[1];
-            let found = false;
-
-            for (let j = 1; j < arr.length; j++) {
-                if (arr[j][0] === name) {
-                    arr[j][1] += 1;
-                    found = true;
-                    break;
+        const arr = [["File Type", "Value"]];
+        for (let i=0; i < len; i++) {
+            const len2 = arr.length;
+            const name = children[i].fileType === "DIR" ? "folder" : children[i].fileMimeType.split("/")[1];
+            if (len2 > 1) {
+                for (let j=1; j < len2; j++) {
+                    if (arr[j][0] === name) {
+                        arr[j][1] += 1;
+                        break;
+                    } else if (j === len2 - 1) {
+                        arr.push([name, 1]);
+                    }
                 }
-            }
-
-            if (!found) {
+            } else {
                 arr.push([name, 1]);
             }
         }
-
-        this._data = arr;
+        this.setProperties({_data: arr});
     }
 
     _setIndexListener(e) {
@@ -403,7 +165,7 @@ class FileMetadataDashboard extends PolymerElement {
     }
 
     _setChildren(e) {
-        if (e.detail.message === 'successful') {
+        if (e.detail.message === "successful") {
             this.children = e.detail.children;
         } else {
             this.message = e.detail.message;
@@ -413,77 +175,64 @@ class FileMetadataDashboard extends PolymerElement {
     }
 
     _close() {
-        this.dispatchEvent(
-            new CustomEvent('dv-namespace-close-filemetadata-panel', {
-                bubbles: true,
-                composed: true,
-            })
-        );
+        this.dispatchEvent(new CustomEvent('dv-namespace-close-filemetadata-panel', {
+            bubbles: true, composed: true
+        }));
     }
 
     _computePreviewClass(ft) {
-        return ft === 'DIR' ? 'show' : 'none';
+        return ft === "DIR" ? 'show' : 'none';
     }
 
     _rawOrFormatted(e) {
-        window.CONFIG['file-metadata-viewer-formatted-mode'] = e.detail.value;
+        window.CONFIG["file-metadata-viewer-formatted-mode"] = e.detail.value;
         this.__formatStyleSwitch(e.detail.value);
     }
 
     __formatStyleSwitch(isFormatted) {
         if (isFormatted) {
-            this.$.raw.classList.replace('visible', 'none');
-            this.$.pretty.classList.replace('none', 'visible');
+            this.$.raw.classList.replace("visible", "none");
+            this.$.pretty.classList.replace("none", "visible");
         } else {
-            this.$.raw.classList.replace('none', 'visible');
-            this.$.pretty.classList.replace('visible', 'none');
+            this.$.raw.classList.replace("none", "visible");
+            this.$.pretty.classList.replace("visible", "none");
         }
     }
 
     _requestFileMetadataWithPnfsId(pnfsId) {
-        if (pnfsId !== '0' && this.knownMetadata.acl) {
-            this.metadata = this._filterMetadata(this.knownMetadata);
+        if (pnfsId !== "0" && this.knownMetadata.acl) {
+            this.setProperties({metadata: this._filterMetadata(this.knownMetadata)});
             return;
         }
-        this._requestFileMetadata({ scope: 'full' })
-            .then((data) => {
-                this.metadata = this._filterMetadata(data);
-            })
-            .catch(() => {
-                // Fail Quietly
-                this.metadata = this._filterMetadata(this.knownMetadata);
-            });
+        this._requestFileMetadata({'scope': 'full'}).then(data => {
+            this.setProperties({metadata: this._filterMetadata(data)});
+        }).catch(() => {
+            this.setProperties({metadata: this._filterMetadata(this.knownMetadata)});
+        });
     }
 
     _filterMetadata(metadata) {
-        const copy = Object.assign({}, metadata);
-        delete copy.locations;
-        delete copy.pnfsId;
-        delete copy.storageInfo;
-        delete copy.storageClass;
-        delete copy.hsm;
-        delete copy.suris;
-        delete copy.flags;
-
+        delete metadata["locations"];
+        delete metadata["pnfsId"];
+        delete metadata["storageInfo"];
+        delete metadata["storageClass"];
+        delete metadata["hsm"];
+        delete metadata["suris"];
+        delete metadata["flags"];
         this.isLoading = false;
-        return copy;
+        return metadata;
     }
 
     _requestFileMetadata(additionalMessage) {
         const message = {
-            endpoint: `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
-            file: this.knownMetadata,
-            filePath: this.path,
-            upauth: this.getAuthValue(),
-            ...additionalMessage,
+            'endpoint' : `${window.location.origin}${window.CONFIG['dcache-view.endpoints.webapi']}`,
+            'file' : this.knownMetadata,
+            'filePath' : this.path,
+            'upauth' : this.getAuthValue()
         };
+        Object.assign(message, additionalMessage);
         return this.fileMetadataPromise(message);
-    }
-
-    // Stub: implement encodePath, getAuthValue, fileMetadataPromise, and any mixin behavior or dependencies.
-    encodePath(path) {
-        return encodeURIComponent(path);
     }
 }
 
-customElements.define(FileMetadataDashboard.is, FileMetadataDashboard);
+window.customElements.define(FileMetadataDashboard.is, FileMetadataDashboard);

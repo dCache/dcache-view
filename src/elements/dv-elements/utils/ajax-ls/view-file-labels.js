@@ -1,7 +1,7 @@
 import '../../list-view/list-row.js';
 import '../../directory-ls-message/empty-directory.js';
 import '../../directory-ls-message/directory-ls-error.js';
-import '../../user-authentication/forms/user-login-page.js';
+import '../../user-authentication/forms/user-login-page.html';
 import '../../rename-input/rename-input.js';
 
 class ViewFileLabels extends DcacheViewMixins.LABELS(

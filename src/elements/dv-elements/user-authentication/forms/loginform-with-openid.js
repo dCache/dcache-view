@@ -1,324 +1,336 @@
-import './login-form.js';
-class LoginformWithOpenid extends Polymer.Element
-{
-  static get template() {
-    return Polymer.html`
-        <style>
-            @media only screen and (max-width: 740px) {
-                /* smaller screen: */
-                :host {
-                    display: flex;
-                    margin-top: 16px;
-                }
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/neon-animation/neon-animated-pages.js';
+import '@polymer/neon-animation/neon-animatable.js';
+import '@polymer/neon-animation/neon-animations.js';
 
-                #openIDs, #divider, login-form {
-                    width: 300px !important;
-                }
-                #openIDs paper-button {
-                    width: 300px !important;
-                    text-transform: none !important;
-                    background: #ccc;
-                    color: #373737;
-                    margin: 0;
-                }
-                #divider {
-                    box-sizing: border-box;
-                    display: flex;
-                    justify-content: center;
-                    margin-top: 20px;
-                }
-                #divider div {
-                    width: 100%;
-                    text-align: center;
-                    border-bottom: 1px solid #b0b0b0;
-                    line-height: 0.1em;
-                    margin: 10px 0 20px;
-                }
+import './login-form.js';  // adjust this import path as needed
 
-                #divider div span {
-                    background: #686868;
-                    padding:0 10px;
-                    color: #fafafa;
-                    font-size: 12px;
-                    letter-spacing: 1px;
-                }
-                neon-animated-pages {
-                    flex: 1 auto;
-                }
-                neon-animatable:nth-child(1) {
-                    width: 300px;
-                    margin: 16px auto;
-                }
-
-                /* TODO:  below is the sama with the larger screen setting; factor out */
-                neon-animatable:nth-child(2) {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    height: calc(100vh - 25vh - 89px);
-                    margin-top: -16px;
-                }
-                neon-animatable:nth-child(2) #providersContainer {
-                    box-sizing: border-box;
-                    margin: 10px;
-                    max-height: calc(100vh - 25vh - 89px - 75px);
-                    padding-bottom: 45px;
-                    overflow-y: auto;
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                }
-                #providersContainer paper-button {
-                    background: #ccc;
-                    color: #383838;
-                    margin: 0.5em;
-                    padding: 0.5em 1em;
-                    max-width: 300px !important; /* TODO: remember to add ellipsis */
-                }
-            }
-            @media only screen and (min-width: 740px) {
-                /* larger screen: */
-                :host {
-                    display: flex;
-                    margin-top: 16px;
-                }
-
-                login-form {
-                    width: 300px !important;
-                }
-                #openIDs paper-button {
-                    width: 300px !important;
-                    text-transform: none !important;
-                    background: #ccc;
-                    color: #373737;
-                    margin: 0;
-                }
-
-                #divider {
-                    height: 200px;
-                    width: 50px;
-                }
-                #divider div {
-                    position: relative;
-                    height: 200px;
-                    text-align: center;
-                }
-                #divider div:after {
-                    content: " ";
-                    position: absolute;
-                    left: 50%;
-                    height: 100%;
-                    border-left: 1px solid #b0b0b0;
-                }
-                #divider div span {
-                    position: absolute;
-                    left: 50%;
-                    top: 50%;
-                    padding: 5px;
-                    color: #fafafa;
-                    font-size: 12px;
-                    letter-spacing: 1px;
-                    background: #686868;
-                    transform: translateX(-50%) translateY(-50%);
-                    z-index: 1;
-                }
-
-                neon-animated-pages {
-                    flex: 1 auto;
-                }
-                neon-animatable{
-                    display: flex;
-                }
-                neon-animatable:nth-child(1) {
-                    margin-top: 15px;
-                    height: 200px;
-                    align-items: center;
-                    justify-content: center;
-                    flex-wrap: wrap;
-                }
-
-                neon-animatable:nth-child(2) {
-                    flex-direction: column;
-                    align-items: center;
-                    height: calc(100vh - 25vh - 89px);
-                    margin-top: -16px;
-                }
-                neon-animatable:nth-child(2) #providersContainer {
-                    box-sizing: border-box;
-                    margin: 10px;
-                    max-height: calc(100vh - 25vh - 89px - 75px);
-                    padding-bottom: 45px;
-                    overflow-y: auto;
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                }
-                #providersContainer paper-button {
-                    background: #ccc;
-                    color: #383838;
-                    margin: 0.5em;
-                    padding: 0.5em 1em;
-                    max-width: 300px !important; /* TODO: remember to add ellipsis */
-                }
-            }
-            .back-icon-btn-container {
-                margin-top: 7px;
-                margin-bottom: 5px
-            }
-            .back-icon-btn-inner-container {
-                width:40px;
-                height: 40px;
-                border: 2px solid #d6d6d6;
-                border-radius: 22px;
-                color: #d6d6d6;
-            }
-            .oic-provider-header {
-                color:#b5b5b5;
-                font-size: 0.9em;
-                letter-spacing: 1px;
-                line-height: 2em;
-            }
-            .oic-provider-btn {
-                text-transform: none !important;
-            }
-            .oic-provider-btn > label {
-                text-transform: capitalize !important;
-            }
-        </style>
-        <neon-animated-pages id="pages" selected="[[selected]]" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]">
-            <neon-animatable>
-                <div id="openIDs">
-                    <paper-button on-tap="_showAllAvailableProviders">Login via an OpenID-Connect account</paper-button>
-                </div>
-                <div id="divider">
-                    <div>
-                        <span>OR</span>
-                    </div>
-                </div>
-                <login-form redirect-to="[[redirectTo]]"></login-form>
-            </neon-animatable>
-            <neon-animatable>
-                <div class="back-icon-btn-container">
-                    <div class="back-icon-btn-inner-container">
-                        <paper-icon-button icon="chevron-left" on-tap="_backToMain">back</paper-icon-button>
-                    </div>
-                </div>
-                <div class="oic-provider-header">
-                    Supported OpenID Providers
-                </div>
-                <br>
-                <div id="providersContainer">
-                    <!-- TODO: style the buttons based on the provider's (logo/style/theme) -->
-                    <template is="dom-repeat" items="[[openIDProviders]]" id="oidcList">
-                        <paper-button on-tap="_connect" class="oic-provider-btn">
-                            Login via&nbsp;<label>[[item.name]]</label>
-                        </paper-button>
-                    </template>
-                </div>
-            </neon-animatable>
-        </neon-animated-pages>
-`;
-  }
-
-  constructor()
-  {
-      super();
-      const a = window.CONFIG["dcache-view.oidc-provider-name-list"].trim().split(" ");
-      const b = window.CONFIG["dcache-view.oidc-client-id-list"].trim().split(" ");
-      const c = window.CONFIG["dcache-view.oidc-authz-endpoint-list"].trim().split(" ");
-      const d = window.CONFIG["dcache-view.oidc-authz-endpoint-extra"].trim().split(" ");
-      const len = a.length;
-      let jsonArray = [];
-      for (let i=0; i<len; i++) {
-          const extra = i < d.length ? d[i] : '-'
-          jsonArray.push({"name": `${decodeURIComponent(a[i])}`, "id": `${decodeURIComponent(b[i])}`, "endpoint": `${c[i]}`, "extra": `${extra}`});
-      }
-      this.openIDProviders = jsonArray;
-  }
-  static get is()
-  {
-      return "loginform-with-openid";
-  }
-  static get properties()
-  {
-      return {
-          openIDProviders: {
-              type: Array,
-              notify: true
-          },
-          selected: {
-              type: Number,
-              value: 0,
-              notify: true
-          },
-          redirectTo: {
-              type: Object,
-              notify: true
+class LoginformWithOpenid extends PolymerElement {
+    static get template() {
+        return html`
+      <style>
+        /* Your styles copied verbatim */
+        @media only screen and (max-width: 740px) {
+          :host {
+            display: flex;
+            margin-top: 16px;
           }
-      };
-  }
-  _showAllAvailableProviders ()
-  {
-      this.entryAnimation = 'slide-from-right-animation';
-      this.exitAnimation = 'slide-left-animation';
-      this.selected = 1;
-  }
+          #openIDs, #divider, login-form {
+            width: 300px !important;
+          }
+          #openIDs paper-button {
+            width: 300px !important;
+            text-transform: none !important;
+            background: #ccc;
+            color: #373737;
+            margin: 0;
+          }
+          #divider {
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+          }
+          #divider div {
+            width: 100%;
+            text-align: center;
+            border-bottom: 1px solid #b0b0b0;
+            line-height: 0.1em;
+            margin: 10px 0 20px;
+          }
+          #divider div span {
+            background: #686868;
+            padding: 0 10px;
+            color: #fafafa;
+            font-size: 12px;
+            letter-spacing: 1px;
+          }
+          neon-animated-pages {
+            flex: 1 auto;
+          }
+          neon-animatable:nth-child(1) {
+            width: 300px;
+            margin: 16px auto;
+          }
+          neon-animatable:nth-child(2) {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: calc(100vh - 25vh - 89px);
+            margin-top: -16px;
+          }
+          neon-animatable:nth-child(2) #providersContainer {
+            box-sizing: border-box;
+            margin: 10px;
+            max-height: calc(100vh - 25vh - 89px - 75px);
+            padding-bottom: 45px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+          #providersContainer paper-button {
+            background: #ccc;
+            color: #383838;
+            margin: 0.5em;
+            padding: 0.5em 1em;
+            max-width: 300px !important; /* TODO: remember to add ellipsis */
+          }
+        }
+        @media only screen and (min-width: 740px) {
+          :host {
+            display: flex;
+            margin-top: 16px;
+          }
+          login-form {
+            width: 300px !important;
+          }
+          #openIDs paper-button {
+            width: 300px !important;
+            text-transform: none !important;
+            background: #ccc;
+            color: #373737;
+            margin: 0;
+          }
+          #divider {
+            height: 200px;
+            width: 50px;
+          }
+          #divider div {
+            position: relative;
+            height: 200px;
+            text-align: center;
+          }
+          #divider div:after {
+            content: " ";
+            position: absolute;
+            left: 50%;
+            height: 100%;
+            border-left: 1px solid #b0b0b0;
+          }
+          #divider div span {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            padding: 5px;
+            color: #fafafa;
+            font-size: 12px;
+            letter-spacing: 1px;
+            background: #686868;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: 1;
+          }
+          neon-animated-pages {
+            flex: 1 auto;
+          }
+          neon-animatable {
+            display: flex;
+          }
+          neon-animatable:nth-child(1) {
+            margin-top: 15px;
+            height: 200px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+          neon-animatable:nth-child(2) {
+            flex-direction: column;
+            align-items: center;
+            height: calc(100vh - 25vh - 89px);
+            margin-top: -16px;
+          }
+          neon-animatable:nth-child(2) #providersContainer {
+            box-sizing: border-box;
+            margin: 10px;
+            max-height: calc(100vh - 25vh - 89px - 75px);
+            padding-bottom: 45px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+          #providersContainer paper-button {
+            background: #ccc;
+            color: #383838;
+            margin: 0.5em;
+            padding: 0.5em 1em;
+            max-width: 300px !important; /* TODO: remember to add ellipsis */
+          }
+        }
+        .back-icon-btn-container {
+          margin-top: 7px;
+          margin-bottom: 5px;
+        }
+        .back-icon-btn-inner-container {
+          width: 40px;
+          height: 40px;
+          border: 2px solid #d6d6d6;
+          border-radius: 22px;
+          color: #d6d6d6;
+        }
+        .oic-provider-header {
+          color: #b5b5b5;
+          font-size: 0.9em;
+          letter-spacing: 1px;
+          line-height: 2em;
+        }
+        .oic-provider-btn {
+          text-transform: none !important;
+        }
+        .oic-provider-btn > label {
+          text-transform: capitalize !important;
+        }
+      </style>
 
-  _backToMain()
-  {
-      this.entryAnimation = 'slide-from-left-animation';
-      this.exitAnimation = 'slide-right-animation';
-      this.selected = 0;
-  }
+      <neon-animated-pages
+        id="pages"
+        selected="[[selected]]"
+        entry-animation="[[entryAnimation]]"
+        exit-animation="[[exitAnimation]]"
+      >
+        <neon-animatable>
+          <div id="openIDs">
+            <paper-button on-tap="_showAllAvailableProviders"
+              >Login via an OpenID-Connect account</paper-button
+            >
+          </div>
+          <div id="divider">
+            <div>
+              <span>OR</span>
+            </div>
+          </div>
+          <login-form redirect-to="[[redirectTo]]"></login-form>
+        </neon-animatable>
 
-  _connect (e)
-  {
-      sessionStorage.removeItem('nonce');
-      const openIDprovider = this.$.oidcList.itemForElement(e.target);
-      const endpoint = openIDprovider.endpoint.endsWith('?')
-          ? openIDprovider.endpoint : `${openIDprovider.endpoint}?`;
-      const nonce = window.btoa(this._entropy(this._generateNonce()));
-      sessionStorage.setItem("nonce", nonce);
+        <neon-animatable>
+          <div class="back-icon-btn-container">
+            <div class="back-icon-btn-inner-container">
+              <paper-icon-button icon="chevron-left" on-tap="_backToMain"
+                >back</paper-icon-button
+              >
+            </div>
+          </div>
+          <div class="oic-provider-header">Supported OpenID Providers</div>
+          <br />
+          <div id="providersContainer">
+            <template is="dom-repeat" items="[[openIDProviders]]" id="oidcList">
+              <paper-button on-tap="_connect" class="oic-provider-btn">
+                Login via&nbsp;<label>[[item.name]]</label>
+              </paper-button>
+            </template>
+          </div>
+        </neon-animatable>
+      </neon-animated-pages>
+    `;
+    }
 
-      sessionStorage.removeItem('redirect');
-      sessionStorage.setItem('redirect', JSON.stringify(this.redirectTo));
+    static get properties() {
+        return {
+            openIDProviders: {
+                type: Array,
+                notify: true,
+            },
+            selected: {
+                type: Number,
+                value: 0,
+                notify: true,
+            },
+            redirectTo: {
+                type: Object,
+                notify: true,
+            },
+            entryAnimation: String,
+            exitAnimation: String,
+        };
+    }
 
-      const extra = openIDprovider.extra === '-' ? '' : `&${openIDprovider.extra}`
+    constructor() {
+        super();
 
-      window.location.href = endpoint + 'response_type=id_token%20token' +
-          '&client_id=' + openIDprovider.id +
-          '&redirect_uri=' + encodeURIComponent(window.location.origin) +
-          '&scope=openid%20profile%20email' +
-          '&nonce=' + nonce + extra;
-  }
+        // Initialize openIDProviders from window.CONFIG (same logic)
+        const a = window.CONFIG['dcache-view.oidc-provider-name-list'].trim().split(' ');
+        const b = window.CONFIG['dcache-view.oidc-client-id-list'].trim().split(' ');
+        const c = window.CONFIG['dcache-view.oidc-authz-endpoint-list'].trim().split(' ');
+        const d = window.CONFIG['dcache-view.oidc-authz-endpoint-extra'].trim().split(' ');
+        const len = a.length;
+        let jsonArray = [];
+        for (let i = 0; i < len; i++) {
+            const extra = i < d.length ? d[i] : '-';
+            jsonArray.push({
+                name: decodeURIComponent(a[i]),
+                id: decodeURIComponent(b[i]),
+                endpoint: c[i],
+                extra: extra,
+            });
+        }
+        this.openIDProviders = jsonArray;
+    }
 
-  /**
-   * Consider moving @this._entropy & @this._generateNonce into dv.js
-   */
-  _entropy(str)
-  {
-      let a = str.split(""),
-          len = a.length;
+    _showAllAvailableProviders() {
+        this.entryAnimation = 'slide-from-right-animation';
+        this.exitAnimation = 'slide-left-animation';
+        this.selected = 1;
+    }
 
-      for (let i = len - 1; i > 0; i--) {
-          let j = Math.floor(Math.random() * (i + 1));
-          let tmp = a[i];
-          a[i] = a[j];
-          a[j] = tmp;
-      }
-      return a.join("");
-  }
+    _backToMain() {
+        this.entryAnimation = 'slide-from-left-animation';
+        this.exitAnimation = 'slide-right-animation';
+        this.selected = 0;
+    }
 
-  _generateNonce()
-  {
-      let ints = new Uint32Array(8);
-      window.crypto.getRandomValues(ints);
-      let nonce = "";
-      ints.forEach(int => {
-          nonce = nonce + int.toString(36);
-      });
+    _connect(e) {
+        sessionStorage.removeItem('nonce');
+        const openIDprovider = this.shadowRoot
+            .querySelector('#oidcList')
+            .itemForElement(e.target);
 
-      return nonce;
-  }
+        const endpoint = openIDprovider.endpoint.endsWith('?')
+            ? openIDprovider.endpoint
+            : `${openIDprovider.endpoint}?`;
+        const nonce = window.btoa(this._entropy(this._generateNonce()));
+        sessionStorage.setItem('nonce', nonce);
+
+        sessionStorage.removeItem('redirect');
+        sessionStorage.setItem('redirect', JSON.stringify(this.redirectTo));
+
+        const extra = openIDprovider.extra === '-' ? '' : `&${openIDprovider.extra}`;
+
+        window.location.href =
+            endpoint +
+            'response_type=id_token%20token' +
+            '&client_id=' +
+            openIDprovider.id +
+            '&redirect_uri=' +
+            encodeURIComponent(window.location.origin) +
+            '&scope=openid%20profile%20email' +
+            '&nonce=' +
+            nonce +
+            extra;
+    }
+
+    _entropy(str) {
+        let a = str.split(''),
+            len = a.length;
+
+        for (let i = len - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            let tmp = a[i];
+            a[i] = a[j];
+            a[j] = tmp;
+        }
+        return a.join('');
+    }
+
+    _generateNonce() {
+        let ints = new Uint32Array(8);
+        window.crypto.getRandomValues(ints);
+        let nonce = '';
+        ints.forEach((int) => {
+            nonce = nonce + int.toString(36);
+        });
+
+        return nonce;
+    }
 }
-window.customElements.define(LoginformWithOpenid.is, LoginformWithOpenid);
+
+customElements.define('loginform-with-openid', LoginformWithOpenid);

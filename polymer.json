@@ -1,6 +1,6 @@
 {
   "entrypoint": "src/index.html",
-  "shell": "src/elements/elements.html",
+  "shell": "src/elements/elements.js",
   "sources": [
     "src/elements/dv-elements/**/*"
   ],

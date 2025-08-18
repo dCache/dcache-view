@@ -1,259 +1,267 @@
-import './error/upload-error-dialog.js';
-class UploadToastFile extends Polymer.Element
-{
-  static get template() {
-    return Polymer.html`
-        <style>
-            :host{
-                display: block;
-                width: 420px;
-                height: 65px;
-                padding: 0;
-                border-bottom: 10px solid #323232;
-                background-color: #fff;
-            }
-            :host > .main {
-                width: 100%;
-                height: 100%;
-            }
-            .main {
-                @apply(--layout-horizontal);
-                padding: 0;
-                margin: 0;
-            }
-            .main > #fileStatusInfo {
-                @apply(--layout-flex);
-            }
-            #statusIcon {
-                padding-top: 5px;
-                width: 50px;
-                display: block;
-            }
-            #uploadFile {
-                @apply(--layout-horizontal);
-                height: 56px;
-            }
-            #uploadFile > #fileIcon {
-                width: 50px;
-                display: block;
-                @apply(--layout-horizontal);
-                @apply(--layout-center);
-            }
-            #uploadFile > #fileInfo {
-                @apply(--layout-flex);
-            }
-            #fileName {
-                height: 38px;
-                @apply(--layout-horizontal);
-                @apply(--layout-center);
-            }
-            #fileNameHolder {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                color: #333;
-                max-width:300px;
-                font-size: 1em;
-            }
-            #statusMessage {
-                font-size: 0.8em;
-            }
-            #progressBar {
-                max-height: 8px;
-                padding-left: 1px;
-                padding-right: 6px;
-                margin-bottom: 4px;
-            }
-            #progressBar > * {
-                width: 100% !important;
-            }
-            .statusContent {
-                @apply(--layout-horizontal);
-                @apply(--layout-center-justified);
-            }
+// upload-toast-file.js
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/paper-progress/paper-progress.js';
+import '@polymer/iron-flex-layout/iron-flex-layout.js';
+import '@polymer/iron-label/iron-label.js';
+import './file-icon/file-icon.js';
+import './error/upload-error-dialog.js'; // Adjust path as needed
 
-            label.complete {
-                color: #00688b;
-            }
-            iron-icon.completeIcon {
-                color: #00a1d7;
-            }
+class UploadToastFile extends PolymerElement {
+    static get template() {
+        return html`
+      <style>
+        :host {
+          display: block;
+          width: 420px;
+          height: 65px;
+          padding: 0;
+          border-bottom: 10px solid #323232;
+          background-color: #fff;
+        }
+        :host > .main {
+          width: 100%;
+          height: 100%;
+        }
+        .main {
+          @apply(--layout-horizontal);
+          padding: 0;
+          margin: 0;
+        }
+        .main > #fileStatusInfo {
+          @apply(--layout-flex);
+        }
+        #statusIcon {
+          padding-top: 5px;
+          width: 50px;
+          display: block;
+        }
+        #uploadFile {
+          @apply(--layout-horizontal);
+          height: 56px;
+        }
+        #uploadFile > #fileIcon {
+          width: 50px;
+          display: block;
+          @apply(--layout-horizontal);
+          @apply(--layout-center);
+        }
+        #uploadFile > #fileInfo {
+          @apply(--layout-flex);
+        }
+        #fileName {
+          height: 38px;
+          @apply(--layout-horizontal);
+          @apply(--layout-center);
+        }
+        #fileNameHolder {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          color: #333;
+          max-width: 300px;
+          font-size: 1em;
+        }
+        #statusMessage {
+          font-size: 0.8em;
+        }
+        #progressBar {
+          max-height: 8px;
+          padding-left: 1px;
+          padding-right: 6px;
+          margin-bottom: 4px;
+        }
+        #progressBar > * {
+          width: 100% !important;
+        }
+        .statusContent {
+          @apply(--layout-horizontal);
+          @apply(--layout-center-justified);
+        }
 
-            label.error {
-                color: #674c4f !important;
-            }
-            iron-icon.errorIcon {
-                color: #ff3a53 !important;
-            }
+        label.complete {
+          color: #00688b;
+        }
+        iron-icon.completeIcon {
+          color: #00a1d7;
+        }
 
-            label.progress {
-                color: #c3af0d;
-            }
-            .progressIcon {
-                color: #8b6800;
-            }
+        label.error {
+          color: #674c4f !important;
+        }
+        iron-icon.errorIcon {
+          color: #ff3a53 !important;
+        }
 
-            paper-progress.complete {
-                --paper-progress-active-color: #4e9cdb !important;
-            }
-            paper-progress.error {
-                --paper-progress-active-color: #ff7586 !important;
-            }
-            paper-progress.progress {
-                --paper-progress-active-color: #ffc925 !important;
-            }
-            #fileIcon file-icon {
-                padding-left: 10px;
-            }
-            #statusMessage span {
-                background: #373737;
-                color:#fff;
-                font-size: 1em !important;
-            }
-            .none {
-                display: none;
-            }
-            .button-container {
-                display: inline;
-            }
-            .button-container paper-button {
-                text-transform: none;
-                color: #674c4f;
-                padding: 0;
-                margin: 0;
-            }
-        </style>
-        <div class="main">
-            <div id="fileStatusInfo">
-                <div id="uploadFile">
-                    <div id="fileIcon">
-                        <file-icon mime-type="[[fileMimeType]]"></file-icon>
-                    </div>
-                    <div id="fileInfo">
-                        <div id="fileName">
-                            <div id="fileNameHolder">[[fileName]]</div>
-                        </div>
-                        <div id="statusMessage">
-                            <span>Status:</span>
-                            <label id="message" class\$="[[_computedClass(hasError,isComplete,inProgress)]]">[[message]]</label>
-                            <label id="button-container" class="none">
-                                <paper-button on-tap="_detailError">
-                                    File upload failed! Click here for details.</paper-button>
-                            </label>
-                        </div>
-                    </div>
-                    <div id="statusIcon">
-                        <template is="dom-if" if="[[isComplete]]" restamp="">
-                            <div class="statusContent">
-                                <iron-icon icon="icons:check-circle" class="completeIcon"></iron-icon>
-                            </div>
-                        </template>
-                        <template is="dom-if" if="[[hasError]]" restamp="">
-                            <div class="statusContent">
-                                <iron-icon icon="icons:warning" class="errorIcon"></iron-icon>
-                            </div>
-                        </template>
-                        <template is="dom-if" if="[[inProgress]]" restamp="">
-                            <div class="statusContent"><b class="progressIcon">[[progressValue]]</b></div>
-                        </template>
-                    </div>
-                </div>
-                <div id="progressBar">
-                    <paper-progress indeterminate=""></paper-progress>
-                </div>
+        label.progress {
+          color: #c3af0d;
+        }
+        .progressIcon {
+          color: #8b6800;
+        }
+
+        paper-progress.complete {
+          --paper-progress-active-color: #4e9cdb !important;
+        }
+        paper-progress.error {
+          --paper-progress-active-color: #ff7586 !important;
+        }
+        paper-progress.progress {
+          --paper-progress-active-color: #ffc925 !important;
+        }
+        #fileIcon file-icon {
+          padding-left: 10px;
+        }
+        #statusMessage span {
+          background: #373737;
+          color: #fff;
+          font-size: 1em !important;
+        }
+        .none {
+          display: none;
+        }
+        .button-container {
+          display: inline;
+        }
+        .button-container paper-button {
+          text-transform: none;
+          color: #674c4f;
+          padding: 0;
+          margin: 0;
+        }
+      </style>
+      <div class="main">
+        <div id="fileStatusInfo">
+          <div id="uploadFile">
+            <div id="fileIcon">
+              <file-icon mime-type="[[fileMimeType]]"></file-icon>
             </div>
+            <div id="fileInfo">
+              <div id="fileName">
+                <div id="fileNameHolder">[[fileName]]</div>
+              </div>
+              <div id="statusMessage">
+                <span>Status:</span>
+                <label
+                  id="message"
+                  class$="[[_computedClass(hasError, isComplete, inProgress)]]"
+                  >[[message]]</label
+                >
+                <label id="button-container" class="none">
+                  <paper-button on-click="_detailError"
+                    >File upload failed! Click here for details.</paper-button
+                  >
+                </label>
+              </div>
+            </div>
+            <div id="statusIcon">
+              <template is="dom-if" if="[[isComplete]]" restamp>
+                <div class="statusContent">
+                  <iron-icon icon="icons:check-circle" class="completeIcon"></iron-icon>
+                </div>
+              </template>
+              <template is="dom-if" if="[[hasError]]" restamp>
+                <div class="statusContent">
+                  <iron-icon icon="icons:warning" class="errorIcon"></iron-icon>
+                </div>
+              </template>
+              <template is="dom-if" if="[[inProgress]]" restamp>
+                <div class="statusContent">
+                  <b class="progressIcon">[[progressValue]]</b>
+                </div>
+              </template>
+            </div>
+          </div>
+          <div id="progressBar">
+            <paper-progress indeterminate></paper-progress>
+          </div>
         </div>
-`;
-  }
+      </div>
+    `;
+    }
 
-  constructor(fileName, fileType, fileMimeType)
-  {
-      super();
-      this.fileName = fileName;
-      this.fileType = fileType;
-      this.fileMimeType = fileMimeType;
-  }
+    static get is() {
+        return 'upload-toast-file';
+    }
 
-  static get is()
-  {
-      return 'upload-toast-file';
-  }
+    static get properties() {
+        return {
+            fileName: {
+                type: String,
+                notify: true,
+            },
+            fileType: {
+                type: String,
+                notify: true,
+            },
+            fileMimeType: {
+                type: String,
+                notify: true,
+            },
+            isComplete: {
+                type: Boolean,
+                value: false,
+                notify: true,
+            },
+            hasError: {
+                type: Boolean,
+                value: false,
+                notify: true,
+            },
+            inProgress: {
+                type: Boolean,
+                value: true,
+                notify: true,
+            },
+            message: {
+                type: String,
+                value: 'uploading...',
+                notify: true,
+                observer: '_messageChanged',
+            },
+            progressValue: {
+                type: String,
+                notify: true,
+            },
+        };
+    }
 
-  static get properties()
-  {
-      return {
-          fileName: {
-              type: String,
-              notify: true
-          },
-          fileType: {
-              type: String,
-              notify: true
-          },
-          fileMimeType: {
-              type: String,
-              notify: true
-          },
-          isComplete: {
-              type: Boolean,
-              value: false,
-              notify: true
-          },
-          hasError: {
-              type: Boolean,
-              value: false,
-              notify: true
-          },
-          inProgress: {
-              type: Boolean,
-              value: true,
-              notify: true
-          },
-          message: {
-              type: String,
-              value: "uploading...",
-              notify: true,
-              observer: '_messageChanged'
-          },
-          progressValue: {
-              type: String,
-              notify: true
-          }
-      }
-  }
+    constructor() {
+        super();
+    }
 
-  _computedClass(hasError,isComplete,inProgress)
-  {
-      let classes = '';
-      if (hasError) {
-          classes += ' error';
-      } else if (isComplete) {
-          classes += ' complete';
-      } else if (inProgress) {
-          classes += ' progress';
-      }
+    _computedClass(hasError, isComplete, inProgress) {
+        let classes = '';
+        if (hasError) {
+            classes += 'error';
+        } else if (isComplete) {
+            classes += 'complete';
+        } else if (inProgress) {
+            classes += 'progress';
+        }
+        this.updateStyles();
+        return classes;
+    }
 
-      this.updateStyles();
+    _messageChanged(message) {
+        if (message === '') {
+            this.$['button-container'].classList.replace('none', 'button-container');
+            this.$['message'].style.display = 'none';
+        } else {
+            this.$['button-container'].classList.add('none');
+            this.$['message'].style.display = 'inline';
+        }
+    }
 
-      return classes;
-  }
-  _messageChanged(message)
-  {
-      if (message === "") {
-          this.$['button-container'].classList.replace('none', 'button-container');
-          this.$['message'].style.display = 'none';
-      } else {
-          this.$['button-container'].classList.add('none');
-          this.$['message'].style.display = 'inline';
-      }
-  }
-  _detailError()
-  {
-      const content = new UploadErrorDialog();
-      this.dispatchEvent(
-          new CustomEvent('dv-namespace-open-central-dialogbox', {
-              detail: {node: content}, bubbles: true, composed: true})
-      );
-  }
+    _detailError() {
+        const content = document.createElement('upload-error-dialog');
+        this.dispatchEvent(
+            new CustomEvent('dv-namespace-open-central-dialogbox', {
+                detail: { node: content },
+                bubbles: true,
+                composed: true,
+            })
+        );
+    }
 }
-window.customElements.define(UploadToastFile.is, UploadToastFile)
+
+customElements.define(UploadToastFile.is, UploadToastFile);

@@ -1,6 +1,8 @@
 import {PolymerElement, html} from '@polymer/polymer/polymer-element.js';
 import '@polymer/iron-icon/iron-icon.js';
+/*
 import './file-icon.js'; // Adjust path to your file-icon component
+*/
 
 class DragEnterToast extends PolymerElement {
     static get is() {

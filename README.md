@@ -144,7 +144,7 @@ interested in these following generated files/directories:
 
     - index.html
     - robots.txt
-    - bower_components/
+    - node_modules/
     - elements/
     - favicons/
     - scripts/

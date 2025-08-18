@@ -1,80 +1,115 @@
-class ShareableFileGeneration extends DcacheViewMixins.Commons(Polymer.Element)
-{
-    constructor(fn,fp,auth,ft)
-    {
-        super();
-        this.fileName = fn;
-        this.fullPath = fp;
-        if (auth) {
-            this.authenticationParameters = auth;
-        }
-        this.fileType = ft;
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
 
-        this._generateListener = this._generateResponseListener.bind(this)
+import '../shareable-request-form/shareable-request-form.js';
+import '../shareable-successful-page/shareable-successful-page.js';
+import '../shareable-error-page/shareable-error-page.js';
+
+class ShareableFileGeneration extends PolymerElement {
+    static get template() {
+        return html`
+      <style>
+        :host {
+          display: flex;
+          flex-direction: column;
+          margin: 0 -24px !important;
+          width: 80vw;
+          height: 80vh;
+          font-size: 0.8em;
+          background: #fff;
+          box-sizing: border-box;
+          padding: 0 !important;
+        }
+        app-toolbar {
+          height: 40px;
+          min-height: 40px;
+          letter-spacing: .0125em;
+          -webkit-font-smoothing: antialiased;
+          background: #fff;
+          color: #222;
+          font-weight: normal;
+          line-height: 24px;
+          font-size: 20px;
+          padding: 0 10px;
+          border-bottom: 1px solid rgba(208,208,208,.87);
+        }
+        app-toolbar paper-icon-button {
+          color: rgba(0,0,0,.87);
+          padding: 0;
+          width: 20px;
+          height: 20px;
+        }
+        #content {
+          flex: 1 1 auto;
+          display: flex;
+        }
+        .loading, .none {
+          display: none;
+        }
+        .loading[is-loading] {
+          position: absolute;
+          height: calc(100% - 40px);
+          left: 0;
+          right: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          font-size: 0.8em;
+        }
+        .loading paper-spinner {
+          width: 40px;
+          height: 40px;
+        }
+      </style>
+
+      <app-toolbar>
+        <div main-title>Share file</div>
+        <paper-icon-button icon="close" @click="_handleClose"></paper-icon-button>
+      </app-toolbar>
+
+      <div id="content" class$="[[_computedClass(loading)]]">
+        <shareable-request-form
+          id="form"
+          loading="{{loading}}"
+          file-path="[[fullPath]]"
+          file-name="[[fileName]]"
+          file-type="[[fileType]]">
+        </shareable-request-form>
+      </div>
+
+      <div class="loading" is-loading$="[[loading]]">
+        <paper-spinner alt="waiting for response" active="[[loading]]"></paper-spinner>
+        <span>processing your request ...</span>
+      </div>
+    `;
     }
-    static get is()
-    {
-        return "shareable-file-generation";
-    }
-    static get properties()
-    {
+
+    static get properties() {
         return {
             loading: {
                 type: Boolean,
                 value: false,
-                notify: true
+                notify: true,
             },
-        }
+            fullPath: String,
+            fileName: String,
+            fileType: String,
+        };
     }
-    connectedCallback()
-    {
-        super.connectedCallback();
-        window.addEventListener('dv-file-sharing-generate-response', this._generateListener);
+
+    _computedClass(loading) {
+        return loading ? 'loading' : 'none';
     }
-    disconnectedCallback()
-    {
-        super.disconnectedCallback();
-        window.removeEventListener('dv-file-sharing-generate-response', this._generateListener);
-    }
-    _computedClass(l)
-    {
-        if (l) {
-            return ' none'
-        }
-    }
-    _generateResponseListener(event)
-    {
-        const shareableLinkWorker = new Worker('./scripts/tasks/macaroon-request-task.js');
-        shareableLinkWorker.addEventListener('message', (e) => {
-            shareableLinkWorker.terminate();
-            this._handleResponse(e.data, "successful");
-        }, false);
-        shareableLinkWorker.addEventListener('error', (e) => {
-            shareableLinkWorker.terminate();
-            this._handleResponse(e)
-        }, false);
-        shareableLinkWorker.postMessage({
-            "url": this.getFileWebDavUrl(this.fullPath, "read")[0],
-            "body": {
-                "caveats": event.detail.activitiesList.length > 0 ?
-                    [`activity: ${event.detail.activitiesList.join()}`] : [],
-                "validity":`${event.detail.validity}`
-            },
-            'upauth' : this.getAuthValue(),
-        });
-    }
-    _handleResponse(payload, type)
-    {
-        let contentChild;
-        if (type === "successful") {
-            contentChild = new ShareableSuccessfulPage(this.fileName, this.fullPath, this.fileType, payload);
-        } else {
-            console.error(payload);
-            contentChild = new ShareableErrorPage(payload);
-        }
-        this.removeAllChildren(this.$["content"]);
-        this.$["content"].appendChild(contentChild);
-        this.loading = false;
+
+    _handleClose() {
+        // You can emit an event or handle dialog dismissal here
+        this.dispatchEvent(new CustomEvent('close-request', { bubbles: true, composed: true }));
     }
 }
-window.customElements.define(ShareableFileGeneration.is, ShareableFileGeneration);
+
+customElements.define('shareable-file-generation', ShareableFileGeneration);
