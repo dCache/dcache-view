@@ -1,130 +1,157 @@
+/*
 import React, { useState, useEffect } from "react";
-import { Table, Dropdown, Menu, Button, Input, message } from "antd";
-import { useNavigate } from "react-router-dom";
-import { FolderOutlined, FileOutlined, DownOutlined } from "@ant-design/icons";
-import axios from "axios";
 
 export function Labels() {
-    const navigate = useNavigate();
+    const [labels, setLabels] = useState([]);
 
-    const [folderName, setFolderName] = useState(""); // input box value
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [expandedRowKeys, setExpandedRowKeys] = useState([]);
-
-    const toggleExpand = (key) => {
-        setExpandedRowKeys((prev) =>
-            prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-        );
-    };
-
-    const fetchFolderData = async () => {
-        if (!folderName.trim()) return;
-        setLoading(true);
-        try {
-            const res = await axios.get(
-                `http://localhost:3880/api/v1/labels/${folderName}?children=true&offset=0&limit=10000&qos=true`,
-                {
+    useEffect(() => {
+        const fetchLabels = async () => {
+            try {
+                const res = await fetch("http://localhost:3880/api/v1/labels/", {
                     headers: {
-                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        ContentType: "application/json",
                         Authorization: "Basic YWRtaW46ZGlja2VyZWxjaA==",
                     },
-                }
-            );
-            setData(res.data.children || []);
+                });
+                const json = await res.json();
+                setLabels(json.labels || []);
+            } catch (error) {
+                console.error("Error fetching labels:", error);
+            }
+        };
+
+        fetchLabels();
+    }, []);
+
+    return (
+        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+            {labels.length === 0 ? (
+                <p>No labels found.</p>
+            ) : (
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    {labels.map((label) => (
+                        <button
+                            key={label}
+                            style={{
+                                padding: "8px 16px",
+                                border: "1px solid #007bff",
+                                borderRadius: "5px",
+                                backgroundColor: "#f0f8ff",
+                                cursor: "pointer",
+                            }}
+                            onClick={() => alert(`You clicked: ${label}`)}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}*/
+
+import React, { useState, useEffect } from "react";
+
+export function Labels() {
+    const [labels, setLabels] = useState([]);
+    const [token, setToken] = useState(""); // store JWT
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+
+    // Login to get explicit JWT
+    const handleLogin = async () => {
+        setError("");
+        try {
+            const res = await fetch("http://localhost:3880/api/v1/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+            if (!res.ok) throw new Error("Invalid credentials");
+            const data = await res.json();
+            setToken(data.token); // save JWT
         } catch (err) {
-            console.error(err);
-            message.error("Failed to fetch folder data");
-        } finally {
-            setLoading(false);
+            setError(err.message);
         }
     };
 
-    const columns = [
-        {
-            title: "Name",
-            dataIndex: "fileName",
-            key: "fileName",
-            render: (_, record) => {
-                const isFolder = record.children && record.children.length > 0;
-                const isExpanded = expandedRowKeys.includes(record.fileName);
-                return (
-                    <div
-                        style={{ display: "flex", alignItems: "center", cursor: isFolder ? "pointer" : "default" }}
-                        onClick={() => isFolder && toggleExpand(record.fileName)}
-                    >
-                        {isFolder ? (
-                            <FolderOutlined
-                                style={{
-                                    marginRight: 8,
-                                    transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
-                                    transition: "transform 0.2s",
-                                }}
-                            />
-                        ) : (
-                            <FileOutlined style={{ marginRight: 8 }} />
-                        )}
-                        {record.fileName}
-                    </div>
-                );
-            },
-        },
-        {
-            key: "action",
-            fixed: "right",
-            render: (_, record) => {
-                const isFolder = record.children && record.children.length > 0;
+    useEffect(() => {
+        if (!token) return; // don't fetch if no token
 
-                const menu = (
-                    <Menu
-                        onClick={({ key }) => {
-                            if (key === "open" && isFolder) navigate(`/namespace/${record.fileName}`);
-                            if (key === "rename") console.log("Rename:", record.fileName);
-                            if (key === "move") console.log("Move:", record.fileName);
-                        }}
-                        items={[
-                            { label: "Open", key: "open" },
-                            { label: "Move", key: "move" },
-                            { label: "Rename", key: "rename" },
-                        ]}
+        const fetchLabels = async () => {
+            try {
+                const res = await fetch("http://localhost:3880/api/v1/labels/", {
+                    headers: {
+                        Accept: "application/json",
+                        ContentType: "application/json",
+                        Authorization: `Bearer ${token}`, // use JWT
+                    },
+                });
+                const json = await res.json();
+                setLabels(json.labels || []);
+            } catch (error) {
+                console.error("Error fetching labels:", error);
+            }
+        };
+
+        fetchLabels();
+    }, [token]);
+
+    if (!token) {
+        // show login form if not logged in
+        return (
+            <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+                <h2>Login to Access Labels</h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "300px" }}>
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        style={{ padding: "8px" }}
                     />
-                );
-
-                return (
-                    <Dropdown overlay={menu}>
-                        <Button size="small">
-                            Actions <DownOutlined />
-                        </Button>
-                    </Dropdown>
-                );
-            },
-        }
-    ];
-
-    return (
-        <div>
-            <div style={{ marginBottom: 16, display: "flex", gap: 8 }}>
-                <Input
-                    placeholder="Enter folder name"
-                    value={folderName}
-                    onChange={(e) => setFolderName(e.target.value)}
-                    onPressEnter={fetchFolderData}
-                    style={{ width: 300 }}
-                />
-                <Button type="primary" onClick={fetchFolderData}>
-                    Show Files
-                </Button>
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        style={{ padding: "8px" }}
+                    />
+                    <button onClick={handleLogin} style={{ padding: "10px", cursor: "pointer" }}>
+                        Login
+                    </button>
+                    {error && <p style={{ color: "red" }}>{error}</p>}
+                </div>
             </div>
+        );
+    }
 
-            <Table
-                dataSource={data}
-                columns={columns}
-                rowKey="fileName"
-                loading={loading}
-                pagination={false}
-                expandedRowKeys={expandedRowKeys}
-                onExpand={(expanded, record) => toggleExpand(record.fileName)}
-            />
+    // show labels if logged in
+    return (
+        <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
+            {labels.length === 0 ? (
+                <p>No labels found.</p>
+            ) : (
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    {labels.map((label) => (
+                        <button
+                            key={label}
+                            style={{
+                                padding: "8px 16px",
+                                border: "1px solid #007bff",
+                                borderRadius: "5px",
+                                backgroundColor: "#f0f8ff",
+                                cursor: "pointer",
+                            }}
+                            onClick={() => alert(`You clicked: ${label}`)}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
